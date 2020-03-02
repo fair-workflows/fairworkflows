@@ -1,9 +1,9 @@
-################################################################################
-DemoFlask
+FAIRWorkbench
 ################################################################################
 
-Demo python library for annotating workflows
+Repository for components of the FAIR Workbench.
 
+<!---
 RUN
 *************
 .. code-block:: console
@@ -229,3 +229,6 @@ Credits
 *******
 
 This package was created with `Cookiecutter <https://github.com/audreyr/cookiecutter>`_ and the `NLeSC/python-template <https://github.com/NLeSC/python-template>`_.
+
+
+--->
