@@ -67,6 +67,9 @@ class FairWorkflow:
     def __str__(self):
         return self.get_rdf().serialize(format='turtle').decode("utf-8")
 
+    def rdf_to_file(self, fname, format='turtle'):
+        return self.get_rdf().serialize(destination=fname, format=format)
+        
 
 class FairStepEntry:
     def __init__(self, rdf_node, func, args, kwargs, rdf_graph):
@@ -121,7 +124,7 @@ def FairStep(fairworkflow):
             rdf.add((this_step, RDF.type, PPLAN.Step))
             rdf.add((this_step, RDF.type, BPMN.scriptTask))
             rdf.add((this_step, PPLAN.isStepOfPlan, fairworkflow.this_workflow))
-            
+
             for var, arg in zip(func.__code__.co_varnames, args):
                 rdf.add((PLEX[var], RDF.type, PPLAN.Variable))
                 rdf.add((this_step, PPLAN.hasInputVar, PLEX[var]))

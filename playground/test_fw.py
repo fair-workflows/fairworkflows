@@ -31,11 +31,8 @@ input2 = 5
 output1 = add(input1, input2)
 output2 = mult(output1, input2)
 
-
 # 4. Output workflow as RDF triples
-print("metadata:\n")
-print(fw)
-
+fw.rdf_to_file("test.rdf", format='turtle')
 
 # 5. Execute the workflow
 print("Executing workflow:")
