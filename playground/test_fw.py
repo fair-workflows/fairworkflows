@@ -1,6 +1,11 @@
 from fairworkflow import FairWorkflow, FairStep
 
+
+# 1. Create a new (empty) workflow
 fw = FairWorkflow(name='add_and_multiply_workflow')
+
+
+# 2. Define some steps
 
 @FairStep(fw)
 def add(int1, int2):
@@ -20,22 +25,19 @@ def mult(int1, int2):
 
 
 
-
-
-
-# Execute workflow
-
+# 3. Construct the workflow
 input1 = 3
 input2 = 5
-
 output1 = add(input1, input2)
-
 output2 = mult(output1, input2)
 
+
+# 4. Output workflow as RDF triples
 print("metadata:\n")
 print(fw)
 
+
+# 5. Execute the workflow
 print("Executing workflow:")
 result = fw.execute()
-
 print("Result:", result)
