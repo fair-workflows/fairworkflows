@@ -44,9 +44,18 @@ class FairWorkflow:
             meta += "\n"
 
             # Workflow metadata
+            first_step = self.flow[0]
             plan_rdf = []
             plan_rdf.append(RDFtriple(self.name, 'rdf:type', 'dul:workflow'))
-            plan_rdf.append(RDFtriple(self.name, 'pwo:hasFirstStep', self.flow[0].name))
+            plan_rdf.append(RDFtriple(self.name, 'pwo:hasFirstStep', first_step.name))
+            for var, arg in zip(first_step.func.__code__.co_varnames, first_step.args):
+                varname = "plex:" + var
+                binding = varname + "#" + str(arg)
+                plan_rdf.append(RDFtriple(self.name, "prov:qualifiedUsage", binding))
+                plan_rdf.append(RDFtriple(binding, "rdf:type", "prov:Usage"))
+                plan_rdf.append(RDFtriple(binding, "prov:entity", varname))
+                plan_rdf.append(RDFtriple(binding, "rdf:value", f'"{str(arg)}"^^xsd:{str(type(arg))}'))
+
             meta += '\n'.join([str(s) for s in plan_rdf]) + '\n\n'
 
             # Steps metadata
@@ -103,7 +112,6 @@ def FairStep(fairworkflow):
 
             stepname = "plex:" + func.__name__
 
-            metadata.append(RDFtriple(stepname, "edam:type", "p-plan:Step"))
             metadata.append(RDFtriple(stepname, "rdf:type", "p-plan:Step"))
             metadata.append(RDFtriple(stepname, "rdf:type", "bpmn:scriptTask"))
             metadata.append(RDFtriple(stepname, "p-plan:isStepOfPlan", fairworkflow.name))
