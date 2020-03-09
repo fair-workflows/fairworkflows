@@ -33,6 +33,16 @@ class FairWorkflow:
         meta = ''
         if len(self.flow) > 0:
 
+            # Prefix header
+            meta += "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            meta += "@prefix p-plan: <http://purl.org/net/p-plan#>\n"
+            meta += "@prefix plex <https://github.com/perma-id/w3id.org/tree/master/fair/plex>\n"
+            meta += "@prefix edam <http://edamontology.org/>\n"
+            meta += "@prefix prov: <http://www.w3.org/ns/prov#>\n"
+            meta += "@prefix dul: <http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite>\n"
+            meta += "@prefix bpmn <https://www.omg.org/spec/BPMN/>\n"
+            meta += "\n"
+
             # Workflow metadata
             plan_rdf = []
             plan_rdf.append(RDFtriple(self.name, 'rdf:type', 'dul:workflow'))
