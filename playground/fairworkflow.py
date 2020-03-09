@@ -11,27 +11,27 @@ class RDFtriple:
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
         self.name = 'plex:' + name
-        self.flow = []
+        self.steps = []
 
     def add_step(self, fairstep):
-        self.flow.append(fairstep)
+        self.steps.append(fairstep)
 
     def execute(self):
         running = True
         while running:
-            for step in self.flow:
+            for step in self.steps:
                 running = False
                 if step.execute() is False:
                     running = True
 
-        return self.flow[-1].get_result()
+        return self.steps[-1].get_result()
 
     def __str__(self):
         """
             Build RDF metadata for entire FAIR Workflow
         """
         meta = ''
-        if len(self.flow) > 0:
+        if len(self.steps) > 0:
 
             # Prefix header
             meta += "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -44,7 +44,7 @@ class FairWorkflow:
             meta += "\n"
 
             # Workflow metadata
-            first_step = self.flow[0]
+            first_step = self.steps[0]
             plan_rdf = []
             plan_rdf.append(RDFtriple(self.name, 'rdf:type', 'dul:workflow'))
             plan_rdf.append(RDFtriple(self.name, 'pwo:hasFirstStep', first_step.name))
@@ -59,7 +59,7 @@ class FairWorkflow:
             meta += '\n'.join([str(s) for s in plan_rdf]) + '\n\n'
 
             # Steps metadata
-            meta += "\n".join([str(s) for s in self.flow]) + '\n'
+            meta += "\n".join([str(s) for s in self.steps]) + '\n'
 
         return meta
 
