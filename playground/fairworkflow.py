@@ -1,5 +1,6 @@
 import rdflib
 from rdflib.namespace import RDF, DC
+import inspect
 
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan/")
 PLEX = rdflib.Namespace("https://plex.org/")
@@ -133,8 +134,9 @@ def FairStep(fairworkflow):
                     rdf.add((PLEX[var], PPLAN.isOutputVarOf, arg.this_step))
                     rdf.add((arg.this_step, DUL.precedes, this_step))
 
-            if func.__doc__:
-                rdf.add((this_step, DC.description, rdflib.Literal(f'"{func.__doc__.strip()}"')))
+            # Grab entire function's source code for step 'description'
+            func_src = inspect.getsource(func)
+            rdf.add((this_step, DC.description, rdflib.Literal(func_src)))
 
             # Add the new step to the workflow
             fairstep = FairStepEntry(this_step, func, args, kwargs, rdf)

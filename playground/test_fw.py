@@ -38,3 +38,5 @@ fw.rdf_to_file("test.rdf", format='turtle')
 print("Executing workflow:")
 result = fw.execute()
 print("Result:", result)
+
+
