@@ -5,6 +5,7 @@ from fairworkflow import FairWorkflow, FairStep
 fw = FairWorkflow(name='add_and_multiply_workflow')
 
 
+
 # 2. Define some steps
 
 @FairStep(fw)
@@ -39,4 +40,5 @@ print("Executing workflow:")
 result = fw.execute()
 print("Result:", result)
 
-
+# 6. Publish the workflow
+fw.nanopublish("https://some.fdp.server/")
