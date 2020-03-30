@@ -1,6 +1,7 @@
 import rdflib
-from rdflib.namespace import RDF, DC
+from rdflib.namespace import RDF, RDFS, DC, XSD, OWL 
 import inspect
+from datetime import datetime
 
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan/")
 PLEX = rdflib.Namespace("https://plex.org/")
@@ -9,12 +10,12 @@ PROV = rdflib.Namespace("http://www.w3.org/ns/prov/")
 DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
 BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
 PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
-
+RDFG = rdflib.Namespace("http://www.w3.org/2004/03/trix/rdfg-1/")
+NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
         self.this_workflow = PLEX[name]
-        self.name = name
         self.steps = []
 
     def add_step(self, fairstep):
@@ -45,6 +46,9 @@ class FairWorkflow:
         rdf.bind("prov", PROV)
         rdf.bind("dul", DUL)
         rdf.bind("bpmn", BPMN)
+        rdf.bind("pwo", PWO)
+        rdf.bind("rdfg", RDFG)
+        rdf.bind("np", NP)
 
         # Add steps metadata
         if len(self.steps) > 0:
@@ -87,10 +91,48 @@ class FairStepEntry:
         self.result = None
 
     def nanopublish(self, url=None):
+
+        NP_URL = rdflib.Namespace("http://example.org/")
+        CONTEXT = rdflib.Namespace("http://example.org/pub1#")
+
+        # Set up different contexts
+        conj = rdflib.ConjunctiveGraph()
+        head = rdflib.Graph(conj.store, CONTEXT.head)
+        assertion = rdflib.Graph(conj.store, CONTEXT.assertion)
+        provenance = rdflib.Graph(conj.store, CONTEXT.provenance)
+        pubInfo = rdflib.Graph(conj.store, CONTEXT.pubInfo)
+
+        conj.bind(":", CONTEXT)
+
+#        np_rdf.bind("p-plan", PPLAN)
+#        np_rdf.bind("plex", PLEX)
+#        np_rdf.bind("edam", EDAM)
+#        np_rdf.bind("prov", PROV)
+#        np_rdf.bind("dul", DUL)
+#        np_rdf.bind("bpmn", BPMN)
+#        np_rdf.bind("pwo", PWO)
+#        np_rdf.bind("rdfg", RDFG)
+#        np_rdf.bind("np", NP)
+
+        head.add((NP_URL.pub1, RDF.type, NP.Nanopublication))
+        head.add((NP_URL.pub1, NP.hasAssertion, CONTEXT.assertion))
+        head.add((NP_URL.pub1, NP.hasProvenance, CONTEXT.provenance))
+        head.add((NP_URL.pub1, NP.hasPublicationInfo, CONTEXT.pubInfor))
+
+        assertion += self.rdf # A (temporary) misuse of nanopublications
+
+        creationtime = rdflib.Literal(datetime.now(),datatype=XSD.date)
+        provenance.add((CONTEXT.assertion, PROV.generatedAtTime, creationtime))
+        provenance.add((CONTEXT.assertion, PROV.wasDerivedFrom, NP_URL.experiment)) 
+        provenance.add((CONTEXT.assertion, PROV.wasAttributedTo, NP_URL.experimentScientist))
+
+        pubInfo.add((NP_URL.pub1, PROV.wasAttributedTo, NP_URL.DrBob))
+        pubInfo.add((NP_URL.pub1, PROV.generatedAtTime, creationtime))
+
+        # Convert nanopub rdf to trig
         stepname = str(self.func).replace(' ', '')
         fname = f'step_{stepname}.trig'
-        self.get_rdf().serialize(destination=fname, format='trig')
-
+        conj.serialize(destination=fname, format='trig')
 
     def execute(self):
         resolved_args = []
