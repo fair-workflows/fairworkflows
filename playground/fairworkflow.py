@@ -90,49 +90,53 @@ class FairStepEntry:
         self.executed = False
         self.result = None
 
+
     def nanopublish(self, url=None):
 
-        NP_URL = rdflib.Namespace("http://example.org/")
-        CONTEXT = rdflib.Namespace("http://example.org/pub1#")
+        THIS = rdflib.Namespace("http://example.org/")
+        SUB = rdflib.Namespace("http://example.org/pub1#")
 
         # Set up different contexts
-        conj = rdflib.ConjunctiveGraph()
-        head = rdflib.Graph(conj.store, CONTEXT.head)
-        assertion = rdflib.Graph(conj.store, CONTEXT.assertion)
-        provenance = rdflib.Graph(conj.store, CONTEXT.provenance)
-        pubInfo = rdflib.Graph(conj.store, CONTEXT.pubInfo)
+        np_rdf = rdflib.ConjunctiveGraph()
+        head = rdflib.Graph(np_rdf.store, SUB.head)
+        assertion = rdflib.Graph(np_rdf.store, SUB.assertion)
+        provenance = rdflib.Graph(np_rdf.store, SUB.provenance)
+        pubInfo = rdflib.Graph(np_rdf.store, SUB.pubInfo)
 
-        conj.bind(":", CONTEXT)
+        np_rdf.bind("this", THIS)
+        np_rdf.bind("sub", SUB)
+        np_rdf.bind("np", NP)
 
-#        np_rdf.bind("p-plan", PPLAN)
-#        np_rdf.bind("plex", PLEX)
-#        np_rdf.bind("edam", EDAM)
-#        np_rdf.bind("prov", PROV)
-#        np_rdf.bind("dul", DUL)
-#        np_rdf.bind("bpmn", BPMN)
-#        np_rdf.bind("pwo", PWO)
-#        np_rdf.bind("rdfg", RDFG)
-#        np_rdf.bind("np", NP)
+        np_rdf.bind("p-plan", PPLAN)
+        np_rdf.bind("plex", PLEX)
+        np_rdf.bind("edam", EDAM)
+        np_rdf.bind("prov", PROV)
+        np_rdf.bind("dul", DUL)
+        np_rdf.bind("bpmn", BPMN)
+        np_rdf.bind("pwo", PWO)
+        np_rdf.bind("rdfg", RDFG)
 
-        head.add((NP_URL.pub1, RDF.type, NP.Nanopublication))
-        head.add((NP_URL.pub1, NP.hasAssertion, CONTEXT.assertion))
-        head.add((NP_URL.pub1, NP.hasProvenance, CONTEXT.provenance))
-        head.add((NP_URL.pub1, NP.hasPublicationInfo, CONTEXT.pubInfor))
+
+
+        head.add((THIS[''], RDF.type, NP.Nanopublication))
+        head.add((THIS[''], NP.hasAssertion, SUB.assertion))
+        head.add((THIS[''], NP.hasProvenance, SUB.provenance))
+        head.add((THIS[''], NP.hasPublicationInfo, SUB.pubInfo))
 
         assertion += self.rdf # A (temporary) misuse of nanopublications
 
         creationtime = rdflib.Literal(datetime.now(),datatype=XSD.date)
-        provenance.add((CONTEXT.assertion, PROV.generatedAtTime, creationtime))
-        provenance.add((CONTEXT.assertion, PROV.wasDerivedFrom, NP_URL.experiment)) 
-        provenance.add((CONTEXT.assertion, PROV.wasAttributedTo, NP_URL.experimentScientist))
+        provenance.add((SUB.assertion, PROV.generatedAtTime, creationtime))
+        provenance.add((SUB.assertion, PROV.wasDerivedFrom, THIS.experiment)) 
+        provenance.add((SUB.assertion, PROV.wasAttributedTo, THIS.experimentScientist))
 
-        pubInfo.add((NP_URL.pub1, PROV.wasAttributedTo, NP_URL.DrBob))
-        pubInfo.add((NP_URL.pub1, PROV.generatedAtTime, creationtime))
+        pubInfo.add((THIS[''], PROV.wasAttributedTo, THIS.DrBob))
+        pubInfo.add((THIS[''], PROV.generatedAtTime, creationtime))
 
         # Convert nanopub rdf to trig
         stepname = str(self.func).replace(' ', '')
         fname = f'step_{stepname}.trig'
-        conj.serialize(destination=fname, format='trig')
+        np_rdf.serialize(destination=fname, format='trig')
 
     def execute(self):
         resolved_args = []
