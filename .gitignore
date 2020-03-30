@@ -3,6 +3,9 @@
 *.eggs
 .ipynb_checkpoints
 
+*.trig
+*.rdf
+
 build
 dist
 .cache
