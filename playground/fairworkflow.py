@@ -14,6 +14,7 @@ PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
         self.this_workflow = PLEX[name]
+        self.name = name
         self.steps = []
 
     def add_step(self, fairstep):
@@ -71,6 +72,9 @@ class FairWorkflow:
     def rdf_to_file(self, fname, format='turtle'):
         return self.get_rdf().serialize(destination=fname, format=format)
         
+    def nanopublish(self, url=None):
+        for step in self.steps:
+            step.nanopublish(url=url)
 
 class FairStepEntry:
     def __init__(self, rdf_node, func, args, kwargs, rdf_graph):
@@ -81,6 +85,12 @@ class FairStepEntry:
         self.rdf = rdf_graph
         self.executed = False
         self.result = None
+
+    def nanopublish(self, url=None):
+        stepname = str(self.func).replace(' ', '')
+        fname = f'step_{stepname}.trig'
+        self.get_rdf().serialize(destination=fname, format='trig')
+
 
     def execute(self):
         resolved_args = []
