@@ -15,6 +15,10 @@ def cli():
 @click.command()
 @click.option('--name', prompt='Name of the workflow')
 def create_workflow(name):
+    """
+    Create a new workflow interactively.
+    @param name:
+    """
     steps = []
     # Prompt for steps
     while True:
@@ -26,10 +30,13 @@ def create_workflow(name):
         steps.append({'name': step_name, 'description': step_description})
 
     template = env.get_template('fair_step.py')
+
+    # TODO: Add option to specify target dir
     workflow_dir = Path(name)
 
     workflow_dir.mkdir()
 
+    # Store every step in a separate file in the workflow directory
     for step in steps:
         filename = step['name'] + '.py'
         with (workflow_dir / filename).open('w') as f:
