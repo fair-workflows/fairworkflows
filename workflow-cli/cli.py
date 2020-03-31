@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+from pathlib import Path
 import click
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -25,9 +25,15 @@ def create_workflow(name):
         step_description = input(f'What does {step_name} do? ')
         steps.append({'name': step_name, 'description': step_description})
 
-    template = env.get_template('FairWorkflow.py')
-    with open(f'{name}.py', 'w') as f:
-        f.write(template.render(workflow_name=name, steps=steps))
+    template = env.get_template('fair_step.py')
+    workflow_dir = Path(name)
+
+    workflow_dir.mkdir()
+
+    for step in steps:
+        filename = step['name'] + '.py'
+        with (workflow_dir / filename).open('w') as f:
+            f.write(template.render(**step))
 
 
 cli.add_command(create_workflow)
