@@ -25,7 +25,6 @@ def create_workflow(name):
         step_description = input(f'What does {step_name} do? ')
         steps.append({'name': step_name, 'description': step_description})
 
-
     template = env.get_template('FairWorkflow.py')
     with open(f'{name}.py', 'w') as f:
         f.write(template.render(workflow_name=name, steps=steps))
