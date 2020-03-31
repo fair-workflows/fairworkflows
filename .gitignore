@@ -25,3 +25,4 @@ docs/apidocs
 .vscode
 
 env/
+venv/
