@@ -32,7 +32,8 @@ define([
 
     // Publish the selected cell
     var publish_FAIR_step = function() {
-        alert('Step published!');
+        var cell = Jupyter.notebook.get_selected_cell();
+        alert('Step published!\n' + cell.get_text());
     };
 
     // Publish the whole workflow
