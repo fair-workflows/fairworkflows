@@ -38,7 +38,8 @@ define([
 
     // Publish the whole workflow
     var publish_FAIR_workflow = function() {
-        alert('Workflow published!');
+        var num_cells = Jupyter.notebook.get_cells().length
+        alert('Workflow published! Consisted of ' + num_cells + ' steps.');
     };
 
     return {
