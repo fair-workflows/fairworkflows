@@ -93,8 +93,10 @@ class FairStepEntry:
 
     def nanopublish(self, url=None):
 
-        THIS = rdflib.Namespace("http://example.org/")
-        SUB = rdflib.Namespace("http://example.org/pub1#")
+        np_uri = "http://www.example.org/pub1"
+
+        THIS = rdflib.Namespace(np_uri)
+        SUB = rdflib.Namespace(np_uri+"#")
 
         # Set up different contexts
         np_rdf = rdflib.ConjunctiveGraph()
