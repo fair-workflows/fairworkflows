@@ -22,8 +22,8 @@ define([
         Jupyter.CellToolbar.register_callback('FAIRcell', toggle)
         Jupyter.CellToolbar.global_show()
 
-        //Jupyter.CellToolbar.register_preset('FAIRWorkflows',['FAIRcell','default.rawedit'   ])
         Jupyter.CellToolbar.register_preset('FAIRWorkflows',['FAIRcell'])
+        Jupyter.CellToolbar.activate_preset('FAIRWorkflows')
 
         // Add publish workflow button
         Jupyter.toolbar.add_buttons_group([
