@@ -22,6 +22,7 @@ def create_workflow(name, target):
     """
     Create a new workflow interactively.
     @param name:
+    @param target:
     """
     print('Let\'s define the steps!')
     steps = prompt_continuous(['name', 'description', 'input', 'output'])
