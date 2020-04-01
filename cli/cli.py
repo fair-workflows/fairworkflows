@@ -6,6 +6,9 @@ import click
 
 from core.workflow import process_workflow
 
+SCRIPTS = 'scripts'
+PLEX = 'plex'
+CWL = 'cwl'
 
 @click.group('cli')
 def cli():
