@@ -6,7 +6,7 @@ define([
     // Button to add FAIR buttons
     var add_FAIR_buttons = function () {
 
-        // Add cell toolbars button
+        // Add cell toolbar buttons
         var add_buttons_to_celltoolbar = function(div, cell) {
 
             // Publish step button
@@ -17,13 +17,14 @@ define([
             })
             $(div).append(button_step);
 
-            // FAIRify data button
-            var button_data = $('<button/>').addClass('fa fa-check');
-            button_data.click(function(){
-                    button_data.text("Data FAIRified!");
-                    fairify_data();
+            // (Hopefully) intelligent search button
+            var button_search = $('<button/>').addClass('fa fa-search');
+            button_search.click(function(){
+                    var text = cell.get_text()
+                    result = search_FAIR_steps(text);
+                    button_search.text(result);
             })
-            $(div).append(button_data);
+            $(div).append(button_search);
         }
         Jupyter.CellToolbar.register_callback('FAIRcell', add_buttons_to_celltoolbar)
         Jupyter.CellToolbar.global_show()
@@ -31,7 +32,7 @@ define([
         Jupyter.CellToolbar.register_preset('FAIRWorkflows',['FAIRcell'])
         Jupyter.CellToolbar.activate_preset('FAIRWorkflows')
 
-        // Add publish workflow button
+        // Add FAIR Workflows related buttons
         Jupyter.toolbar.add_buttons_group([
             Jupyter.keyboard_manager.actions.register ({
                 'help': 'Publish as FAIR Workflow',
@@ -81,9 +82,9 @@ define([
         alert('Workflow published! Consisted of ' + num_cells + ' steps.');
     };
 
-    // FAIRify the data in the cell
-    var fairify_data = function() {
-        alert("FAIRifying data");
+    // Search for FAIR steps matching this text
+    var search_FAIR_steps = function(text) {
+        return "Searching for '" + text + "'";
     };
 
     return {
