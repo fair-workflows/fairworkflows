@@ -6,19 +6,25 @@ define([
     // Button to add FAIR buttons
     var add_FAIR_buttons = function () {
 
-        // Add publish cell button
+        // Add cell toolbars button
         var toggle = function(div, cell) {
-            var button = $('<button/>').addClass('fa fa-ship');
-            button.click(function(){
-                    button.text("Published!");
+
+            // Publish step button
+            var button_step = $('<button/>').addClass('fa fa-ship');
+            button_step.click(function(){
+                    button_step.text("Published!");
                     publish_FAIR_step();
             })
-            $(div).append(button);            
+            $(div).append(button_step);
+
+            // FAIRify data button
+            var button_data = $('<button/>').addClass('fa fa-check');
+            button_data.click(function(){
+                    button_data.text("Data FAIRified!");
+                    fairify_data();
+            })
+            $(div).append(button_data);
         }
-
-
-
-
         Jupyter.CellToolbar.register_callback('FAIRcell', toggle)
         Jupyter.CellToolbar.global_show()
 
@@ -50,6 +56,11 @@ define([
     var publish_FAIR_workflow = function() {
         var num_cells = Jupyter.notebook.get_cells().length
         alert('Workflow published! Consisted of ' + num_cells + ' steps.');
+    };
+
+    // FAIRify the data in the cell
+    var fairify_data = function() {
+        alert("FAIRifying data");
     };
 
     return {
