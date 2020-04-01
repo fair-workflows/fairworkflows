@@ -9,14 +9,6 @@ define([
         // Add cell toolbar buttons
         var add_buttons_to_celltoolbar = function(div, cell) {
 
-            // Publish step button
-            var button_step = $('<button/>').addClass('fa fa-ship');
-            button_step.click(function(){
-                    button_step.text("Published!");
-                    publish_FAIR_step();
-            })
-            $(div).append(button_step);
-
             // (Hopefully) intelligent search button
             var button_search = $('<button/>').addClass('fa fa-search');
             button_search.click(function(){
@@ -72,7 +64,7 @@ define([
         var cell_index = Jupyter.notebook.get_selected_index();
 
         cell.metadata.manual_step = true;
-        default_manual_text = "#Manual Step\n\n1. _ \n2. _ \n3. ...";
+        default_manual_text = "# Manual Step\n\n1. _ \n2. _ \n3. ...";
         Jupyter.notebook.insert_cell_below('markdown', cell_index).set_text(default_manual_text);
     };
 
@@ -84,7 +76,7 @@ define([
 
     // Search for FAIR steps matching this text
     var search_FAIR_steps = function(text) {
-        return "Searching for '" + text + "'";
+        return "    Searching for '" + text + "'";
     };
 
     return {
