@@ -7,18 +7,11 @@ define([
     var add_FAIR_buttons = function () {
 
         // Add publish cell button
-//        Jupyter.toolbar.add_buttons_group([
-//            Jupyter.keyboard_manager.actions.register ({
-//                'help': 'Publish cell as FAIR step',
-//                'icon': 'fa-truck',
-//                'handler': publish_FAIR_step
-//           }, 'publish-FAIR-workflow', 'Publish Step')
-//        ])
-
         var toggle = function(div, cell) {
             var button = $('<button/>').addClass('fa fa-ship');
             button.click(function(){
                     button.text("Published!");
+                    publish_FAIR_step();
             })
             $(div).append(button);            
         }
