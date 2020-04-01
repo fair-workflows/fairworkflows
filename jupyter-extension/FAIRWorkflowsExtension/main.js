@@ -58,22 +58,21 @@ define([
         step_rdf = cell.get_text()
 
         Jupyter.notebook.insert_cell_below('markdown', cell_index).set_text(step_rdf);
-           
     };
 
     // Add a new manual step cell
     var add_manual_step = function() {
         var cell = Jupyter.notebook.get_selected_cell();
         var cell_index = Jupyter.notebook.get_selected_index();
-        step_rdf = cell.get_text()
 
-        Jupyter.notebook.insert_cell_below('markdown', cell_index).set_text(step_rdf);
-           
+        cell.metadata.manual_step = true;
+        default_manual_text = "#Manual Step\n\n1. _ \n2. _ \n3. ...";
+        Jupyter.notebook.insert_cell_below('markdown', cell_index).set_text(default_manual_text);
     };
 
     // Publish the whole workflow
     var publish_FAIR_workflow = function() {
-        var num_cells = Jupyter.notebook.get_cells().length
+        var num_cells = Jupyter.notebook.get_cells().length;
         alert('Workflow published! Consisted of ' + num_cells + ' steps.');
     };
 
