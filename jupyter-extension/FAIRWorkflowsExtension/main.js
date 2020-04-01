@@ -37,7 +37,12 @@ define([
                 'help': 'Publish as FAIR Workflow',
                 'icon': 'fa-ship',
                 'handler': publish_FAIR_workflow
-            }, 'publish-FAIR-workflow', 'Publish Workflow')
+            }, 'publish-FAIR-workflow', 'FAIR Workflows'),
+            Jupyter.keyboard_manager.actions.register ({
+                'help': 'Add manual step',
+                'icon': 'fa-user-o',
+                'handler': add_manual_step
+            }, 'add-manual-FAIR-step', 'FAIR Workflows')
         ])
     }
 
@@ -50,8 +55,16 @@ define([
     var publish_FAIR_step = function() {
         var cell = Jupyter.notebook.get_selected_cell();
         var cell_index = Jupyter.notebook.get_selected_index();
-//        alert('Step published!\n' + cell.get_text());
+        step_rdf = cell.get_text()
 
+        Jupyter.notebook.insert_cell_below('markdown', cell_index).set_text(step_rdf);
+           
+    };
+
+    // Add a new manual step cell
+    var add_manual_step = function() {
+        var cell = Jupyter.notebook.get_selected_cell();
+        var cell_index = Jupyter.notebook.get_selected_index();
         step_rdf = cell.get_text()
 
         Jupyter.notebook.insert_cell_below('markdown', cell_index).set_text(step_rdf);
