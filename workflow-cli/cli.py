@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
+from typing import List, Dict
+
 import click
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -19,15 +21,7 @@ def create_workflow(name):
     Create a new workflow interactively.
     @param name:
     """
-    steps = []
-    # Prompt for steps
-    while True:
-        step_name = input('Name your step: ')
-        if (step_name is None) or step_name == '':
-            break
-
-        step_description = input(f'What does {step_name} do? ')
-        steps.append({'name': step_name, 'description': step_description})
+    steps = prompt_continuous(['name', 'description'])
 
     template = env.get_template('fair_step.py')
 
@@ -41,6 +35,28 @@ def create_workflow(name):
         filename = step['name'] + '.py'
         with (workflow_dir / filename).open('w') as f:
             f.write(template.render(**step))
+
+
+def prompt_continuous(questions: List[str]) -> List[Dict[str, str]]:
+    """
+    Contiuously prompts for a list of questions until the user doesn't specify an answer anymore.
+    @param questions:
+    @return:
+    """
+    answers = []
+    while True:
+        individual_answers = {}
+        for q in questions:
+            answer = input(f'Specify {q}: ')
+            if (answer is None) or answer == '':
+                break
+            individual_answers[q] = answer
+
+        if len(individual_answers.keys()) < len(questions):
+            break
+        answers.append(individual_answers)
+
+    return answers
 
 
 cli.add_command(create_workflow)
