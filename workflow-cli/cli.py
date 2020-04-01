@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 from typing import List, Dict
-
+import pythongen
+import rdf
 import click
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -16,25 +17,35 @@ def cli():
 
 @click.command()
 @click.option('--name', prompt='Name of the workflow')
-def create_workflow(name):
+@click.option('--target', prompt='Target directory')
+def create_workflow(name, target):
     """
     Create a new workflow interactively.
     @param name:
     """
-    steps = prompt_continuous(['name', 'description'])
+    print('Let\'s define the steps!')
+    steps = prompt_continuous(['name', 'description', 'input', 'output'])
 
     template = env.get_template('fair_step.py')
 
     # TODO: Add option to specify target dir
-    workflow_dir = Path(name)
+    workflow_dir = Path(target) / name
 
     workflow_dir.mkdir()
 
-    # Store every step in a separate file in the workflow directory
+    pythongen.render_python_workflow(steps, template, workflow_dir)
+
+    plex_file = workflow_dir / f'{name}.plex'
+    plex_workflow = _create_plex_workflow(name, steps)
+    plex_workflow.render(str(plex_file))
+
+
+def _create_plex_workflow(name, steps):
+    plex_workflow = rdf.PlexWorkflow(name)
     for step in steps:
-        filename = step['name'] + '.py'
-        with (workflow_dir / filename).open('w') as f:
-            f.write(template.render(**step))
+        plex_workflow.add_step(step['name'], step['description'])
+
+    return plex_workflow
 
 
 def prompt_continuous(questions: List[str]) -> List[Dict[str, str]]:
