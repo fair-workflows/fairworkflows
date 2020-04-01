@@ -3,17 +3,33 @@ define([
     'base/js/events'
 ], function(Jupyter, events) {
 
-    // Button to add default cell
+    // Button to add FAIR buttons
     var add_FAIR_buttons = function () {
 
         // Add publish cell button
-        Jupyter.toolbar.add_buttons_group([
-            Jupyter.keyboard_manager.actions.register ({
-                'help': 'Publish cell as FAIR step',
-                'icon': 'fa-truck',
-                'handler': publish_FAIR_step
-            }, 'publish-FAIR-workflow', 'Publish Step')
-        ])
+//        Jupyter.toolbar.add_buttons_group([
+//            Jupyter.keyboard_manager.actions.register ({
+//                'help': 'Publish cell as FAIR step',
+//                'icon': 'fa-truck',
+//                'handler': publish_FAIR_step
+//           }, 'publish-FAIR-workflow', 'Publish Step')
+//        ])
+
+        var toggle = function(div, cell) {
+            var button = $('<button/>').addClass('fa fa-ship');
+            button.click(function(){
+                    button.text("Published!");
+            })
+            $(div).append(button);            
+        }
+
+
+
+
+        Jupyter.CellToolbar.register_callback('FAIRcell', toggle)
+        Jupyter.CellToolbar.global_show()
+
+        Jupyter.CellToolbar.register_preset('FAIRWorkflows',['FAIRcell','default.rawedit'])
 
         // Add publish workflow button
         Jupyter.toolbar.add_buttons_group([
