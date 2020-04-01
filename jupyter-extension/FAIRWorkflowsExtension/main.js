@@ -42,8 +42,13 @@ define([
                 'help': 'Add manual step',
                 'icon': 'fa-user-o',
                 'handler': add_manual_step
-            }, 'add-manual-FAIR-step', 'FAIR Workflows')
-        ])
+            }, 'add-manual-FAIR-step', 'FAIR Workflows'),
+            Jupyter.keyboard_manager.actions.register ({
+                'help': 'Package as CWL tool',
+                'icon': 'fa-archive',
+                'handler': add_manual_step
+            }, 'package_as_cwl_tool', 'FAIR Workflows')
+         ])
     }
 
     // Run on start
