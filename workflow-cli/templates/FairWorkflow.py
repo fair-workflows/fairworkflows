@@ -1,7 +1,5 @@
 from fairworkflow import FairWorkflow, FairStep
 
-{{steps}}
-
 # 1. Create a new (empty) workflow
 fw = FairWorkflow(name={{workflow_name}})
 

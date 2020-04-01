@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-
+from pathlib import Path
+from typing import List, Dict
+import pythongen
+import rdf
 import click
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -14,21 +17,58 @@ def cli():
 
 @click.command()
 @click.option('--name', prompt='Name of the workflow')
-def create_workflow(name):
-    steps = []
-    # Prompt for steps
+@click.option('--target', prompt='Target directory')
+def create_workflow(name, target):
+    """
+    Create a new workflow interactively.
+    @param name:
+    @param target:
+    """
+    print('Let\'s define the steps!')
+    steps = prompt_continuous(['name', 'description', 'input', 'output'])
+
+    template = env.get_template('fair_step.py')
+
+    # TODO: Add option to specify target dir
+    workflow_dir = Path(target) / name
+
+    workflow_dir.mkdir()
+
+    pythongen.render_python_workflow(steps, template, workflow_dir)
+
+    plex_file = workflow_dir / f'{name}.plex'
+    plex_workflow = _create_plex_workflow(name, steps)
+    plex_workflow.render(str(plex_file))
+
+
+def _create_plex_workflow(name, steps):
+    plex_workflow = rdf.PlexWorkflow(name)
+    for step in steps:
+        plex_workflow.add_step(step['name'], step['description'])
+
+    return plex_workflow
+
+
+def prompt_continuous(questions: List[str]) -> List[Dict[str, str]]:
+    """
+    Contiuously prompts for a list of questions until the user doesn't specify an answer anymore.
+    @param questions:
+    @return:
+    """
+    answers = []
     while True:
-        step_name = input('Name your step: ')
-        if (step_name is None) or step_name == '':
+        individual_answers = {}
+        for q in questions:
+            answer = input(f'Specify {q}: ')
+            if (answer is None) or answer == '':
+                break
+            individual_answers[q] = answer
+
+        if len(individual_answers.keys()) < len(questions):
             break
+        answers.append(individual_answers)
 
-        step_description = input(f'What does {step_name} do? ')
-        steps.append({'name': step_name, 'description': step_description})
-
-
-    template = env.get_template('FairWorkflow.py')
-    with open(f'{name}.py', 'w') as f:
-        f.write(template.render(workflow_name=name, steps=steps))
+    return answers
 
 
 cli.add_command(create_workflow)
