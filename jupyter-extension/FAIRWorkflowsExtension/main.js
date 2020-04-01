@@ -7,7 +7,7 @@ define([
     var add_FAIR_buttons = function () {
 
         // Add cell toolbars button
-        var toggle = function(div, cell) {
+        var add_buttons_to_celltoolbar = function(div, cell) {
 
             // Publish step button
             var button_step = $('<button/>').addClass('fa fa-ship');
@@ -25,7 +25,7 @@ define([
             })
             $(div).append(button_data);
         }
-        Jupyter.CellToolbar.register_callback('FAIRcell', toggle)
+        Jupyter.CellToolbar.register_callback('FAIRcell', add_buttons_to_celltoolbar)
         Jupyter.CellToolbar.global_show()
 
         Jupyter.CellToolbar.register_preset('FAIRWorkflows',['FAIRcell'])
@@ -49,7 +49,13 @@ define([
     // Publish the selected cell
     var publish_FAIR_step = function() {
         var cell = Jupyter.notebook.get_selected_cell();
-        alert('Step published!\n' + cell.get_text());
+        var cell_index = Jupyter.notebook.get_selected_index();
+//        alert('Step published!\n' + cell.get_text());
+
+        step_rdf = cell.get_text()
+
+        Jupyter.notebook.insert_cell_below('markdown', cell_index).set_text(step_rdf);
+           
     };
 
     // Publish the whole workflow
