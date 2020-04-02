@@ -1,6 +1,18 @@
+from pathlib import Path
 from typing import List, Union, Dict
 
 import cwlgen
+from scriptcwl import WorkflowGenerator
+
+
+def create_workflow(name, steps, steps_dir, working_dir: Union[str, Path]):
+    steps_dir = str(steps_dir)
+    with WorkflowGenerator(steps_dir, working_dir) as wf:
+        wf.load(steps_dir)
+
+        filepath = Path(working_dir) / f'{name}.cwl'
+
+        filepath.write_text(script)
 
 
 def create_commandlinetool(step: Dict[str, Union[str, List]]) -> cwlgen.CommandLineTool:
