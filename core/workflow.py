@@ -8,6 +8,7 @@ PLEX = 'plex'
 CWL = 'cwl'
 
 
+# TODO: Per input and output the type should be defined
 def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], target: Union[str, Path]) -> None:
     """
         Create a workflow stub including RDF definition and python stubs.
@@ -20,7 +21,6 @@ def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], t
     :param target: Target directory
     :return:
     """
-    # TODO: Add option to specify target dir
     workflow_dir = Path(target) / name
 
     workflow_dir.mkdir()
@@ -33,7 +33,7 @@ def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], t
 
     pythongen.render_python_workflow(steps, scripts_dir)
     rdf.create_plex_workflow(name, steps, plex_dir)
-    cwl.create_workflow(name, scripts_dir, cwl_dir)
+    cwl.create_workflow(name, steps, scripts_dir, cwl_dir)
 
 
 def _create_plex_workflow(name, steps):

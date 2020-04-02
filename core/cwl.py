@@ -4,15 +4,32 @@ from typing import List, Union, Dict
 import cwlgen
 from scriptcwl import WorkflowGenerator
 
+DEFAULT_TYPE = 'str'
+
 
 def create_workflow(name, steps, steps_dir, working_dir: Union[str, Path]):
     steps_dir = str(steps_dir)
     with WorkflowGenerator(steps_dir, working_dir) as wf:
         wf.load(steps_dir)
 
+        # TODO: Replace use of default type with actual specified type
+        # Input to the first step is the input to the workflow
+        first_step = steps[0]
+        inputs = [wf.add_input(**{name: DEFAULT_TYPE}) for name in first_step['inputs']]
+
+        for step in steps:
+            step_func = wf.steps_library.get_step(step['name'])
+            inputs = step_func(*inputs)
+
+        # Last created inputs are actually the outputs of the worflow
+        outputs = inputs
+
+        # The following will fail
+        wf.add_outputs(*outputs)
+
         filepath = Path(working_dir) / f'{name}.cwl'
 
-        filepath.write_text(script)
+        wf.save(filepath)
 
 
 def create_commandlinetool(step: Dict[str, Union[str, List]]) -> cwlgen.CommandLineTool:
