@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 from pathlib import Path
 from typing import List, Dict
-import pythongen
-import rdf
+from core import rdf, pythongen
 import click
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-
-env = Environment(loader=FileSystemLoader('templates'),
-                  autoescape=select_autoescape('py'))
 
 
 @click.group('cli')
@@ -27,14 +23,12 @@ def create_workflow(name, target):
     print('Let\'s define the steps!')
     steps = prompt_continuous(['name', 'description', 'input', 'output'])
 
-    template = env.get_template('fair_step.py')
-
     # TODO: Add option to specify target dir
     workflow_dir = Path(target) / name
 
     workflow_dir.mkdir()
 
-    pythongen.render_python_workflow(steps, template, workflow_dir)
+    pythongen.render_python_workflow(steps, workflow_dir)
 
     plex_file = workflow_dir / f'{name}.plex'
     plex_workflow = _create_plex_workflow(name, steps)
@@ -73,5 +67,6 @@ def prompt_continuous(questions: List[str]) -> List[Dict[str, str]]:
 
 cli.add_command(create_workflow)
 
-if __name__ == '__main__':
+
+def main():
     cli()
