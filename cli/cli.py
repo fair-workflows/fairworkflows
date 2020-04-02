@@ -10,6 +10,7 @@ SCRIPTS = 'scripts'
 PLEX = 'plex'
 CWL = 'cwl'
 
+
 @click.group('cli')
 def cli():
     pass
