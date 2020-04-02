@@ -1,7 +1,11 @@
 from pathlib import Path
 from typing import List, Dict, Union
 
-from . import rdf, pythongen
+from . import rdf, pythongen, cwl
+
+SCRIPTS = 'scripts'
+PLEX = 'plex'
+CWL = 'cwl'
 
 
 def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], target: Union[str, Path]) -> None:
@@ -16,12 +20,20 @@ def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], t
     :param target: Target directory
     :return:
     """
+    # TODO: Add option to specify target dir
     workflow_dir = Path(target) / name
+
     workflow_dir.mkdir()
-    pythongen.render_python_workflow(steps, workflow_dir)
-    plex_file = workflow_dir / f'{name}.plex'
-    plex_workflow = _create_plex_workflow(name, steps)
-    plex_workflow.render(str(plex_file))
+
+    scripts_dir = workflow_dir / SCRIPTS
+    plex_dir = workflow_dir / PLEX
+    cwl_dir = workflow_dir / CWL
+
+    [d.mkdir() for d in [scripts_dir, plex_dir, cwl_dir]]
+
+    pythongen.render_python_workflow(steps, scripts_dir)
+    rdf.create_plex_workflow(name, steps, plex_dir)
+    cwl.create_workflow(name, scripts_dir, cwl_dir)
 
 
 def _create_plex_workflow(name, steps):
