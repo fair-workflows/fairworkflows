@@ -29,7 +29,7 @@ def main():
 
     tool = create_commandlinetool(step)
 
-    tool.export()
+    print(tool.get_dict())
 
 
 if __name__ == '__main__':
