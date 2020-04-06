@@ -4,6 +4,7 @@ This module is for generating a workflow to see what the result looks like witho
 each time.
 """
 
+import shutil
 from pathlib import Path
 
 from core import workflow
@@ -11,14 +12,14 @@ from core import workflow
 RESULTS_DIR = 'sample_output'
 WORKFLOW_NAME = 'sample_workflow'
 WORKFLOW_STEPS = [{'name': 'step1', 'description': 'description of step 1', 'input': ['sample_input1', 'sample_input2'],
-                   'output': 'sample_output'}]
+                   'output': ['sample_output']}]
 
 
 def main():
     results_path = Path.cwd() / RESULTS_DIR
 
     if results_path.exists():
-        results_path.rmdir()
+        shutil.rmtree(results_path)
 
     results_path.mkdir()
 
