@@ -25,6 +25,11 @@ def create_workflow(name, target):
     print('Let\'s define the steps!')
     steps = prompt_continuous(['name', 'description', 'input', 'output'])
 
+    # Inputs and outputs have multiple values separated by commas
+    for step in steps:
+        step['input'] = step['input'].split(',')
+        step['output'] = step['output'].split(',')
+
     process_workflow(name, steps, target)
 
 
