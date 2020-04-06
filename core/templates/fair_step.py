@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import click
 
 @click.command(){% for arg in input %}
