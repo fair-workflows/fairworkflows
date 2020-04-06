@@ -11,7 +11,7 @@ def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], t
     :param steps: The individiual steps. These steps are defined as a list of Dicts that have the following keys:
         - name: Name of the step
         - description: Description of the step
-        - inputs: List of str of the input parameterws
+        - input: List of str of the input parameterws
         - output: List of str of the output parameters
     :param target: Target directory
     :return:

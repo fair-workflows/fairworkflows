@@ -27,3 +27,5 @@ docs/apidocs
 
 env/
 venv/
+
+sample_output/
