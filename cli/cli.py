@@ -6,7 +6,6 @@ import click
 
 from core.workflow import process_workflow
 
-
 @click.group('cli')
 def cli():
     pass
@@ -17,7 +16,7 @@ def cli():
 @click.option('--target', prompt='Target directory')
 def create_workflow(name, target):
     """
-        Create a new workflow interactively.
+     Create a new workflow interactively.
     :param name:
     :param target:
     :return:
@@ -36,8 +35,13 @@ def create_workflow(name, target):
 def prompt_continuous(questions: List[str]) -> List[Dict[str, str]]:
     """
     Contiuously prompts for a list of questions until the user doesn't specify an answer anymore.
+
     :param questions:
     :return:
+
+    TODO: It's nice that this function is very generic but it could be that at some point a more tailored sequence of
+        prompts will be better. The inputs and outputs now have to be entered as a comma separated list.
+
     """
     answers = []
     while True:

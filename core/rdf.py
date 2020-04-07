@@ -1,5 +1,6 @@
 import rdflib
 from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
+from pathlib import Path
 
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan/")
 # TODO: Fix plex URL
@@ -45,6 +46,15 @@ def _create_step(plex_workflow, name, description):
     rdf.add((this_step, DC.description, rdflib.Literal(description)))
 
     return rdf
+
+
+def create_plex_workflow(name, steps, dest):
+    plex_file = Path(dest) / f'{name}.plex'
+    plex_workflow = PlexWorkflow(name)
+    for step in steps:
+        plex_workflow.add_step(step['name'], step['description'])
+
+    plex_workflow.render(str(plex_file))
 
 
 class PlexWorkflow:

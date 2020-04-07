@@ -1,6 +1,6 @@
 from core import workflow
 import pytest
-SAMPLE_STEPS = [{'name': 'step1', 'description': 'This is the first step', 'inputs': ['a', 'b'], 'output': ['result']}]
+SAMPLE_STEPS = [{'name': 'step1', 'description': 'This is the first step', 'input': ['a', 'b'], 'output': ['result']}]
 WORKFLOW_NAME = 'test_workflpw'
 TARGET_DIR = 'integration_test_workflow'
 

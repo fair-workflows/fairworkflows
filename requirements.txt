@@ -2,4 +2,6 @@ click
 Jinja2
 rdflib
 pytest
+scriptcwl
 cwlgen
+pyyaml
