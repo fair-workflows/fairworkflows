@@ -1,4 +1,4 @@
-from fairworkflow import FairWorkflow, FairStep
+from .fairworkflow import FairWorkflow, FairStep
 
 
 # 1. Create a new (empty) workflow
