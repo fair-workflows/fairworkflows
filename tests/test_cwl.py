@@ -9,8 +9,12 @@ SAMPLE_STEP = {'name': 'step1',
 def test_sample_step_generates_sample_commandlinetool():
     tool_dict = cwl.create_commandlinetool(SAMPLE_STEP).get_dict()
 
-    target = {'cwlVersion': 'v1.0', 'id': 'step1', 'inputs': [{'id': 'sample_input1'}, {'id': 'sample_input2'}],
-              'outputs': [{'id': 'sample_output'}], 'baseCommand': './step1.py', 'doc': 'description of step 1',
+    target = {'cwlVersion': 'v1.0', 'id': 'step1',
+              'inputs': [{'id': 'sample_input1', 'type': 'int'},
+                         {'id': 'sample_input2', 'type': 'int'}],
+              'outputs': [{'id': 'sample_output', 'type': 'int'}],
+              'baseCommand': './step1.py',
+              'doc': 'description of step 1',
               'class': 'CommandLineTool'}
 
     assert target == tool_dict
