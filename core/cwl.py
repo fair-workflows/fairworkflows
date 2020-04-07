@@ -8,11 +8,12 @@ DEFAULT_TYPE = 'int'
 STEPS_DIR = 'steps'
 WORKFLOW_DIR = 'workflow'
 
+
 def create_workflow(name, steps, cwl_dir):
     # TODO: Right now all steps will be brand new. In the future it should be possible to specify existing steps
     cwl_dir = Path(cwl_dir)
-    steps_path = cwl_dir/STEPS_DIR
-    workflow_path = cwl_dir/WORKFLOW_DIR
+    steps_path = cwl_dir / STEPS_DIR
+    workflow_path = cwl_dir / WORKFLOW_DIR
 
     steps_path.mkdir()
     workflow_path.mkdir()
@@ -60,16 +61,3 @@ def create_commandlinetool(step: Dict[str, Union[str, List]]) -> cwlgen.CommandL
     tool_object.outputs += [cwlgen.CommandInputParameter(p, param_type=DEFAULT_TYPE) for p in step['output']]
 
     return tool_object
-
-
-def main():
-    step = {'name': 'step1', 'description': 'description of step 1', 'input': ['sample_input1', 'sample_input2'],
-            'output': ['sample_output']}
-
-    tool = create_commandlinetool(step)
-
-    print(tool.get_dict())
-
-
-if __name__ == '__main__':
-    main()
