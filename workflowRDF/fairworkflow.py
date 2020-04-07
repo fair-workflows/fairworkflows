@@ -67,6 +67,8 @@ class FairWorkflow:
             # Add metadata from all the steps to this rdf graph
             for step in self.steps:
                 rdf += step.get_rdf()
+                rdf.add((step.this_step, PPLAN.isStepOfPlan, self.this_workflow))
+                
 
         return rdf
 
@@ -182,7 +184,6 @@ def FairStep(fairworkflow):
 
             rdf.add((this_step, RDF.type, PPLAN.Step))
             rdf.add((this_step, RDF.type, BPMN.scriptTask))
-            rdf.add((this_step, PPLAN.isStepOfPlan, fairworkflow.this_workflow))
 
             for var, arg in zip(func.__code__.co_varnames, args):
                 rdf.add((PLEX[var], RDF.type, PPLAN.Variable))
