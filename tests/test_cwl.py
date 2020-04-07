@@ -1,9 +1,12 @@
 from core import cwl
+import yaml
 
 SAMPLE_STEP = {'name': 'step1',
                'description': 'description of step 1',
                'input': ['sample_input1', 'sample_input2'],
                'output': ['sample_output']}
+
+WORKFLOW_NAME = 'test_workflow'
 
 
 def test_sample_step_generates_sample_commandlinetool():
@@ -18,3 +21,13 @@ def test_sample_step_generates_sample_commandlinetool():
               'class': 'CommandLineTool'}
 
     assert target == tool_dict
+
+
+def test_sample_workflow_has_one_step(tmp_path):
+    result_path = cwl.create_workflow(WORKFLOW_NAME, [SAMPLE_STEP], tmp_path)
+
+    with result_path.open('r') as f:
+        wf = yaml.load(f)
+
+        assert 1 == len(wf['steps'])
+

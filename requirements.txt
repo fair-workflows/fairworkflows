@@ -4,3 +4,4 @@ rdflib
 pytest
 scriptcwl
 cwlgen
+pyyaml

@@ -42,6 +42,8 @@ def create_workflow(name, steps, cwl_dir):
 
         wf.save(filepath)
 
+        return filepath
+
 
 def create_commandlinetool(step: Dict[str, Union[str, List]]) -> cwlgen.CommandLineTool:
     name = step['name']
