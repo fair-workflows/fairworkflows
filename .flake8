@@ -5,6 +5,5 @@ exclude =
     __pycache__,
     core/templates/,
     venv,
-    env,
-    workflowRDF
+    env
 
