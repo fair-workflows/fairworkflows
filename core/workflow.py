@@ -33,7 +33,7 @@ def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], t
 
     pythongen.render_python_workflow(steps, scripts_dir)
     rdf.create_plex_workflow(name, steps, plex_dir)
-    cwl.create_workflow(name, steps, scripts_dir, cwl_dir)
+    cwl.create_workflow(name, steps, cwl_dir)
 
 
 def _create_plex_workflow(name, steps):

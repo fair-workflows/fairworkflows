@@ -4,24 +4,37 @@ from typing import List, Union, Dict
 import cwlgen
 from scriptcwl import WorkflowGenerator
 
-DEFAULT_TYPE = 'str'
+DEFAULT_TYPE = str
+STEPS_DIR = 'steps'
+WORKFLOW_DIR = 'workflow'
 
+def create_workflow(name, steps, cwl_dir):
+    # TODO: Right now all steps will be brand new. In the future it should be possible to specify existing steps
+    cwl_dir = Path(cwl_dir)
+    steps_path = cwl_dir/STEPS_DIR
+    workflow_path = cwl_dir/WORKFLOW_DIR
 
-def create_workflow(name, steps, steps_dir, working_dir: Union[str, Path]):
-    steps_dir = str(steps_dir)
-    with WorkflowGenerator(steps_dir, working_dir) as wf:
-        wf.load(steps_dir)
+    steps_path.mkdir()
+    workflow_path.mkdir()
+
+    # Create commandlinetool for every step
+    for step in steps:
+        tool_object = create_commandlinetool(step)
+        tool_object.export(steps_path / f'{step["name"]}.cwl')
+
+    with WorkflowGenerator(steps_path, workflow_path) as wf:
+        wf.load(cwl_dir)
 
         # TODO: Replace use of default type with actual specified type
         # Input to the first step is the input to the workflow
         first_step = steps[0]
-        inputs = [wf.add_input(**{name: DEFAULT_TYPE}) for name in first_step['inputs']]
+        inputs = [wf.add_input(**{name: DEFAULT_TYPE}) for name in first_step['input']]
 
         for step in steps:
             step_func = wf.steps_library.get_step(step['name'])
             inputs = step_func(*inputs)
 
-        # Last created inputs are actually the outputs of the worflow
+        # Last created inputs are actually the outputs of the worfklow
         outputs = inputs
 
         # The following will fail
