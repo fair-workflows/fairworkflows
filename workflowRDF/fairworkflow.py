@@ -68,7 +68,6 @@ class FairWorkflow:
             for step in self.steps:
                 rdf += step.get_rdf()
                 rdf.add((step.this_step, PPLAN.isStepOfPlan, self.this_workflow))
-                
 
         return rdf
 
@@ -102,7 +101,7 @@ class FairStepEntry:
 
         # Set up different contexts
         np_rdf = rdflib.ConjunctiveGraph()
-        head = rdflib.Graph(np_rdf.store, SUB.head)
+        head = rdflib.Graph(np_rdf.store, SUB.Head)
         assertion = rdflib.Graph(np_rdf.store, SUB.assertion)
         provenance = rdflib.Graph(np_rdf.store, SUB.provenance)
         pubInfo = rdflib.Graph(np_rdf.store, SUB.pubInfo)
@@ -120,8 +119,6 @@ class FairStepEntry:
         np_rdf.bind("pwo", PWO)
         np_rdf.bind("rdfg", RDFG)
 
-
-
         head.add((THIS[''], RDF.type, NP.Nanopublication))
         head.add((THIS[''], NP.hasAssertion, SUB.assertion))
         head.add((THIS[''], NP.hasProvenance, SUB.provenance))
@@ -138,9 +135,40 @@ class FairStepEntry:
         pubInfo.add((THIS[''], PROV.generatedAtTime, creationtime))
 
         # Convert nanopub rdf to trig
-        stepname = str(self.func).replace(' ', '')
+        stepname = str(self.func.__name__).replace(' ', '')
         fname = f'step_{stepname}.trig'
-        np_rdf.serialize(destination=fname, format='trig')
+        serialized = np_rdf.serialize(format='trig')
+        serialized_str = self.put_head_first(serialized) # workaround for "np" requiring ordered contexts
+        with open(fname, 'w') as outfile:
+             outfile.write(serialized_str)
+
+    # Hacky way of putting :Head context first in file (to satisfy "np check")
+    # This is very fragile.
+    # Please do not use this once the issue with nanopub-java is solved.
+    @staticmethod
+    def put_head_first(trig_bytes):
+        trig_str = trig_bytes.decode('utf-8')
+        head = ''
+        in_head = False
+        last_prefix = None
+        for line in trig_str.split('\n'):
+
+            # Find full :Head block
+            if ':Head' in line:
+                in_head = True
+            if in_head == True:
+                head += line + '\n'
+            if '}' in line:
+                in_head = False
+
+            # Find last @prefix line
+            if '@prefix' in line:
+                last_prefix = line + '\n'
+
+        # Move :Head block to just below last @prefix line
+        trig_str = trig_str.replace(head, '').replace(last_prefix, last_prefix + '\n' + head)
+
+        return trig_str
 
     def execute(self):
         resolved_args = []
