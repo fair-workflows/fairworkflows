@@ -139,46 +139,13 @@ class FairStepEntry:
         # Convert nanopub rdf to trig
         stepname = str(self.func.__name__).replace(' ', '')
         fname = f'step_{stepname}.trig'
-        serialized = np_rdf.serialize(format='trig')
-        serialized_str = self.put_head_first(serialized) # workaround for "np" requiring ordered contexts
-        with open(fname, 'w') as outfile:
-             outfile.write(serialized_str)
+        serialized = np_rdf.serialize(destination=fname, format='trig')
 
         # Sign the nanopub and make it trusty
         os.system('np sign ' + fname)
         signed_fname = 'signed.' + fname
         os.system('np mktrusty ' + signed_fname)
         trusty_fname = 'trusty.' + signed_fname
-
-
-
-    # Hacky way of putting :Head context first in file (to satisfy "np check")
-    # This is very fragile.
-    # Please do not use this once the issue with nanopub-java is solved.
-    @staticmethod
-    def put_head_first(trig_bytes):
-        trig_str = trig_bytes.decode('utf-8')
-        head = ''
-        in_head = False
-        last_prefix = None
-        for line in trig_str.split('\n'):
-
-            # Find full :Head block
-            if ':Head' in line:
-                in_head = True
-            if in_head == True:
-                head += line + '\n'
-            if '}' in line:
-                in_head = False
-
-            # Find last @prefix line
-            if '@prefix' in line:
-                last_prefix = line + '\n'
-
-        # Move :Head block to just below last @prefix line
-        trig_str = trig_str.replace(head, '').replace(last_prefix, last_prefix + '\n' + head)
-
-        return trig_str
 
     def execute(self):
         resolved_args = []
