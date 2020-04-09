@@ -45,10 +45,10 @@ def nanopublish(assertionrdf=None, uri=None):
 
     creationtime = rdflib.Literal(datetime.now(),datatype=XSD.date)
     provenance.add((SUB.assertion, PROV.generatedAtTime, creationtime))
-    provenance.add((SUB.assertion, PROV.wasDerivedFrom, THISNP.experiment)) 
-    provenance.add((SUB.assertion, PROV.wasAttributedTo, THISNP.experimentScientist))
+    provenance.add((SUB.assertion, PROV.wasDerivedFrom, SUB.experiment)) 
+    provenance.add((SUB.assertion, PROV.wasAttributedTo, SUB.experimentScientist))
 
-    pubInfo.add((THISNP[''], PROV.wasAttributedTo, THISNP.DrBob))
+    pubInfo.add((THISNP[''], PROV.wasAttributedTo, SUB.DrBob))
     pubInfo.add((THISNP[''], PROV.generatedAtTime, creationtime))
 
     # Convert nanopub rdf to trig
@@ -58,7 +58,7 @@ def nanopublish(assertionrdf=None, uri=None):
     # Sign the nanopub and publish it
     os.system('np sign ' + fname)
     signed_fname = 'signed.' + fname
-    #os.system('np publish ' + signed_fname)
+    os.system('np publish ' + signed_fname)
 
 
 
