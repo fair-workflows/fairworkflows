@@ -56,18 +56,21 @@ class FairWorkflow:
             first_step = self.steps[0]
             rdf.add( (self.THISWORKFLOW[''], RDF.type, DUL.workflow) )
             rdf.add( (self.THISWORKFLOW[''], PWO.hasFirstStep, first_step.THISSTEP['']) )
-            for var, arg in zip(first_step.func.__code__.co_varnames, first_step.args):
-                binding = self.THISWORKFLOW[var + '#' + str(arg)]
-                rdf.add((self.THISWORKFLOW[var], PROV.qualifiedUsage, binding))
-                rdf.add((binding, RDF.type, PROV.Usage))
-                rdf.add((binding, PROV.entity, self.THISWORKFLOW[var]))
-                rdf.add((binding, RDF.value, rdflib.Literal(f'{str(arg)}')))
 
             # Add metadata from all the steps to this rdf graph
             for step in self.steps:
-#                rdf += step.get_rdf()
                 rdf.add((step.THISSTEP[''], PPLAN.isStepOfPlan, self.THISWORKFLOW['']))
 
+                for var, arg in zip(step.func.__code__.co_varnames, step.args):
+                    if isinstance(arg, FairStepEntry):
+                        rdf.add((step.THISSTEP[var], PPLAN.isOutputVarOf, arg.THISSTEP['']))
+                        rdf.add((arg.THISSTEP[''], DUL.precedes, step.THISSTEP['']))
+                    else:
+                        binding = self.THISWORKFLOW[var + '#' + str(arg)]
+                        rdf.add((self.THISWORKFLOW[var], PROV.qualifiedUsage, binding))
+                        rdf.add((binding, RDF.type, PROV.Usage))
+                        rdf.add((binding, PROV.entity, self.THISWORKFLOW[var]))
+                        rdf.add((binding, RDF.value, rdflib.Literal(f'{str(arg)}')))
         return rdf
 
     def __str__(self):
@@ -175,15 +178,13 @@ class FairStepEntry:
             rdf.add((self.THISSTEP[var], RDF.type, PPLAN.Variable))
             rdf.add((self.THISSTEP[''], PPLAN.hasInputVar, self.THISSTEP[var]))
 
-            if isinstance(arg, FairStepEntry):
-                rdf.add((self.THISSTEP[var], PPLAN.isOutputVarOf, arg.THISSTEP['']))
-                rdf.add((arg.THISSTEP[''], DUL.precedes, self.THISSTEP['']))
-
         # Grab entire function's source code for step 'description'
         func_src = inspect.getsource(self.func)
         rdf.add((self.THISSTEP[''], DC.description, rdflib.Literal(func_src)))
 
         return rdf
+
+ 
 
     def __str__(self):
         return self.get_rdf().serialize(format='turtle').decode("utf-8")
