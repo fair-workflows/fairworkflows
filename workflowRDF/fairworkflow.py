@@ -5,7 +5,6 @@ import inspect
 from datetime import datetime
 
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
-PLEX = rdflib.Namespace("https://plex.org/")
 EDAM = rdflib.Namespace("http://edamontology.org/")
 PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
 DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
@@ -16,7 +15,7 @@ NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
-        self.this_workflow = PLEX[name]
+        self.THISWORKFLOW = rdflib.Namespace("http://purl.org/nanopub/temp/FAIRWorkflowsTest/workflow/")
         self.steps = []
 
     def add_step(self, fairstep):
@@ -42,7 +41,6 @@ class FairWorkflow:
 
         # Bind all non-standard prefixes in use
         rdf.bind("p-plan", PPLAN)
-        rdf.bind("plex", PLEX)
         rdf.bind("edam", EDAM)
         rdf.bind("prov", PROV)
         rdf.bind("dul", DUL)
@@ -56,19 +54,19 @@ class FairWorkflow:
 
             # Workflow metadata
             first_step = self.steps[0]
-            rdf.add( (self.this_workflow, RDF.type, DUL.workflow) )
-            rdf.add( (self.this_workflow, PWO.hasFirstStep, first_step.THISSTEP['']) )
+            rdf.add( (self.THISWORKFLOW[''], RDF.type, DUL.workflow) )
+            rdf.add( (self.THISWORKFLOW[''], PWO.hasFirstStep, first_step.THISSTEP['']) )
             for var, arg in zip(first_step.func.__code__.co_varnames, first_step.args):
-                binding = PLEX[var + '#' + str(arg)]
-                rdf.add((PLEX[var], PROV.qualifiedUsage, binding))
+                binding = self.THISWORKFLOW[var + '#' + str(arg)]
+                rdf.add((self.THISWORKFLOW[var], PROV.qualifiedUsage, binding))
                 rdf.add((binding, RDF.type, PROV.Usage))
-                rdf.add((binding, PROV.entity, PLEX[var]))
+                rdf.add((binding, PROV.entity, self.THISWORKFLOW[var]))
                 rdf.add((binding, RDF.value, rdflib.Literal(f'{str(arg)}')))
 
             # Add metadata from all the steps to this rdf graph
             for step in self.steps:
 #                rdf += step.get_rdf()
-                rdf.add((step.THISSTEP[''], PPLAN.isStepOfPlan, self.this_workflow))
+                rdf.add((step.THISSTEP[''], PPLAN.isStepOfPlan, self.THISWORKFLOW['']))
 
         return rdf
 
@@ -90,7 +88,7 @@ class FairStepEntry:
         self.executed = False
         self.result = None
 
-        self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest"
+        self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/Step"
         self.THISNP = rdflib.Namespace(self.np_uri)
         self.THISSTEP = rdflib.Namespace(self.np_uri + '/' + func.__name__ + '/')
 
@@ -109,7 +107,6 @@ class FairStepEntry:
         np_rdf.bind("np", NP)
 
         np_rdf.bind("p-plan", PPLAN)
-        np_rdf.bind("plex", PLEX)
         np_rdf.bind("edam", EDAM)
         np_rdf.bind("prov", PROV)
         np_rdf.bind("dul", DUL)
