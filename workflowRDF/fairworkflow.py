@@ -5,10 +5,10 @@ import inspect
 from datetime import datetime
 
 
-PPLAN = rdflib.Namespace("http://purl.org/net/p-plan/")
+PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
 PLEX = rdflib.Namespace("https://plex.org/")
 EDAM = rdflib.Namespace("http://edamontology.org/")
-PROV = rdflib.Namespace("http://www.w3.org/ns/prov/")
+PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
 DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
 BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
 PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
