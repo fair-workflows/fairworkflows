@@ -1,7 +1,9 @@
+import os
 import rdflib
 from rdflib.namespace import RDF, RDFS, DC, XSD, OWL 
 import inspect
 from datetime import datetime
+
 
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan/")
 PLEX = rdflib.Namespace("https://plex.org/")
@@ -141,6 +143,14 @@ class FairStepEntry:
         serialized_str = self.put_head_first(serialized) # workaround for "np" requiring ordered contexts
         with open(fname, 'w') as outfile:
              outfile.write(serialized_str)
+
+        # Sign the nanopub and make it trusty
+        os.system('np sign ' + fname)
+        signed_fname = 'signed.' + fname
+        os.system('np mktrusty ' + signed_fname)
+        trusty_fname = 'trusty.' + signed_fname
+
+
 
     # Hacky way of putting :Head context first in file (to satisfy "np check")
     # This is very fragile.
