@@ -141,11 +141,10 @@ class FairStepEntry:
         fname = f'step_{stepname}.trig'
         serialized = np_rdf.serialize(destination=fname, format='trig')
 
-        # Sign the nanopub and make it trusty
+        # Sign the nanopub and publish it
         os.system('np sign ' + fname)
         signed_fname = 'signed.' + fname
-        os.system('np mktrusty ' + signed_fname)
-        trusty_fname = 'trusty.' + signed_fname
+        os.system('np publish ' + signed_fname)
 
     def execute(self):
         resolved_args = []
