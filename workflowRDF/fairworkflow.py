@@ -4,7 +4,6 @@ from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
 import inspect
 from datetime import datetime
 
-
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
 PLEX = rdflib.Namespace("https://plex.org/")
 EDAM = rdflib.Namespace("http://edamontology.org/")
@@ -58,7 +57,7 @@ class FairWorkflow:
             # Workflow metadata
             first_step = self.steps[0]
             rdf.add( (self.this_workflow, RDF.type, DUL.workflow) )
-            rdf.add( (self.this_workflow, PWO.hasFirstStep, first_step.this_step) )
+            rdf.add( (self.this_workflow, PWO.hasFirstStep, first_step.THISSTEP['']) )
             for var, arg in zip(first_step.func.__code__.co_varnames, first_step.args):
                 binding = PLEX[var + '#' + str(arg)]
                 rdf.add((PLEX[var], PROV.qualifiedUsage, binding))
@@ -68,8 +67,8 @@ class FairWorkflow:
 
             # Add metadata from all the steps to this rdf graph
             for step in self.steps:
-                rdf += step.get_rdf()
-                rdf.add((step.this_step, PPLAN.isStepOfPlan, self.this_workflow))
+#                rdf += step.get_rdf()
+                rdf.add((step.THISSTEP[''], PPLAN.isStepOfPlan, self.this_workflow))
 
         return rdf
 
@@ -84,22 +83,19 @@ class FairWorkflow:
             step.nanopublish(url=url)
 
 class FairStepEntry:
-    def __init__(self, rdf_node, func, args, kwargs, rdf_graph):
-        self.this_step = rdf_node
+    def __init__(self, func, args, kwargs):
         self.func = func
         self.args = args
         self.kwargs = kwargs
-        self.rdf = rdf_graph
         self.executed = False
         self.result = None
 
+        self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest"
+        self.THISNP = rdflib.Namespace(self.np_uri)
+        self.THISSTEP = rdflib.Namespace(self.np_uri + '/' + func.__name__ + '/')
 
     def nanopublish(self, url=None):
-
-        np_uri = "http://www.example.org/pub1"
-
-        THIS = rdflib.Namespace(np_uri)
-        SUB = rdflib.Namespace(np_uri+"#")
+        SUB = rdflib.Namespace(self.np_uri+"/")
 
         # Set up different contexts
         np_rdf = rdflib.ConjunctiveGraph()
@@ -108,7 +104,7 @@ class FairStepEntry:
         provenance = rdflib.Graph(np_rdf.store, SUB.provenance)
         pubInfo = rdflib.Graph(np_rdf.store, SUB.pubInfo)
 
-        np_rdf.bind("this", THIS)
+        np_rdf.bind("this", self.THISNP)
         np_rdf.bind("sub", SUB)
         np_rdf.bind("np", NP)
 
@@ -121,30 +117,30 @@ class FairStepEntry:
         np_rdf.bind("pwo", PWO)
         np_rdf.bind("rdfg", RDFG)
 
-        head.add((THIS[''], RDF.type, NP.Nanopublication))
-        head.add((THIS[''], NP.hasAssertion, SUB.assertion))
-        head.add((THIS[''], NP.hasProvenance, SUB.provenance))
-        head.add((THIS[''], NP.hasPublicationInfo, SUB.pubInfo))
+        head.add((self.THISNP[''], RDF.type, NP.Nanopublication))
+        head.add((self.THISNP[''], NP.hasAssertion, SUB.assertion))
+        head.add((self.THISNP[''], NP.hasProvenance, SUB.provenance))
+        head.add((self.THISNP[''], NP.hasPublicationInfo, SUB.pubInfo))
 
-        assertion += self.rdf # A (temporary) misuse of nanopublications
+        assertion += self.generate_step_rdf()
 
         creationtime = rdflib.Literal(datetime.now(),datatype=XSD.date)
         provenance.add((SUB.assertion, PROV.generatedAtTime, creationtime))
-        provenance.add((SUB.assertion, PROV.wasDerivedFrom, THIS.experiment)) 
-        provenance.add((SUB.assertion, PROV.wasAttributedTo, THIS.experimentScientist))
+        provenance.add((SUB.assertion, PROV.wasDerivedFrom, self.THISNP.experiment)) 
+        provenance.add((SUB.assertion, PROV.wasAttributedTo, self.THISNP.experimentScientist))
 
-        pubInfo.add((THIS[''], PROV.wasAttributedTo, THIS.DrBob))
-        pubInfo.add((THIS[''], PROV.generatedAtTime, creationtime))
+        pubInfo.add((self.THISNP[''], PROV.wasAttributedTo, self.THISNP.DrBob))
+        pubInfo.add((self.THISNP[''], PROV.generatedAtTime, creationtime))
 
         # Convert nanopub rdf to trig
-        stepname = str(self.func.__name__).replace(' ', '')
+        stepname = str(self.func.__name__)
         fname = f'step_{stepname}.trig'
         serialized = np_rdf.serialize(destination=fname, format='trig')
 
         # Sign the nanopub and publish it
         os.system('np sign ' + fname)
         signed_fname = 'signed.' + fname
-        os.system('np publish ' + signed_fname)
+        #os.system('np publish ' + signed_fname)
 
     def execute(self):
         resolved_args = []
@@ -170,8 +166,27 @@ class FairStepEntry:
     def get_result(self):
         return self.result
 
-    def get_rdf(self):
-        return self.rdf
+    def generate_step_rdf(self):
+
+        # Autogenerate rdf metadata for this step
+        rdf = rdflib.Graph()
+
+        rdf.add((self.THISSTEP[''], RDF.type, PPLAN.Step))
+        rdf.add((self.THISSTEP[''], RDF.type, BPMN.scriptTask))
+
+        for var, arg in zip(self.func.__code__.co_varnames, self.args):
+            rdf.add((self.THISSTEP[var], RDF.type, PPLAN.Variable))
+            rdf.add((self.THISSTEP[''], PPLAN.hasInputVar, self.THISSTEP[var]))
+
+            if isinstance(arg, FairStepEntry):
+                rdf.add((self.THISSTEP[var], PPLAN.isOutputVarOf, arg.THISSTEP['']))
+                rdf.add((arg.THISSTEP[''], DUL.precedes, self.THISSTEP['']))
+
+        # Grab entire function's source code for step 'description'
+        func_src = inspect.getsource(self.func)
+        rdf.add((self.THISSTEP[''], DC.description, rdflib.Literal(func_src)))
+
+        return rdf
 
     def __str__(self):
         return self.get_rdf().serialize(format='turtle').decode("utf-8")
@@ -181,28 +196,8 @@ def FairStep(fairworkflow):
     def fair_wrapper(func):
         def metadata_wrapper(*args, **kwargs):
 
-            # Autogenerate rdf metadata for this step
-            rdf = rdflib.Graph()
-
-            this_step = PLEX[func.__name__]
-
-            rdf.add((this_step, RDF.type, PPLAN.Step))
-            rdf.add((this_step, RDF.type, BPMN.scriptTask))
-
-            for var, arg in zip(func.__code__.co_varnames, args):
-                rdf.add((PLEX[var], RDF.type, PPLAN.Variable))
-                rdf.add((this_step, PPLAN.hasInputVar, PLEX[var]))
-
-                if isinstance(arg, FairStepEntry):
-                    rdf.add((PLEX[var], PPLAN.isOutputVarOf, arg.this_step))
-                    rdf.add((arg.this_step, DUL.precedes, this_step))
-
-            # Grab entire function's source code for step 'description'
-            func_src = inspect.getsource(func)
-            rdf.add((this_step, DC.description, rdflib.Literal(func_src)))
-
             # Add the new step to the workflow
-            fairstep = FairStepEntry(this_step, func, args, kwargs, rdf)
+            fairstep = FairStepEntry(func, args, kwargs)
             fairworkflow.add_step(fairstep)
 
             return fairstep
