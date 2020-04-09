@@ -32,13 +32,10 @@ input2 = 5
 output1 = add(input1, input2)
 output2 = mult(output1, input2)
 
-# 4. Output workflow as RDF triples
-fw.rdf_to_file("test.rdf", format='turtle')
-
-# 5. Execute the workflow
+# 4. Execute the workflow
 print("Executing workflow:")
 result = fw.execute()
 print("Result:", result)
 
-# 6. Publish the workflow
-fw.nanopublish("https://some.fdp.server/")
+# 5. Publish the workflow and all its steps
+fw.nanopublish()

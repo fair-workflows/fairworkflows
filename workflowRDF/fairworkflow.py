@@ -13,9 +13,59 @@ PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
 RDFG = rdflib.Namespace("http://www.w3.org/2004/03/trix/rdfg-1/")
 NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 
+def nanopublish(assertionrdf=None, uri=None):
+    THISNP = rdflib.Namespace(uri)
+    SUB = rdflib.Namespace(uri+"/")
+
+    # Set up different contexts
+    np_rdf = rdflib.ConjunctiveGraph()
+    head = rdflib.Graph(np_rdf.store, SUB.Head)
+    assertion = rdflib.Graph(np_rdf.store, SUB.assertion)
+    provenance = rdflib.Graph(np_rdf.store, SUB.provenance)
+    pubInfo = rdflib.Graph(np_rdf.store, SUB.pubInfo)
+
+    np_rdf.bind("this", THISNP)
+    np_rdf.bind("sub", SUB)
+    np_rdf.bind("np", NP)
+
+    np_rdf.bind("p-plan", PPLAN)
+    np_rdf.bind("edam", EDAM)
+    np_rdf.bind("prov", PROV)
+    np_rdf.bind("dul", DUL)
+    np_rdf.bind("bpmn", BPMN)
+    np_rdf.bind("pwo", PWO)
+    np_rdf.bind("rdfg", RDFG)
+
+    head.add((THISNP[''], RDF.type, NP.Nanopublication))
+    head.add((THISNP[''], NP.hasAssertion, SUB.assertion))
+    head.add((THISNP[''], NP.hasProvenance, SUB.provenance))
+    head.add((THISNP[''], NP.hasPublicationInfo, SUB.pubInfo))
+
+    assertion += assertionrdf
+
+    creationtime = rdflib.Literal(datetime.now(),datatype=XSD.date)
+    provenance.add((SUB.assertion, PROV.generatedAtTime, creationtime))
+    provenance.add((SUB.assertion, PROV.wasDerivedFrom, THISNP.experiment)) 
+    provenance.add((SUB.assertion, PROV.wasAttributedTo, THISNP.experimentScientist))
+
+    pubInfo.add((THISNP[''], PROV.wasAttributedTo, THISNP.DrBob))
+    pubInfo.add((THISNP[''], PROV.generatedAtTime, creationtime))
+
+    # Convert nanopub rdf to trig
+    fname = 'temp.trig'
+    serialized = np_rdf.serialize(destination=fname, format='trig')
+
+    # Sign the nanopub and publish it
+    os.system('np sign ' + fname)
+    signed_fname = 'signed.' + fname
+    #os.system('np publish ' + signed_fname)
+
+
+
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
-        self.THISWORKFLOW = rdflib.Namespace("http://purl.org/nanopub/temp/FAIRWorkflowsTest/workflow/")
+        self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/workflow"
+        self.THISWORKFLOW = rdflib.Namespace(self.np_uri + "/" + name + "/")
         self.steps = []
 
     def add_step(self, fairstep):
@@ -79,9 +129,13 @@ class FairWorkflow:
     def rdf_to_file(self, fname, format='turtle'):
         return self.get_rdf().serialize(destination=fname, format=format)
         
-    def nanopublish(self, url=None):
+    def nanopublish(self):
+        # Publish all the steps individually
         for step in self.steps:
-            step.nanopublish(url=url)
+            step.nanopublish()
+
+        # Publish the workflow itself
+        nanopublish(assertionrdf=self.get_rdf(), uri=self.np_uri)
 
 class FairStepEntry:
     def __init__(self, func, args, kwargs):
@@ -92,55 +146,7 @@ class FairStepEntry:
         self.result = None
 
         self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/Step"
-        self.THISNP = rdflib.Namespace(self.np_uri)
         self.THISSTEP = rdflib.Namespace(self.np_uri + '/' + func.__name__ + '/')
-
-    def nanopublish(self, url=None):
-        SUB = rdflib.Namespace(self.np_uri+"/")
-
-        # Set up different contexts
-        np_rdf = rdflib.ConjunctiveGraph()
-        head = rdflib.Graph(np_rdf.store, SUB.Head)
-        assertion = rdflib.Graph(np_rdf.store, SUB.assertion)
-        provenance = rdflib.Graph(np_rdf.store, SUB.provenance)
-        pubInfo = rdflib.Graph(np_rdf.store, SUB.pubInfo)
-
-        np_rdf.bind("this", self.THISNP)
-        np_rdf.bind("sub", SUB)
-        np_rdf.bind("np", NP)
-
-        np_rdf.bind("p-plan", PPLAN)
-        np_rdf.bind("edam", EDAM)
-        np_rdf.bind("prov", PROV)
-        np_rdf.bind("dul", DUL)
-        np_rdf.bind("bpmn", BPMN)
-        np_rdf.bind("pwo", PWO)
-        np_rdf.bind("rdfg", RDFG)
-
-        head.add((self.THISNP[''], RDF.type, NP.Nanopublication))
-        head.add((self.THISNP[''], NP.hasAssertion, SUB.assertion))
-        head.add((self.THISNP[''], NP.hasProvenance, SUB.provenance))
-        head.add((self.THISNP[''], NP.hasPublicationInfo, SUB.pubInfo))
-
-        assertion += self.generate_step_rdf()
-
-        creationtime = rdflib.Literal(datetime.now(),datatype=XSD.date)
-        provenance.add((SUB.assertion, PROV.generatedAtTime, creationtime))
-        provenance.add((SUB.assertion, PROV.wasDerivedFrom, self.THISNP.experiment)) 
-        provenance.add((SUB.assertion, PROV.wasAttributedTo, self.THISNP.experimentScientist))
-
-        pubInfo.add((self.THISNP[''], PROV.wasAttributedTo, self.THISNP.DrBob))
-        pubInfo.add((self.THISNP[''], PROV.generatedAtTime, creationtime))
-
-        # Convert nanopub rdf to trig
-        stepname = str(self.func.__name__)
-        fname = f'step_{stepname}.trig'
-        serialized = np_rdf.serialize(destination=fname, format='trig')
-
-        # Sign the nanopub and publish it
-        os.system('np sign ' + fname)
-        signed_fname = 'signed.' + fname
-        #os.system('np publish ' + signed_fname)
 
     def execute(self):
         resolved_args = []
@@ -166,7 +172,7 @@ class FairStepEntry:
     def get_result(self):
         return self.result
 
-    def generate_step_rdf(self):
+    def get_rdf(self):
 
         # Autogenerate rdf metadata for this step
         rdf = rdflib.Graph()
@@ -183,8 +189,9 @@ class FairStepEntry:
         rdf.add((self.THISSTEP[''], DC.description, rdflib.Literal(func_src)))
 
         return rdf
-
  
+    def nanopublish(self):
+        nanopublish(assertionrdf=self.get_rdf(), uri=self.np_uri)
 
     def __str__(self):
         return self.get_rdf().serialize(format='turtle').decode("utf-8")
