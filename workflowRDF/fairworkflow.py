@@ -13,7 +13,12 @@ PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
 RDFG = rdflib.Namespace("http://www.w3.org/2004/03/trix/rdfg-1/")
 NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 
+
 def nanopublish(assertionrdf=None, uri=None):
+    """
+    Publish the given rdf as a nanopublication with the given URI
+    """
+
     THISNP = rdflib.Namespace(uri+'#')
 
     # Set up different contexts
@@ -56,8 +61,15 @@ def nanopublish(assertionrdf=None, uri=None):
     # Sign the nanopub and publish it
     os.system('np sign ' + fname)
     signed_fname = 'signed.' + fname
-    os.system('np publish ' + signed_fname)
+#    os.system('np publish ' + signed_fname)
 
+    # Extract nanopub URL
+    # (this is pretty horrible, switch to python version as soon as it is ready)
+    extracturl = rdflib.Graph()
+    extracturl.parse(signed_fname, format="trig")
+    nanopuburl = dict(extracturl.namespaces())['this'].__str__()
+
+    return nanopuburl
 
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
@@ -102,16 +114,16 @@ class FairWorkflow:
             # Workflow metadata
             first_step = self.steps[0]
             rdf.add( (self.THISWORKFLOW[''], RDF.type, DUL.workflow) )
-            rdf.add( (self.THISWORKFLOW[''], PWO.hasFirstStep, first_step.THISSTEP['']) )
+            rdf.add( (self.THISWORKFLOW[''], PWO.hasFirstStep, first_step.STEP['']) )
 
             # Add metadata from all the steps to this rdf graph
             for step in self.steps:
-                rdf.add((step.THISSTEP[''], PPLAN.isStepOfPlan, self.THISWORKFLOW['']))
+                rdf.add((step.STEP[''], PPLAN.isStepOfPlan, self.THISWORKFLOW['']))
 
                 for var, arg in zip(step.func.__code__.co_varnames, step.args):
                     if isinstance(arg, FairStepEntry):
-                        rdf.add((step.THISSTEP[var], PPLAN.isOutputVarOf, arg.THISSTEP['']))
-                        rdf.add((arg.THISSTEP[''], DUL.precedes, step.THISSTEP['']))
+                        rdf.add((step.STEP[var], PPLAN.isOutputVarOf, arg.STEP['']))
+                        rdf.add((arg.STEP[''], DUL.precedes, step.STEP['']))
                     else:
                         binding = self.THISWORKFLOW[var + '#' + str(arg)]
                         rdf.add((self.THISWORKFLOW[var], PROV.qualifiedUsage, binding))
@@ -134,6 +146,7 @@ class FairWorkflow:
         # Publish the workflow itself
         nanopublish(assertionrdf=self.get_rdf(), uri=self.np_uri)
 
+
 class FairStepEntry:
     def __init__(self, func, args, kwargs):
         self.func = func
@@ -144,6 +157,8 @@ class FairStepEntry:
 
         self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/Step"
         self.THISSTEP = rdflib.Namespace(self.np_uri + '/' + func.__name__ + '/')
+
+        self.STEP = self.THISSTEP
 
     def execute(self):
         resolved_args = []
@@ -188,7 +203,8 @@ class FairStepEntry:
         return rdf
  
     def nanopublish(self):
-        nanopublish(assertionrdf=self.get_rdf(), uri=self.np_uri)
+        nanopuburl = nanopublish(assertionrdf=self.get_rdf(), uri=self.np_uri)
+        self.STEP = rdflib.Namespace(nanopuburl + '/')
 
     def __str__(self):
         return self.get_rdf().serialize(format='turtle').decode("utf-8")
