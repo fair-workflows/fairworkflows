@@ -46,7 +46,7 @@ def nanopublish(assertionrdf=None, uri=None):
 
     assertion += assertionrdf
 
-    creationtime = rdflib.Literal(datetime.now(),datatype=XSD.date)
+    creationtime = rdflib.Literal(datetime.now(),datatype=XSD.dateTime)
     provenance.add((THISNP.assertion, PROV.generatedAtTime, creationtime))
     provenance.add((THISNP.assertion, PROV.wasDerivedFrom, THISNP.experiment)) 
     provenance.add((THISNP.assertion, PROV.wasAttributedTo, THISNP.experimentScientist))
@@ -157,8 +157,7 @@ class FairStepEntry:
         self.result = None
 
         self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/Step"
-        self.THISSTEP = rdflib.Namespace(self.np_uri + '/' + func.__name__ + '/')
-
+        self.THISSTEP = rdflib.Namespace(self.np_uri + '#')
         self.STEP = self.THISSTEP
 
     def execute(self):
