@@ -71,6 +71,7 @@ def nanopublish(assertionrdf=None, uri=None):
 
     return nanopuburl
 
+
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
         self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/workflow"
@@ -125,7 +126,7 @@ class FairWorkflow:
                         rdf.add((step.STEP[var], PPLAN.isOutputVarOf, arg.STEP['']))
                         rdf.add((arg.STEP[''], DUL.precedes, step.STEP['']))
                     else:
-                        binding = self.THISWORKFLOW[var + 'usage' + str(arg)]
+                        binding = self.THISWORKFLOW[var + '_usage_' + str(arg)]
                         rdf.add((self.THISWORKFLOW[var], PROV.qualifiedUsage, binding))
                         rdf.add((binding, RDF.type, PROV.Usage))
                         rdf.add((binding, PROV.entity, self.THISWORKFLOW[var]))

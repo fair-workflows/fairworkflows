@@ -9,19 +9,19 @@ fw = FairWorkflow(name='add_and_multiply_workflow')
 # 2. Define some steps
 
 @FairStep(fw)
-def add(int1, int2):
+def add(dog, cat):
     """
         Add two integers together (int1 and int2).
     """
-    result = int1 + int2
+    result = dog + cat
     return result
 
 @FairStep(fw)
-def mult(int1, int2):
+def mult(walrus, bird):
     """
         Multiply two integers together (int1 and int2).
     """
-    result = int1 * int2
+    result = walrus * bird
     return result
 
 
