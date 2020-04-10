@@ -14,18 +14,16 @@ RDFG = rdflib.Namespace("http://www.w3.org/2004/03/trix/rdfg-1/")
 NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 
 def nanopublish(assertionrdf=None, uri=None):
-    THISNP = rdflib.Namespace(uri)
-    SUB = rdflib.Namespace(uri+"/")
+    THISNP = rdflib.Namespace(uri+'#')
 
     # Set up different contexts
     np_rdf = rdflib.ConjunctiveGraph()
-    head = rdflib.Graph(np_rdf.store, SUB.Head)
-    assertion = rdflib.Graph(np_rdf.store, SUB.assertion)
-    provenance = rdflib.Graph(np_rdf.store, SUB.provenance)
-    pubInfo = rdflib.Graph(np_rdf.store, SUB.pubInfo)
+    head = rdflib.Graph(np_rdf.store, THISNP.Head)
+    assertion = rdflib.Graph(np_rdf.store, THISNP.assertion)
+    provenance = rdflib.Graph(np_rdf.store, THISNP.provenance)
+    pubInfo = rdflib.Graph(np_rdf.store, THISNP.pubInfo)
 
-    np_rdf.bind("this", THISNP)
-    np_rdf.bind("sub", SUB)
+    np_rdf.bind("", THISNP)
     np_rdf.bind("np", NP)
 
     np_rdf.bind("p-plan", PPLAN)
@@ -37,18 +35,18 @@ def nanopublish(assertionrdf=None, uri=None):
     np_rdf.bind("rdfg", RDFG)
 
     head.add((THISNP[''], RDF.type, NP.Nanopublication))
-    head.add((THISNP[''], NP.hasAssertion, SUB.assertion))
-    head.add((THISNP[''], NP.hasProvenance, SUB.provenance))
-    head.add((THISNP[''], NP.hasPublicationInfo, SUB.pubInfo))
+    head.add((THISNP[''], NP.hasAssertion, THISNP.assertion))
+    head.add((THISNP[''], NP.hasProvenance, THISNP.provenance))
+    head.add((THISNP[''], NP.hasPublicationInfo, THISNP.pubInfo))
 
     assertion += assertionrdf
 
     creationtime = rdflib.Literal(datetime.now(),datatype=XSD.date)
-    provenance.add((SUB.assertion, PROV.generatedAtTime, creationtime))
-    provenance.add((SUB.assertion, PROV.wasDerivedFrom, SUB.experiment)) 
-    provenance.add((SUB.assertion, PROV.wasAttributedTo, SUB.experimentScientist))
+    provenance.add((THISNP.assertion, PROV.generatedAtTime, creationtime))
+    provenance.add((THISNP.assertion, PROV.wasDerivedFrom, THISNP.experiment)) 
+    provenance.add((THISNP.assertion, PROV.wasAttributedTo, THISNP.experimentScientist))
 
-    pubInfo.add((THISNP[''], PROV.wasAttributedTo, SUB.DrBob))
+    pubInfo.add((THISNP[''], PROV.wasAttributedTo, THISNP.DrBob))
     pubInfo.add((THISNP[''], PROV.generatedAtTime, creationtime))
 
     # Convert nanopub rdf to trig
@@ -59,7 +57,6 @@ def nanopublish(assertionrdf=None, uri=None):
     os.system('np sign ' + fname)
     signed_fname = 'signed.' + fname
     os.system('np publish ' + signed_fname)
-
 
 
 class FairWorkflow:
