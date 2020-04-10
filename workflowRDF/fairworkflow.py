@@ -114,17 +114,17 @@ class FairWorkflow:
 
             # Workflow metadata
             first_step = self.steps[0]
-            rdf.add( (self.THISWORKFLOW[''], RDF.type, DUL.workflow) )
-            rdf.add( (self.THISWORKFLOW[''], PWO.hasFirstStep, first_step.STEP['']) )
+            rdf.add( (self.THISWORKFLOW['workflow'], RDF.type, DUL.workflow) )
+            rdf.add( (self.THISWORKFLOW['workflow'], PWO.hasFirstStep, first_step.STEP['step']) )
 
             # Add metadata from all the steps to this rdf graph
             for step in self.steps:
-                rdf.add((step.STEP[''], PPLAN.isStepOfPlan, self.THISWORKFLOW['']))
+                rdf.add((step.STEP['step'], PPLAN.isStepOfPlan, self.THISWORKFLOW['workflow']))
 
                 for var, arg in zip(step.func.__code__.co_varnames, step.args):
                     if isinstance(arg, FairStepEntry):
-                        rdf.add((step.STEP[var], PPLAN.isOutputVarOf, arg.STEP['']))
-                        rdf.add((arg.STEP[''], DUL.precedes, step.STEP['']))
+                        rdf.add((step.STEP[var], PPLAN.isOutputVarOf, arg.STEP['step']))
+                        rdf.add((arg.STEP['step'], DUL.precedes, step.STEP['step']))
                     else:
                         binding = self.THISWORKFLOW[var + '_usage_' + str(arg)]
                         rdf.add((self.THISWORKFLOW[var], PROV.qualifiedUsage, binding))
@@ -189,16 +189,16 @@ class FairStepEntry:
         # Autogenerate rdf metadata for this step
         rdf = rdflib.Graph()
 
-        rdf.add((self.THISSTEP[''], RDF.type, PPLAN.Step))
-        rdf.add((self.THISSTEP[''], RDF.type, BPMN.scriptTask))
+        rdf.add((self.THISSTEP['step'], RDF.type, PPLAN.Step))
+        rdf.add((self.THISSTEP['step'], RDF.type, BPMN.scriptTask))
 
         for var, arg in zip(self.func.__code__.co_varnames, self.args):
             rdf.add((self.THISSTEP[var], RDF.type, PPLAN.Variable))
-            rdf.add((self.THISSTEP[''], PPLAN.hasInputVar, self.THISSTEP[var]))
+            rdf.add((self.THISSTEP['step'], PPLAN.hasInputVar, self.THISSTEP[var]))
 
         # Grab entire function's source code for step 'description'
         func_src = inspect.getsource(self.func)
-        rdf.add((self.THISSTEP[''], DC.description, rdflib.Literal(func_src)))
+        rdf.add((self.THISSTEP['step'], DC.description, rdflib.Literal(func_src)))
 
         return rdf
  
