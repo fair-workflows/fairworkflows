@@ -61,7 +61,7 @@ def nanopublish(assertionrdf=None, uri=None):
     # Sign the nanopub and publish it
     os.system('np sign ' + fname)
     signed_fname = 'signed.' + fname
-#    os.system('np publish ' + signed_fname)
+    os.system('np publish ' + signed_fname)
 
     # Extract nanopub URL
     # (this is pretty horrible, switch to python version as soon as it is ready)
@@ -74,7 +74,7 @@ def nanopublish(assertionrdf=None, uri=None):
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
         self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/workflow"
-        self.THISWORKFLOW = rdflib.Namespace(self.np_uri + "/" + name + "/")
+        self.THISWORKFLOW = rdflib.Namespace(self.np_uri + "#")
         self.steps = []
 
     def add_step(self, fairstep):
@@ -125,7 +125,7 @@ class FairWorkflow:
                         rdf.add((step.STEP[var], PPLAN.isOutputVarOf, arg.STEP['']))
                         rdf.add((arg.STEP[''], DUL.precedes, step.STEP['']))
                     else:
-                        binding = self.THISWORKFLOW[var + '#' + str(arg)]
+                        binding = self.THISWORKFLOW[var + 'usage' + str(arg)]
                         rdf.add((self.THISWORKFLOW[var], PROV.qualifiedUsage, binding))
                         rdf.add((binding, RDF.type, PROV.Usage))
                         rdf.add((binding, PROV.entity, self.THISWORKFLOW[var]))
@@ -204,7 +204,7 @@ class FairStepEntry:
  
     def nanopublish(self):
         nanopuburl = nanopublish(assertionrdf=self.get_rdf(), uri=self.np_uri)
-        self.STEP = rdflib.Namespace(nanopuburl + '/')
+        self.STEP = rdflib.Namespace(nanopuburl + '#')
 
     def __str__(self):
         return self.get_rdf().serialize(format='turtle').decode("utf-8")
