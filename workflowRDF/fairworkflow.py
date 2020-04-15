@@ -87,6 +87,12 @@ class Nanopub:
 
 
 class FairWorkflow:
+    """
+    Workflow is a list of FAIR Steps and their dependencies, which may optionally be executed.
+    nanopublish() method allows this workflow and its constituent steps to be published as
+    several individual nanopublications.
+    """
+
     def __init__(self, name='newworkflow'):
         self.uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/workflow"
         self.nanopub_uri = None  # None, until workflow is published
@@ -165,6 +171,10 @@ class FairWorkflow:
         return self.get_rdf().serialize(destination=fname, format=format)
         
     def nanopublish(self):
+        """
+        Publishes (as nanopublications) the workflow, as well as its constituent steps (all as separate nanopubs).
+        
+        """
         # Publish all the steps individually
         for step in self.steps:
             step.nanopublish()
@@ -174,6 +184,10 @@ class FairWorkflow:
 
 
 class FairStepEntry:
+    """
+    A python function, as a FAIR Step in a workflow. May be converted to RDF,
+    and published as a nanopublication.
+    """
     def __init__(self, func, args, kwargs):
         self.func = func
         self.args = args
