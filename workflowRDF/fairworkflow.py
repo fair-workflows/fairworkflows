@@ -89,8 +89,10 @@ class Nanopub:
 
 class FairWorkflow:
     def __init__(self, name='newworkflow'):
-        self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/workflow"
-        self.this_workflow = rdflib.Namespace(self.np_uri + "#")
+        self.uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/workflow"
+        self.nanopub_uri = None  # None, until workflow is published
+
+        # List of FAIR steps belonging to this workflow 
         self.steps = []
 
     def add_step(self, fairstep):
@@ -113,6 +115,7 @@ class FairWorkflow:
 
         # Create an rdf graph to add workflow metadata to.
         rdf = rdflib.Graph()
+        this_workflow = rdflib.Namespace(self.uri + "#")
 
         # Bind all non-standard prefixes in use
         rdf.bind("p-plan", PPLAN)
@@ -129,24 +132,35 @@ class FairWorkflow:
 
             # Workflow metadata
             first_step = self.steps[0]
-            rdf.add( (self.this_workflow['workflow'], RDF.type, DUL.workflow) )
-            rdf.add( (self.this_workflow['workflow'], PWO.hasFirstStep, first_step.STEP['step']) )
+            rdf.add( (this_workflow['workflow'], RDF.type, DUL.workflow) )
+            rdf.add( (this_workflow['workflow'], PWO.hasFirstStep, first_step.ref()['step']) )
 
             # Add metadata from all the steps to this rdf graph
             for step in self.steps:
-                rdf.add((step.STEP['step'], PPLAN.isStepOfPlan, self.this_workflow['workflow']))
+                rdf.add((step.ref()['step'], PPLAN.isStepOfPlan, this_workflow['workflow']))
 
                 for var, arg in zip(step.func.__code__.co_varnames, step.args):
                     if isinstance(arg, FairStepEntry):
-                        rdf.add((step.STEP[var], PPLAN.isOutputVarOf, arg.STEP['step']))
-                        rdf.add((arg.STEP['step'], DUL.precedes, step.STEP['step']))
+                        rdf.add((step.ref()[var], PPLAN.isOutputVarOf, arg.ref()['step']))
+                        rdf.add((arg.ref()['step'], DUL.precedes, step.ref()['step']))
                     else:
-                        binding = self.this_workflow[var + '_usage_' + str(arg)]
-                        rdf.add((self.this_workflow[var], PROV.qualifiedUsage, binding))
+                        binding = this_workflow[var + '_usage_' + str(arg)]
+                        rdf.add((this_workflow[var], PROV.qualifiedUsage, binding))
                         rdf.add((binding, RDF.type, PROV.Usage))
-                        rdf.add((binding, PROV.entity, self.this_workflow[var]))
+                        rdf.add((binding, PROV.entity, this_workflow[var]))
                         rdf.add((binding, RDF.value, rdflib.Literal(f'{str(arg)}')))
         return rdf
+
+    def ref(self):
+        """
+        Returns RDF Namespace that can be used externally to refer to this workflow.
+        If the workflow has been nanopublished, this returns namespace of its nanopub
+        URI instead.
+        """
+        if self.nanopub_uri is not None:
+            return rdflib.Namespace(self.nanopub_uri + '#')
+        else:
+            return rdflib.Namespace(self.uri + '#')
 
     def __str__(self):
         return self.get_rdf().serialize(format='turtle').decode("utf-8")
@@ -160,7 +174,7 @@ class FairWorkflow:
             step.nanopublish()
 
         # Publish the workflow itself
-        Nanopub.nanopublish(self.get_rdf(), uri=self.np_uri)
+        self.nanopub_uri = Nanopub.nanopublish(self.get_rdf(), uri=self.uri)
 
 
 class FairStepEntry:
@@ -171,9 +185,8 @@ class FairStepEntry:
         self.executed = False
         self.result = None
 
-        self.np_uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/Step"
-        self.THISSTEP = rdflib.Namespace(self.np_uri + '#')
-        self.STEP = self.THISSTEP
+        self.uri = "http://purl.org/nanopub/temp/FAIRWorkflowsTest/Step"
+        self.nanopub_uri = None  # None, until step is published
 
     def execute(self):
         resolved_args = []
@@ -199,29 +212,49 @@ class FairStepEntry:
     def get_result(self):
         return self.result
 
+    def ref(self):
+        """
+        Returns RDF Namespace that can be used externally to refer to this step.
+        If the step has been nanopublished, this returns namespace of its nanopub
+        URI instead.
+        """
+        if self.nanopub_uri is not None:
+            return rdflib.Namespace(self.nanopub_uri + '#')
+        else:
+            return rdflib.Namespace(self.uri + '#')
+
     def get_rdf(self):
 
         # Autogenerate rdf metadata for this step
         rdf = rdflib.Graph()
 
-        rdf.add((self.THISSTEP['step'], RDF.type, PPLAN.Step))
-        rdf.add((self.THISSTEP['step'], RDF.type, BPMN.scriptTask))
+        this_step = rdflib.Namespace(self.uri + '#')
+
+        rdf.add((this_step['step'], RDF.type, PPLAN.Step))
+        rdf.add((this_step['step'], RDF.type, BPMN.scriptTask))
 
         for var, arg in zip(self.func.__code__.co_varnames, self.args):
-            rdf.add((self.THISSTEP[var], RDF.type, PPLAN.Variable))
-            rdf.add((self.THISSTEP['step'], PPLAN.hasInputVar, self.THISSTEP[var]))
+            rdf.add((this_step[var], RDF.type, PPLAN.Variable))
+            rdf.add((this_step['step'], PPLAN.hasInputVar, this_step[var]))
 
         # Grab entire function's source code for step 'description'
         func_src = inspect.getsource(self.func)
-        rdf.add((self.THISSTEP['step'], DC.description, rdflib.Literal(func_src)))
+        rdf.add((this_step['step'], DC.description, rdflib.Literal(func_src)))
 
         return rdf
  
     def nanopublish(self):
-        nanopuburl = Nanopub.nanopublish(self.get_rdf(), uri=self.np_uri)
-        self.STEP = rdflib.Namespace(nanopuburl + '#')
+        """
+        Publish this step's rdf as an assertion in a nanopublication.
+        Stores the resulting publication URI, which will then be returned
+        by future calls to this Step's ref() method.
+        """
+        self.nanopub_uri = Nanopub.nanopublish(self.get_rdf(), uri=self.uri)
 
     def __str__(self):
+        """
+        Serializes step rdf to string, for printing
+        """
         return self.get_rdf().serialize(format='turtle').decode("utf-8")
 
 
