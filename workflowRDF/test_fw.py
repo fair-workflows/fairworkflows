@@ -9,19 +9,19 @@ fw = FairWorkflow(name='add_and_multiply_workflow')
 # 2. Define some steps
 
 @FairStep(fw)
-def add(int1, int2):
+def add(dog, cat):
     """
-        Add two integers together (int1 and int2).
+        Add two integers together (dog and cat).
     """
-    result = int1 + int2
+    result = dog + cat
     return result
 
 @FairStep(fw)
-def mult(int1, int2):
+def mult(walrus, bird):
     """
-        Multiply two integers together (int1 and int2).
+        Multiply two integers together (walrus and bird).
     """
-    result = int1 * int2
+    result = walrus * bird
     return result
 
 
@@ -32,13 +32,10 @@ input2 = 5
 output1 = add(input1, input2)
 output2 = mult(output1, input2)
 
-# 4. Output workflow as RDF triples
-fw.rdf_to_file("test.rdf", format='turtle')
-
-# 5. Execute the workflow
+# 4. Execute the workflow
 print("Executing workflow:")
 result = fw.execute()
 print("Result:", result)
 
-# 6. Publish the workflow
-fw.nanopublish("https://some.fdp.server/")
+# 5. Publish the workflow and all its steps
+fw.nanopublish()
