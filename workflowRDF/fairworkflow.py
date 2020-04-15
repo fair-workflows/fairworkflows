@@ -5,12 +5,10 @@ import inspect
 from datetime import datetime
 
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
-EDAM = rdflib.Namespace("http://edamontology.org/")
 PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
 DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
 BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
 PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
-RDFG = rdflib.Namespace("http://www.w3.org/2004/03/trix/rdfg-1/")
 NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 
 
@@ -33,14 +31,11 @@ class Nanopub:
 
         np_rdf.bind("", this_np)
         np_rdf.bind("np", NP)
-
         np_rdf.bind("p-plan", PPLAN)
-        np_rdf.bind("edam", EDAM)
         np_rdf.bind("prov", PROV)
         np_rdf.bind("dul", DUL)
         np_rdf.bind("bpmn", BPMN)
         np_rdf.bind("pwo", PWO)
-        np_rdf.bind("rdfg", RDFG)
 
         head.add((this_np[''], RDF.type, NP.Nanopublication))
         head.add((this_np[''], NP.hasAssertion, this_np.assertion))
@@ -119,13 +114,10 @@ class FairWorkflow:
 
         # Bind all non-standard prefixes in use
         rdf.bind("p-plan", PPLAN)
-        rdf.bind("edam", EDAM)
         rdf.bind("prov", PROV)
         rdf.bind("dul", DUL)
         rdf.bind("bpmn", BPMN)
         rdf.bind("pwo", PWO)
-        rdf.bind("rdfg", RDFG)
-        rdf.bind("np", NP)
 
         # Add steps metadata
         if len(self.steps) > 0:
