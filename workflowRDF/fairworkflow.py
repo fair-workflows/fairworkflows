@@ -1,4 +1,5 @@
 import os
+import tempfile
 import rdflib
 from rdflib.namespace import RDF, RDFS, DC, XSD, OWL 
 import inspect
@@ -68,13 +69,17 @@ class Nanopub:
 
         np_rdf = Nanopub.rdf(assertionrdf, uri=uri)
 
+        # Create a temporary dir for files created during serializing and signing
+        tempdir = tempfile.mkdtemp()
+
         # Convert nanopub rdf to trig
         fname = 'temp.trig'
-        serialized = np_rdf.serialize(destination=fname, format='trig')
+        unsigned_fname = os.path.join(tempdir, fname)
+        signed_fname = os.path.join(tempdir, 'signed.' + fname)
+        serialized = np_rdf.serialize(destination=unsigned_fname, format='trig')
 
         # Sign the nanopub and publish it
-        os.system('np sign ' + fname)
-        signed_fname = 'signed.' + fname
+        os.system('np sign ' + unsigned_fname)
         os.system('np publish ' + signed_fname)
 
         # Extract nanopub URL
