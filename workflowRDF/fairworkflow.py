@@ -17,13 +17,10 @@ NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 class Nanopub:
 
     @staticmethod
-    def rdf(assertionrdf, uri=None):
+    def rdf(assertionrdf, uri='http://purl.org/nanopub/temp/mynanopub'):
         """
         Return the nanopub rdf, with given assertion and URI, but does not sign or publish.
         """
-
-        if uri is None:
-            raise ValueError('URI must be specified in call to nanopublish. "uri" cannot be None.')
 
         this_np = rdflib.Namespace(uri+'#')
 
