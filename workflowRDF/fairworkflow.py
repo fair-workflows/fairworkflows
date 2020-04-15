@@ -4,15 +4,19 @@ from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
 import inspect
 from datetime import datetime
 
+# Some standard ontologies used for nanopubs and describing workflows.
+NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
 PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
 DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
 BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
 PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
-NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 
 
 class Nanopub:
+    """
+    Provides utility functions for creating and publishing RDF graphs as assertions in a nanopublication.
+    """
 
     @staticmethod
     def rdf(assertionrdf, uri='http://purl.org/nanopub/temp/mynanopub'):
@@ -216,8 +220,10 @@ class FairStepEntry:
             return rdflib.Namespace(self.uri + '#')
 
     def get_rdf(self):
+        """
+        Autogenerate the rdf metadata for this step. Returns rdflib Graph.
+        """
 
-        # Autogenerate rdf metadata for this step
         rdf = rdflib.Graph()
 
         this_step = rdflib.Namespace(self.uri + '#')
@@ -251,6 +257,9 @@ class FairStepEntry:
 
 
 def FairStep(fairworkflow):
+    """
+    Decorator to capture metadata about a function, and trace where its outputs are used.
+    """
     def fair_wrapper(func):
         def metadata_wrapper(*args, **kwargs):
 
