@@ -10,3 +10,7 @@
 * Contact an expert? Several ways:
     * Contact a server, which processes the request and contacts the relevant expert, displaying the steps required, and giving them a graphical interface in which the desired results may be entered.
     * Emails the specified expert directly, with the instructions. Expert may reply to the email.
+
+
+Test CWL manual tool with
+```cwl-runner --preserve-entire-environment test_workflow.cwl --manual_mode commandline```
