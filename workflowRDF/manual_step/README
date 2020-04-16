@@ -1,0 +1,12 @@
+# Ideas
+
+## Entry in jupyter notebook cell
+* Markup is generated in the cell corresponding to the RDF description of the manual step.
+* A "results" input section of the cell allows user to input URI of expected/resultant data sets.
+* Once output of manual task is specified, notebook may continue execution.
+
+## CWL tool
+* Optionally, command line prompt, or GUI prompt?
+* Contact an expert? Several ways:
+    * Contact a server, which processes the request and contacts the relevant expert, displaying the steps required, and giving them a graphical interface in which the desired results may be entered.
+    * Emails the specified expert directly, with the instructions. Expert may reply to the email.
