@@ -9,6 +9,8 @@ import inspect
 from datetime import datetime
 
 # Some standard ontologies used for nanopubs and describing workflows.
+from core.nanopub import wrapper
+
 NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
 PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
@@ -88,17 +90,16 @@ class Nanopub:
         # Convert nanopub rdf to trig
         fname = 'temp.trig'
         unsigned_fname = os.path.join(tempdir, fname)
-        signed_fname = os.path.join(tempdir, 'signed.' + fname)
         serialized = np_rdf.serialize(destination=unsigned_fname, format='trig')
 
         # Sign the nanopub and publish it
-        os.system(f'{NANOPUB_SCRIPT} sign ' + unsigned_fname)
-        os.system(f'{NANOPUB_SCRIPT} publish ' + signed_fname)
+        signed_file = wrapper.sign(unsigned_fname)
+        wrapper.publish(signed_file)
 
         # Extract nanopub URL
         # (this is pretty horrible, switch to python version as soon as it is ready)
         extracturl = rdflib.Graph()
-        extracturl.parse(signed_fname, format="trig")
+        extracturl.parse(signed_file, format="trig")
         nanopuburl = dict(extracturl.namespaces())['this'].__str__()
 
         print(f'Published to {nanopuburl}')
