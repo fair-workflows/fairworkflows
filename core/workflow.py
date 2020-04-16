@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Dict, Union
 
-from . import rdf, pythongen, cwl
+from . import rdf, pythongen, cwl, nanopub
 
 SCRIPTS = 'scripts'
 PLEX = 'plex'
@@ -34,6 +34,7 @@ def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], t
     pythongen.render_python_workflow(steps, scripts_dir)
     rdf.create_plex_workflow(name, steps, plex_dir)
     cwl.create_workflow(name, steps, cwl_dir)
+    nanopub.publish_workflow(name, steps)
 
 
 def _create_plex_workflow(name, steps):
