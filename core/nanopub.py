@@ -160,16 +160,18 @@ class FairWorkflow:
             for step in self.steps:
                 rdf.add((step.ref()['step'], PPLAN.isStepOfPlan, this_workflow['workflow']))
 
-                for var, arg in zip(step.func.__code__.co_varnames, step.args):
-                    if isinstance(arg, FairStepEntry):
-                        rdf.add((step.ref()[var], PPLAN.isOutputVarOf, arg.ref()['step']))
-                        rdf.add((arg.ref()['step'], DUL.precedes, step.ref()['step']))
-                    else:
-                        binding = this_workflow[var + '_usage_' + str(arg)]
-                        rdf.add((this_workflow[var], PROV.qualifiedUsage, binding))
-                        rdf.add((binding, RDF.type, PROV.Usage))
-                        rdf.add((binding, PROV.entity, this_workflow[var]))
-                        rdf.add((binding, RDF.value, rdflib.Literal(f'{str(arg)}')))
+                # TODO: Figure out how to bind values to input args
+                # for var, arg in zip(step.func.__code__.co_varnames, step.args):
+                #
+                #     if isinstance(arg, FairStepEntry):
+                #         rdf.add((step.ref()[var], PPLAN.isOutputVarOf, arg.ref()['step']))
+                #         rdf.add((arg.ref()['step'], DUL.precedes, step.ref()['step']))
+                #     else:
+                #         binding = this_workflow[var + '_usage_' + str(arg)]
+                #         rdf.add((this_workflow[var], PROV.qualifiedUsage, binding))
+                #         rdf.add((binding, RDF.type, PROV.Usage))
+                #         rdf.add((binding, PROV.entity, this_workflow[var]))
+                #         rdf.add((binding, RDF.value, rdflib.Literal(f'{str(arg)}')))
         return rdf
 
     def ref(self):
