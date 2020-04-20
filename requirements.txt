@@ -1,6 +1,6 @@
 click
 Jinja2
-rdflib
+rdflib<4.3.0,>=4.2.2
 pytest
 scriptcwl
 cwlgen
