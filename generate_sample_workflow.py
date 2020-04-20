@@ -12,7 +12,10 @@ from core import workflow
 RESULTS_DIR = 'sample_output'
 WORKFLOW_NAME = 'sample_workflow'
 WORKFLOW_STEPS = [{'name': 'step1', 'description': 'description of step 1', 'input': ['sample_input1', 'sample_input2'],
-                   'output': ['sample_output']}]
+                   'output': ['sample_output']},
+                  {'name': 'step2', 'description': 'description of step 2', 'input': ['sample_input1', 'sample_input2'],
+                   'output': ['sample_output']}
+                  ]
 
 
 def main():
