@@ -1,12 +1,10 @@
 import os
 import tempfile
+from datetime import datetime
 from pathlib import Path
-from config import NANOPUB_SCRIPT
 
 import rdflib
-from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
-import inspect
-from datetime import datetime
+from rdflib.namespace import RDF, DC, XSD
 
 # Some standard ontologies used for nanopubs and describing workflows.
 from core.nanopub import wrapper
@@ -94,13 +92,7 @@ class Nanopub:
 
         # Sign the nanopub and publish it
         signed_file = wrapper.sign(unsigned_fname)
-        wrapper.publish(signed_file)
-
-        # Extract nanopub URL
-        # (this is pretty horrible, switch to python version as soon as it is ready)
-        extracturl = rdflib.Graph()
-        extracturl.parse(signed_file, format="trig")
-        nanopuburl = dict(extracturl.namespaces())['this'].__str__()
+        nanopuburl = wrapper.publish(signed_file)
 
         print(f'Published to {nanopuburl}')
         return nanopuburl
