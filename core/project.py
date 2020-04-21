@@ -3,10 +3,11 @@ Project module contains all functions related to loading project files and metad
 """
 
 from pathlib import Path
-from typing import Union, Dict, Iterable
-from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR
+from typing import Union, Dict
 
 import yaml
+
+from config import CWL_WORKFLOW_DIR, PYTHON_DIR
 
 
 def _load_workflow(project_path: Union[str, Path]):
@@ -29,6 +30,20 @@ def _load_workflow(project_path: Union[str, Path]):
     return wf
 
 
+def get_step_code(project_path, step_name):
+    project_path = Path(project_path)
+    steps_path = project_path/ PYTHON_DIR
+
+    step_file = steps_path / f'{step_name}.py'
+
+    return step_file.read_text()
+
+
 def get_steps(project_path: str) -> Dict[str, any]:
+    """
+    Get description of the steps in the workflow. For now these descriptions are based on cwl.
+    :param project_path:
+    :return:
+    """
     wf = _load_workflow(project_path)
     return wf['steps']
