@@ -2,8 +2,10 @@ import os
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from typing import Union
 
 import rdflib
+from core import project
 from rdflib.namespace import RDF, DC, XSD
 
 # Some standard ontologies used for nanopubs and describing workflows.
@@ -17,11 +19,16 @@ BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
 PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
 
 
-def publish_workflow(name, steps):
+def publish_workflow(project_path: Union[str, Path]):
+    project_path = Path(project_path)
+    name = project_path.name
+
     fw = FairWorkflow(name)
 
-    for step in steps:
-        fw_step = FairStepEntry(step['code'], step['input'])
+    steps = project.get_steps(project_path)
+
+    for name, values in steps.items():
+        fw_step = FairStepEntry(project.get_step_code(project_path, name), values['in'].values())
         fw.add_step(fw_step)
 
     fw.nanopublish()
@@ -242,8 +249,7 @@ class FairStepEntry:
             rdf.add((this_step[kwarg], RDF.type, PPLAN.Variable))
 
         # Grab entire function's source code for step 'description'
-        func_src = Path(self.code).read_text()
-        rdf.add((this_step['step'], DC.description, rdflib.Literal(func_src)))
+        rdf.add((this_step['step'], DC.description, rdflib.Literal(self.code)))
 
         return rdf
 

@@ -5,6 +5,7 @@ from typing import List, Dict
 import click
 
 from core.workflow import process_workflow
+from core import nanopub
 
 
 @click.group('cli')
@@ -31,6 +32,17 @@ def create_workflow(name, target):
         step['output'] = step['output'].split(',')
 
     process_workflow(name, steps, target)
+
+
+@click.command()
+@click.option('--projectpath', prompt='Project path')
+def publish(projectpath: str):
+    """
+    Publish the workflow as Nanopublication
+    :param projectpath: The directory containing the workflow files
+    :return: Nanopub URL
+    """
+    nanopub.publish_workflow(projectpath)
 
 
 def prompt_continuous(questions: List[str]) -> List[Dict[str, str]]:
@@ -61,6 +73,7 @@ def prompt_continuous(questions: List[str]) -> List[Dict[str, str]]:
 
 
 cli.add_command(create_workflow)
+cli.add_command(publish)
 
 
 def main():
