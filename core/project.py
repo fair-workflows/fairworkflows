@@ -3,14 +3,13 @@ Project module contains all functions related to loading project files and metad
 """
 
 from pathlib import Path
-from typing import Union, Dict
+from typing import Union, Dict, Iterable
+from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR
 
 import yaml
 
-CWL_WORKFLOW_DIR = 'cwl/workflow'
 
-
-def _load_workflow(project_path: Union[str, Path]) :
+def _load_workflow(project_path: Union[str, Path]):
     """
     Loads "generic" implementation of the workflow. Right now this representation is based on the cwl data.
 

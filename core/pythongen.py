@@ -1,6 +1,9 @@
+from pathlib import Path
+
 from jinja2 import FileSystemLoader, select_autoescape, Environment
 
 import config
+from config import PYTHON_DIR
 
 TEMPLATE_DIR = config.CORE_DIR / 'templates'
 
@@ -10,10 +13,15 @@ ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
 TEMPLATE = ENV.get_template('fair_step.py')
 
 
-def render_python_workflow(steps, workflow_dir):
+def render_python_workflow(steps, project_dir):
+    target_dir = Path(project_dir) / PYTHON_DIR
+
+    if not target_dir.exists():
+        target_dir.mkdir()
+
     # Store every step in a separate file in the workflow directory
     for step in steps:
-        filepath = _render_python_step(step, workflow_dir)
+        filepath = _render_python_step(step, target_dir)
         step['code'] = filepath
 
 

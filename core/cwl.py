@@ -8,11 +8,13 @@ from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR
 DEFAULT_TYPE = 'int'
 
 
-def create_workflow(name, steps, cwl_dir):
+def create_workflow(name, steps, project_dir):
     # TODO: Right now all steps will be brand new. In the future it should be possible to specify existing steps
-    cwl_dir = Path(cwl_dir)
-    steps_path = cwl_dir / CWL_STEPS_DIR
-    workflow_path = cwl_dir / CWL_WORKFLOW_DIR
+    project_dir = Path(project_dir)
+    steps_path = project_dir / CWL_STEPS_DIR
+    workflow_path = project_dir / CWL_WORKFLOW_DIR
+    print(steps_path)
+    print(workflow_path)
 
     steps_path.mkdir()
     workflow_path.mkdir()
