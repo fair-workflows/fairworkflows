@@ -6,6 +6,7 @@ import click
 
 from core.workflow import process_workflow
 
+
 @click.group('cli')
 def cli():
     pass

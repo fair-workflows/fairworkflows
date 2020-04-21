@@ -1,6 +1,14 @@
 # FAIRWorkbench
 Modules for implementation of the FAIR Workbench.
 
+# Prerequisites
+The np scripts needs to be called to generate rsa keys in the `~/.nanopub` directory.
+
+```shell script
+./np mkkeys -d RSA
+```
+
+
 ## How to run FAIR workbench
 The cli interface can be run as follows:
 
