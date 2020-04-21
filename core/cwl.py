@@ -3,7 +3,7 @@ from typing import List, Union, Dict
 
 import cwlgen
 from scriptcwl import WorkflowGenerator
-from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR
+from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR
 
 DEFAULT_TYPE = 'int'
 
@@ -11,13 +11,13 @@ DEFAULT_TYPE = 'int'
 def create_workflow(name, steps, project_dir):
     # TODO: Right now all steps will be brand new. In the future it should be possible to specify existing steps
     project_dir = Path(project_dir)
+    cwl_path = project_dir / CWL_DIR
     steps_path = project_dir / CWL_STEPS_DIR
     workflow_path = project_dir / CWL_WORKFLOW_DIR
-    print(steps_path)
-    print(workflow_path)
 
-    steps_path.mkdir()
-    workflow_path.mkdir()
+    cwl_path.mkdir(exist_ok=True)
+    steps_path.mkdir(exist_ok=True)
+    workflow_path.mkdir(exist_ok=True)
 
     # Create commandlinetool for every step
     for step in steps:

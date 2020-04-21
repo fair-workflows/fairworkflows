@@ -1,5 +1,6 @@
 from core import cwl
 import yaml
+from pathlib import Path
 
 SAMPLE_STEP = {'name': 'step1',
                'description': 'description of step 1',
@@ -24,10 +25,13 @@ def test_sample_step_generates_sample_commandlinetool():
 
 
 def test_sample_workflow_has_one_step(tmp_path):
-    result_path = cwl.create_workflow(WORKFLOW_NAME, [SAMPLE_STEP], tmp_path)
+    project_dir = Path(tmp_path) / WORKFLOW_NAME
+    if not project_dir.exists():
+        project_dir.mkdir()
+
+    result_path = cwl.create_workflow(WORKFLOW_NAME, [SAMPLE_STEP], project_dir)
 
     with result_path.open('r') as f:
         wf = yaml.load(f)
 
         assert 1 == len(wf['steps'])
-
