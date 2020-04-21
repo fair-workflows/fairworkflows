@@ -32,12 +32,13 @@ def create_workflow(name, steps, project_dir):
         first_step = steps[0]
         inputs = {f'{first_step["name"]}/{name}': wf.add_input(**{name: DEFAULT_TYPE}) for name in first_step['input']}
 
-        for step in steps:
-            step_func = wf.__getattr__(step['name'])
-            inputs = step_func(**inputs)
-
-        # The following will fail
+        # Add first defined step. We don't have the information on how separate step inputs and outputs are linked so we
+        # can't yet add all steps.
+        step_func = wf.__getattr__(first_step['name'])
+        inputs = step_func(**inputs)
         wf.add_outputs()
+
+        # TODO: Add functionality to link multiple steps
 
         filepath = workflow_path / f'{name}.cwl'
 
