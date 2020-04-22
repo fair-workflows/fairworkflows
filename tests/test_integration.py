@@ -3,7 +3,9 @@ from unittest.mock import patch
 from core import workflow
 import pytest
 
-SAMPLE_STEPS = [{'name': 'step1', 'description': 'This is the first step', 'input': ['a', 'b'], 'output': ['result']}]
+SAMPLE_STEPS = [{'name': 'step1', 'description': 'This is the first step', 'input': ['a', 'b'], 'output': ['result']},
+                {'name': 'step2', 'description': 'This is the second step', 'input': ['result'],
+                 'output': ['final_result']}]
 WORKFLOW_NAME = 'test_workflow'
 TARGET_DIR = 'integration_test_workflow'
 MOCK_URI = 'http://sample.com/sample'
