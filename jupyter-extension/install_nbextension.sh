@@ -1,2 +1,0 @@
-jupyter-nbextension install FAIRWorkflowsExtension
-jupyter-nbextension enable FAIRWorkflowsExtension/main

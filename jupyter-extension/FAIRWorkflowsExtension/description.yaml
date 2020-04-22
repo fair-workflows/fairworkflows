@@ -1,9 +1,0 @@
-Type: Jupyter Notebook Extension
-Compatibility: 3.x, 4.x, 5.x, 6.x
-Name: FAIR Workflows Extension
-Main: main.js
-Link: README.md
-Description: |
-    Allows publishing of cells on FAIR compliant servers
-Parameters:
-- none
