@@ -5,13 +5,25 @@ from IPython.display import display
 class Search(widgets.DOMWidget):
 
     def __init__(self):
-        def on_button_clicked(b):
-            with self.output:
-                print("Button clicked.")
+        searchtext = widgets.Text(
+            value='',
+            placeholder='Type something',
+            description='Search:',
+            disabled=False
+        )
 
-        button = widgets.Button(description="Click Me!")
-        self.output = widgets.Output()
+        resultsbox = widgets.Select(
+            options=[],
+            value=None,
+            description='Results:',
+            disabled=False
+        )
 
-        button.on_click(on_button_clicked)
+        searchtext.on_submit(Search.search)
+        display(searchtext, resultsbox)
 
-        display(button, self.output)
+
+    @staticmethod
+    def search(sender):
+        print("Searched for", sender.value)
+
