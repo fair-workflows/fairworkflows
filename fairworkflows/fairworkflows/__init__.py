@@ -1,2 +1,3 @@
 from ._version import __version__ 
-from .hellowidget import HelloWidget
+from .hello import Hello
+from .search import Search

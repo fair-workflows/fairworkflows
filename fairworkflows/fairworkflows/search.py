@@ -2,7 +2,7 @@ import ipywidgets as widgets
 from traitlets import Unicode, validate
 from IPython.display import display
 
-class HelloWidget(widgets.DOMWidget):
+class Search(widgets.DOMWidget):
 
     def __init__(self):
         def on_button_clicked(b):
