@@ -14,4 +14,8 @@ import fairworkflows as fair
 Try out the interactive widgets:
 ```
 fair.Search()
+
+fair.Load()
+
+fair.Step()
 ```
