@@ -4,7 +4,6 @@ from IPython.display import display
 from SPARQLWrapper import SPARQLWrapper
 
 
-
 class Search(widgets.DOMWidget):
 
     def __init__(self, server='http://server.nanopubs.lod.labs.vu.nl/'):
