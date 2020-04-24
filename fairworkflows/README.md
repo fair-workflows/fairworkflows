@@ -6,8 +6,8 @@ pip install .
 ```
 
 # Usage
-In your python script, import the library as follows:
-```import fairworkflows```
+In your python notebook, import the library as follows:
+```import fairworkflows as fair```
 
 Try out the interactive widgets:
-```hellowidget()```
+```fair.HelloWidget()```
