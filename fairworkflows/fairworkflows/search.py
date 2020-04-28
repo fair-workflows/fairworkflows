@@ -8,23 +8,30 @@ class Search(widgets.DOMWidget):
 
     def __init__(self, server='http://server.nanopubs.lod.labs.vu.nl/'):
 
+        layout=widgets.Layout(width='50%')
+
         searchtext = widgets.Text(
             value='',
-            placeholder='Type something',
-            description='Search:',
-            disabled=False
+            placeholder='Type search text',
+            description='Nanosearch:',
+            disabled=False,
+            layout=layout
         )
 
         resultsbox = widgets.Select(
             options=[],
             value=None,
             description='',
-            disabled=False
+            num_rows=5,
+            disabled=False,
+            layout=layout
         )
 
         def search(sender):
-            results = Search.nanopubs(sender.value, max_num_results=3)                    
-            resultsbox.options = tuple(results)
+            results = Search.nanopubs(sender.value, max_num_results=5) 
+
+            options = (r['v'] for r in results)
+            resultsbox.options = options
         
         searchtext.on_submit(search)
         display(searchtext, resultsbox)
