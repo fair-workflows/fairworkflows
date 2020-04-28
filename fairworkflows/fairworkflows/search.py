@@ -1,4 +1,5 @@
 import ipywidgets as widgets
+from IPython import get_ipython
 from traitlets import Unicode, validate
 from IPython.display import display
 import requests
@@ -23,22 +24,32 @@ class Search(widgets.DOMWidget):
             value=None,
             description='',
             num_rows=5,
-            disabled=False,
+            disabled=True,
             layout=layout
         )
 
         def search(text_state):
             # Find (up to) 5 nanopubs matching the search text
-            results = Search.nanopubs(text_state['new'], max_num_results=5) 
+            results = Search.nanopubs(text_state['new'], max_num_results=5)
 
             # Display results in the Select UI element
             options = (r['v'] for r in results)
             resultsbox.options = options
 
+        def choose(sender):
+            result = Search.nanopubs(sender.value, max_num_results=1)[0]
+            
+            print('uri=' + result['np'])
+
+            # Close widget down
+            searchtext.close()
+            resultsbox.close()
+            self.close()
+
+
         searchtext.observe(search, names='value')
 
-
-#        searchtext.on_submit(search)
+        searchtext.on_submit(choose)
         display(searchtext, resultsbox)
 
 
