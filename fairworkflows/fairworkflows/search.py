@@ -1,8 +1,7 @@
 import ipywidgets as widgets
 from traitlets import Unicode, validate
 from IPython.display import display
-from SPARQLWrapper import SPARQLWrapper
-
+import requests
 
 class Search(widgets.DOMWidget):
 
@@ -28,17 +27,12 @@ class Search(widgets.DOMWidget):
 
     @staticmethod
     def search(sender):
-        print("Searched for", sender.value)
-        
-        queryString = "SELECT * WHERE { ?s ?p ?o. }"
-        sparql = SPARQLWrapper('http://server.nanopubs.lod.labs.vu.nl/')
+        print("Searching for", sender.value)
+       
+        apiurl = "http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text"
+        searchparams = {'text': sender.value, 'graphpred': '', 'month': '', 'day': '', 'year': ''}
+        r = requests.get(apiurl, params=searchparams)
 
-        sparql.setQuery(queryString)
 
-        try :
-           ret = sparql.query()
-        except :
-           print("Error when querying")
-
-        print('Result:', ret)
+        print('Result:', r.text)
 
