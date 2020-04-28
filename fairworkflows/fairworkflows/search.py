@@ -51,3 +51,11 @@ def nanosearch(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lo
             break
 
     return nanopubs
+
+
+def nanofetch(uri):
+    """
+    Download the nanopublication at the specified URI.
+    """
+    r = requests.get(uri)
+    return r.text
