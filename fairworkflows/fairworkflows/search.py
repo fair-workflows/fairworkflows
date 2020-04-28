@@ -1,56 +1,26 @@
 import ipywidgets as widgets
-from IPython import get_ipython
+from ipywidgets import interact
 from traitlets import Unicode, validate
-from IPython.display import display
+from IPython.display import display, HTML
+import tabulate
 import requests
 import xml.etree.ElementTree as et
 
 class Search(widgets.DOMWidget):
 
-    def __init__(self, server='http://server.nanopubs.lod.labs.vu.nl/'):
+    def __init__(self):
 
-        layout=widgets.Layout(width='50%')
+        # Provide interactive search
+        @interact(searchtext='', source=['nanopub', 'workflowhub', 'FAIR Data Point'])
+        def interactive_search(searchtext, source='nanopub'):
 
-        searchtext = widgets.Text(
-            value='',
-            placeholder='Type search text',
-            description='Nanosearch:',
-            disabled=False,
-            layout=layout
-        )
+            # Search for up to 3 nanopubs
+            results = Search.nanopubs(searchtext, max_num_results=3)
+  
+            # Output as table
+            table = [[r['v'], r['np'], r['date']] for r in results]
+            display(HTML(tabulate.tabulate(table, tablefmt='html')))
 
-        resultsbox = widgets.Select(
-            options=[],
-            value=None,
-            description='',
-            num_rows=5,
-            disabled=True,
-            layout=layout
-        )
-
-        def search(text_state):
-            # Find (up to) 5 nanopubs matching the search text
-            results = Search.nanopubs(text_state['new'], max_num_results=5)
-
-            # Display results in the Select UI element
-            options = (r['v'] for r in results)
-            resultsbox.options = options
-
-        def choose(sender):
-            result = Search.nanopubs(sender.value, max_num_results=1)[0]
-            
-            print('uri=' + result['np'])
-
-            # Close widget down
-            searchtext.close()
-            resultsbox.close()
-            self.close()
-
-
-        searchtext.observe(search, names='value')
-
-        searchtext.on_submit(choose)
-        display(searchtext, resultsbox)
 
 
     @staticmethod
