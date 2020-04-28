@@ -27,13 +27,18 @@ class Search(widgets.DOMWidget):
             layout=layout
         )
 
-        def search(sender):
-            results = Search.nanopubs(sender.value, max_num_results=5) 
+        def search(text_state):
+            # Find (up to) 5 nanopubs matching the search text
+            results = Search.nanopubs(text_state['new'], max_num_results=5) 
 
+            # Display results in the Select UI element
             options = (r['v'] for r in results)
             resultsbox.options = options
-        
-        searchtext.on_submit(search)
+
+        searchtext.observe(search, names='value')
+
+
+#        searchtext.on_submit(search)
         display(searchtext, resultsbox)
 
 
@@ -43,6 +48,9 @@ class Search(widgets.DOMWidget):
         Searches the nanopub servers (at the specified grlc API) for any nanopubs matching the given search text,
         up to max_num_results.
         """
+
+        if len(searchtext) == 0:
+            return []
 
         # Query the nanopub server for the specified text
         searchparams = {'text': searchtext, 'graphpred': '', 'month': '', 'day': '', 'year': ''}
