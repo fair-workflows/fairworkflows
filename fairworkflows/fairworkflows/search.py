@@ -55,7 +55,21 @@ def nanosearch(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lo
 
 def nanofetch(uri):
     """
-    Download the nanopublication at the specified URI.
+    Download the nanopublication at the specified URI. Returns a FairData object.
     """
     r = requests.get(uri)
-    return r.text
+    return FairData(data=r.text, source_uri=uri)
+
+
+class FairData:
+    """
+    Stores the data fetched from FAIR datapoints, nanopub servers etc.
+    """
+
+    def __init__(self, data=None, source_uri=None):
+        self.data = data
+        self.source_uri = source_uri
+
+    def __str__(self):
+        s = f'Source URI = {self.source_uri}\n{self.data}'
+        return s
