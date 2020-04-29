@@ -1,10 +1,14 @@
+import os
 import rdflib
 from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
 from datetime import datetime
+import tempfile
 import requests
 import xml.etree.ElementTree as et
 
 from fairworkflows import FairData
+from .nanopub_wrapper import sign, publish, extract_nanopub_url, _get_signed_file
+
 
 class Nanopub:
     """
@@ -131,8 +135,8 @@ class Nanopub:
         serialized = np_rdf.serialize(destination=unsigned_fname, format='trig')
 
         # Sign the nanopub and publish it
-        signed_file = wrapper.sign(unsigned_fname)
-        nanopuburi = wrapper.publish(signed_file)
+        signed_file = sign(unsigned_fname)
+        nanopuburi = publish(signed_file)
 
         print(f'Published to {nanopuburi}')
         return nanopuburi
@@ -150,4 +154,4 @@ class Nanopub:
         if rdftriple is not None:
             assertionrdf.add(rdftriple)
 
-        print(Nanopub.rdf(assertionrdf))
+        Nanopub.publish(assertionrdf)
