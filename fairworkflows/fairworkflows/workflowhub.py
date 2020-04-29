@@ -37,7 +37,8 @@ class Workflowhub:
                         if attr[0] == 'href':
                             url = attr[1]
                             if 'workflows/' in url and 'download' in url:
-                                extract.append(('url', url))
+                                fullurl = apiurl.replace('/workflows','') + url
+                                extract.append(('url', fullurl))
             def handle_endtag(self, tag):
                 pass
 
