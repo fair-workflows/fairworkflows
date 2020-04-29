@@ -1,4 +1,6 @@
 import requests
+import zipfile
+import io
 from html.parser import HTMLParser
 
 from fairworkflows import FairData
@@ -70,8 +72,19 @@ class Workflowhub:
     @staticmethod
     def fetch(uri):
         """
-        Download the RO-Crate found at the specified URI. Returns a FairData object.
+        Download the RO-Crate zip file found at the specified URI.
+        Decompresses it, extracts the CWL file, and returns a FairData object.
         """
 
+        # Fetch the RO-Crate .zip, and open it (in memory)
         r = requests.get(uri)
-        return FairData(data=r.text, source_uri=uri)
+
+        # Find the first CWL file (for now)
+        cwldata = None
+        with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+            for fname in z.namelist():
+                if '.cwl' in fname:
+                    cwldata = z.open(fname, 'r').read().decode('utf-8')
+                    break
+
+        return FairData(data=cwldata, source_uri=uri)
