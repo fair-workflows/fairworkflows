@@ -53,11 +53,18 @@ def nanosearch(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lo
     return nanopubs
 
 
-def nanofetch(uri):
+def nanofetch(uri, format='trig'):
     """
-    Download the nanopublication at the specified URI. Returns a FairData object.
+    Download the nanopublication at the specified URI (in trig format). Returns a FairData object.
     """
-    r = requests.get(uri)
+
+    extension = ''
+    if format == 'trig':
+        extension = '.trig'
+    else:
+        raise ValueError(f'Format not supported: {format}')
+
+    r = requests.get(uri + extension)
     return FairData(data=r.text, source_uri=uri)
 
 
