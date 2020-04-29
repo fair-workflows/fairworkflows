@@ -1,4 +1,6 @@
 import rdflib
+from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
+from datetime import datetime
 import requests
 import xml.etree.ElementTree as et
 
@@ -15,6 +17,7 @@ class Nanopub:
     DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
     BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
     PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
+
 
     @staticmethod
     def search(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
@@ -82,27 +85,27 @@ class Nanopub:
         pubInfo = rdflib.Graph(np_rdf.store, this_np.pubInfo)
 
         np_rdf.bind("", this_np)
-        np_rdf.bind("np", NP)
-        np_rdf.bind("p-plan", PPLAN)
-        np_rdf.bind("prov", PROV)
-        np_rdf.bind("dul", DUL)
-        np_rdf.bind("bpmn", BPMN)
-        np_rdf.bind("pwo", PWO)
+        np_rdf.bind("np", Nanopub.NP)
+        np_rdf.bind("p-plan", Nanopub.PPLAN)
+        np_rdf.bind("prov", Nanopub.PROV)
+        np_rdf.bind("dul", Nanopub.DUL)
+        np_rdf.bind("bpmn", Nanopub.BPMN)
+        np_rdf.bind("pwo", Nanopub.PWO)
 
-        head.add((this_np[''], RDF.type, NP.Nanopublication))
-        head.add((this_np[''], NP.hasAssertion, this_np.assertion))
-        head.add((this_np[''], NP.hasProvenance, this_np.provenance))
-        head.add((this_np[''], NP.hasPublicationInfo, this_np.pubInfo))
+        head.add((this_np[''], RDF.type, Nanopub.NP.Nanopublication))
+        head.add((this_np[''], Nanopub.NP.hasAssertion, this_np.assertion))
+        head.add((this_np[''], Nanopub.NP.hasProvenance, this_np.provenance))
+        head.add((this_np[''], Nanopub.NP.hasPublicationInfo, this_np.pubInfo))
 
         assertion += assertionrdf
 
         creationtime = rdflib.Literal(datetime.now(),datatype=XSD.dateTime)
-        provenance.add((this_np.assertion, PROV.generatedAtTime, creationtime))
-        provenance.add((this_np.assertion, PROV.wasDerivedFrom, this_np.experiment))
-        provenance.add((this_np.assertion, PROV.wasAttributedTo, this_np.experimentScientist))
+        provenance.add((this_np.assertion, Nanopub.PROV.generatedAtTime, creationtime))
+        provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, this_np.experiment))
+        provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, this_np.experimentScientist))
 
-        pubInfo.add((this_np[''], PROV.wasAttributedTo, this_np.DrBob))
-        pubInfo.add((this_np[''], PROV.generatedAtTime, creationtime))
+        pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, this_np.DrBob))
+        pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
 
         return np_rdf
 
@@ -114,7 +117,10 @@ class Nanopub:
         Uses np commandline tool to sign and publish.
         """
 
-        np_rdf = Nanopub.rdf(assertionrdf, uri=uri)
+        if uri is None:
+            np_rdf = Nanopub.rdf(assertionrdf)
+        else:
+            np_rdf = Nanopub.rdf(assertionrdf, uri=uri)
 
         # Create a temporary dir for files created during serializing and signing
         tempdir = tempfile.mkdtemp()
@@ -126,8 +132,22 @@ class Nanopub:
 
         # Sign the nanopub and publish it
         signed_file = wrapper.sign(unsigned_fname)
-        nanopuburl = wrapper.publish(signed_file)
+        nanopuburi = wrapper.publish(signed_file)
 
-        print(f'Published to {nanopuburl}')
-        return nanopuburl
+        print(f'Published to {nanopuburi}')
+        return nanopuburi
 
+
+    @staticmethod
+    def conclude(text, rdftriple=None):
+        """
+        Publishes a conclusion, either as a plain text statement, or as an rdf triple (or both) 
+        """
+        assertionrdf = rdflib.Graph()
+
+        assertionrdf.add((Nanopub.PROV.TheAuthors, Nanopub.PROV.concludeThat, rdflib.Literal(text)))
+
+        if rdftriple is not None:
+            assertionrdf.add(rdftriple)
+
+        print(Nanopub.rdf(assertionrdf))
