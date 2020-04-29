@@ -1,24 +1,7 @@
-import ipywidgets as widgets
-from ipywidgets import interact, interactive, fixed
-from traitlets import Unicode, validate
-from IPython.display import display, HTML
-import tabulate
 import requests
 import xml.etree.ElementTree as et
 
-def search():
-
-    # Provide interactive search
-    @interact(source=['nanopub', 'workflowhub', 'FAIR Data Point'], text='')
-    def interactive_search(source='', text=''):
-
-        # Search for up to 3 nanopubs
-        results = nanosearch(text, max_num_results=3)
-
-        # Output as table
-        table = [[r['v'], r['np'], r['date']] for r in results]
-        display(HTML(tabulate.tabulate(table, tablefmt='html')))
-
+from fairworkflows import FairData
 
 def nanosearch(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
     """
@@ -66,17 +49,3 @@ def nanofetch(uri, format='trig'):
 
     r = requests.get(uri + extension)
     return FairData(data=r.text, source_uri=uri)
-
-
-class FairData:
-    """
-    Stores the data fetched from FAIR datapoints, nanopub servers etc.
-    """
-
-    def __init__(self, data=None, source_uri=None):
-        self.data = data
-        self.source_uri = source_uri
-
-    def __str__(self):
-        s = f'Source URI = {self.source_uri}\n{self.data}'
-        return s
