@@ -21,7 +21,9 @@ class Nanopub:
     DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
     BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
     PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
+    HYCL = rdflib.Namespace("http://purl.org/petapico/o/hycl#")
 
+    AUTHOR = rdflib.Namespace("http://purl.org/person#")
 
     @staticmethod
     def search(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
@@ -108,7 +110,7 @@ class Nanopub:
         provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, this_np.experiment))
         provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, this_np.experimentScientist))
 
-        pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, this_np.DrBob))
+        pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, Nanopub.AUTHOR.DrBob))
         pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
 
         return np_rdf
@@ -143,13 +145,13 @@ class Nanopub:
 
 
     @staticmethod
-    def conclude(text, rdftriple=None):
+    def claim(text, rdftriple=None):
         """
-        Publishes a conclusion, either as a plain text statement, or as an rdf triple (or both) 
+        Publishes a claim, either as a plain text statement, or as an rdf triple (or both) 
         """
         assertionrdf = rdflib.Graph()
 
-        assertionrdf.add((Nanopub.PROV.TheAuthors, Nanopub.PROV.concludeThat, rdflib.Literal(text)))
+        assertionrdf.add((Nanopub.AUTHOR.DrBob, Nanopub.HYCL.claims, rdflib.Literal(text)))
 
         if rdftriple is not None:
             assertionrdf.add(rdftriple)
