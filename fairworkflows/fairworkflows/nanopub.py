@@ -7,8 +7,7 @@ import requests
 import xml.etree.ElementTree as et
 
 from fairworkflows import FairData
-from .nanopub_wrapper import sign, publish, extract_nanopub_url, _get_signed_file
-
+from .nanopub_wrapper import Nanowrapper
 
 class Nanopub:
     """
@@ -137,8 +136,8 @@ class Nanopub:
         serialized = np_rdf.serialize(destination=unsigned_fname, format='trig')
 
         # Sign the nanopub and publish it
-        signed_file = sign(unsigned_fname)
-        nanopuburi = publish(signed_file)
+        signed_file = Nanowrapper.sign(unsigned_fname)
+        nanopuburi = Nanowrapper.publish(signed_file)
 
         print(f'Published to {nanopuburi}')
         return nanopuburi
