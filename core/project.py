@@ -1,13 +1,14 @@
 """
 Project module contains all functions related to loading project files and metadata.
 """
-
+from collections import defaultdict
 from pathlib import Path
 from typing import Union, Dict
 
-from . import rdf
+from rdflib.plugins.sparql.processor import SPARQLResult
 
 from config import PLEX_DIR, PYTHON_DIR
+from . import rdf
 
 
 def _load_workflow(project_path: Union[str, Path]):
@@ -36,7 +37,7 @@ def get_step_code(project_path, step_name):
     return step_file.read_text()
 
 
-def get_steps(project_path: str) -> :
+def get_steps(project_path: str):
     """
     Get description of the steps in the workflow. For now these descriptions are based on the RDF description.
     :param project_path:
@@ -44,6 +45,28 @@ def get_steps(project_path: str) -> :
     """
     wf = _load_workflow(project_path)
 
-    result = wf.query('SELECT ?s WHERE { ?s a p-plan:Step }')
-    
-    return result
+    # TODO: Probably not the most efficient way
+    step_triples = wf.query('''SELECT ?s ?p ?o
+                                WHERE
+                                {
+                                    ?s a p-plan:Step .
+                                    ?s ?p ?o .
+                                }''')
+
+    return _sparqlresult_to_step_dict(step_triples)
+
+
+def _sparqlresult_to_step_dict(result: SPARQLResult) -> Dict[str, any]:
+    step_dict = defaultdict(dict)
+
+    # TODO: If needed there is a lot to be optimized here
+    for step_ref, predicate, object in result:
+        step_name = _step_uri_to_name(step_ref)
+        step_dict[step_name].update({predicate: object})
+        step_dict[step_name].update({'uri': step_ref})
+
+    return step_dict
+
+
+def _step_uri_to_name(uri: str) -> str:
+    return uri.split('/')[-1]

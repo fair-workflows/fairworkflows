@@ -1,9 +1,9 @@
 import os
-import tempfile
 import shutil
-from unittest.mock import patch
-from core import project
+import tempfile
+
 import config
+from core import project
 
 PLEX = 'plex'
 WORKFLOW = 'workflow'
@@ -17,7 +17,7 @@ def test_get_steps():
     with MockFileStructure() as project_path:
         steps = project.get_steps(project_path)
 
-        assert steps.keys() == {'step1'}
+        assert steps.keys() == {'analyze_data', 'retrieve_data'}
 
 
 class MockFileStructure():
