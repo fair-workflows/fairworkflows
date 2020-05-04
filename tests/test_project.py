@@ -1,52 +1,34 @@
 import os
-import tempfile
 import shutil
-from unittest.mock import patch
+import tempfile
+
+import config
 from core import project
 
-CWL = 'cwl'
+PLEX = 'plex'
 WORKFLOW = 'workflow'
-WORKFLOW_NAME = 'sample_workflow'
+WORKFLOW_NAME = 'my_workflow'
 
-SAMPLE_WORKFLOW = '''
-#!/usr/bin/env cwl-runner
-cwlVersion: v1.0
-class: Workflow
-inputs:
-  in: int
-outputs: {}
-steps:
-  step1:
-    run: /steps/path/step1.cwl
-    in:
-      step1/in: in
-    out:
-    - step1/out
-'''
+WORKFLOW_FILE = 'my_workflow.ttl'
 
 
 def test_get_steps():
+    # TODO: rdf module should be mocked
     with MockFileStructure() as project_path:
-
         steps = project.get_steps(project_path)
 
-        assert steps.keys() == {'step1'}
+        assert steps.keys() == {'analyze_data', 'retrieve_data'}
 
 
 class MockFileStructure():
     def __init__(self):
         self.project_dir = tempfile.mkdtemp()
 
-        cwl_dir = os.path.join(self.project_dir, CWL)
-        os.mkdir(cwl_dir)
+        plex_dir = os.path.join(self.project_dir, PLEX)
+        os.mkdir(plex_dir)
 
-        workflow_dir = os.path.join(cwl_dir, WORKFLOW)
-        os.mkdir(workflow_dir)
-
-        self.workflow_file = os.path.join(workflow_dir, f'{WORKFLOW_NAME}.cwl')
-
-        with open(self.workflow_file, 'w') as f:
-            f.write(SAMPLE_WORKFLOW)
+        self.workflow_file = os.path.join(plex_dir, f'{WORKFLOW_NAME}.ttl')
+        shutil.copy(config.TESTS_RESOURCES / WORKFLOW_FILE, self.workflow_file)
 
     def __enter__(self):
         return self.project_dir
