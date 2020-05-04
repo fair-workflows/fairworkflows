@@ -5,21 +5,21 @@ import rdflib
 
 class Nanowrapper:
 
-    ROOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    ROOT_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     NANOPUB_SCRIPT = str(ROOT_DIR/'np')
 
     @staticmethod
     def sign(unsigned_file: Union[str]) -> str:
         os.system(f'{Nanowrapper.NANOPUB_SCRIPT} sign ' + unsigned_file)
 
-        return _get_signed_file(unsigned_file)
+        return Nanowrapper._get_signed_file(unsigned_file)
 
 
     @staticmethod
     def publish(signed: str):
         os.system(f'{Nanowrapper.NANOPUB_SCRIPT} publish ' + signed)
 
-        return extract_nanopub_url(signed)
+        return Nanowrapper.extract_nanopub_url(signed)
 
     @staticmethod
     def extract_nanopub_url(signed):
