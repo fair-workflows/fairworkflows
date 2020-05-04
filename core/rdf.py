@@ -59,6 +59,18 @@ def create_plex_workflow(name, steps, dest):
     plex_workflow.render(str(plex_file))
 
 
+def load_workflow(wf_path) -> rdflib.Graph:
+    """
+    Load rdf workflow as rdflib Graph
+    :param wf_path:
+    :return:
+    """
+    graph = rdflib.Graph()
+    graph.parse(wf_path, format='turtle')
+
+    return graph
+
+
 class PlexWorkflow:
 
     def __init__(self, name):
