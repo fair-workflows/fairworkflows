@@ -27,5 +27,6 @@ setup(name='fairworkflows',
     url='https://example.org',
     install_requires=open("requirements.txt", "r").readlines(),
     packages=find_packages(),
-    include_package_data=True
+    include_package_data=True,
+    data_files=[('fairworkflows', ['np'])]
 )
