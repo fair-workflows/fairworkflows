@@ -27,6 +27,7 @@ class Nanopub:
 
     AUTHOR = rdflib.Namespace("http://purl.org/person#")
 
+    DEFAULT_URI = 'http://purl.org/nanopub/temp/mynanopub'
 
     @unique
     class Format(Enum):
@@ -87,7 +88,7 @@ class Nanopub:
 
 
     @staticmethod
-    def rdf(assertionrdf, uri='http://purl.org/nanopub/temp/mynanopub'):
+    def rdf(assertionrdf, uri=DEFAULT_URI):
         """
         Return the nanopub rdf, with given assertion and URI, but does not sign or publish.
         """
