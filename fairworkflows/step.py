@@ -1,8 +1,6 @@
 import ipywidgets as widgets
 from traitlets import Unicode, validate
 from IPython.display import display
-from SPARQLWrapper import SPARQLWrapper
-
 
 class Step(widgets.DOMWidget):
 
