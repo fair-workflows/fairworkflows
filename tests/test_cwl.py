@@ -2,6 +2,13 @@ from fairworkflows import cwl
 import yaml
 from pathlib import Path
 
+import yaml
+
+from config import TESTS_RESOURCES
+from core import cwl
+
+SAMPLE_WORKFLOW = 'test_flow.cwl'
+
 SAMPLE_STEP = {'name': 'step1',
                'description': 'description of step 1',
                'input': ['sample_input1', 'sample_input2'],
@@ -35,3 +42,12 @@ def test_sample_workflow_has_one_step(tmp_path):
         wf = yaml.load(f)
 
         assert 1 == len(wf['steps'])
+
+
+def test_run_workflow_produces_result(tmp_path):
+    wf_path = TESTS_RESOURCES / SAMPLE_WORKFLOW
+    cwl.run_workflow(wf_path, {'message': 'greetings'}, tmp_path)
+
+    result = (tmp_path / 'output.txt').read_text()
+
+    assert 'greetings' == result.strip()

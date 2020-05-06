@@ -3,6 +3,7 @@ Jinja2
 rdflib<4.3.0,>=4.2.2
 pytest
 scriptcwl
+cwltool
 cwlgen
 pyyaml
 requests
