@@ -6,7 +6,7 @@ import tempfile
 import requests
 import xml.etree.ElementTree as et
 from pathlib import Path
-from typing import Union
+from enum import Enum, unique
 
 from fairworkflows import FairData
 from fairworkflows import nanopub_wrapper
@@ -26,6 +26,15 @@ class Nanopub:
     HYCL = rdflib.Namespace("http://purl.org/petapico/o/hycl#")
 
     AUTHOR = rdflib.Namespace("http://purl.org/person#")
+
+
+    @unique
+    class Format(Enum):
+        """
+        Enums to specify the format of nanopub desired   
+        """
+        TRIG = 1
+
 
     @staticmethod
     def search(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
@@ -62,13 +71,13 @@ class Nanopub:
 
 
     @staticmethod
-    def fetch(uri, format='trig'):
+    def fetch(uri, format=Format.TRIG):
         """
-        Download the nanopublication at the specified URI (in trig format). Returns a FairData object.
+        Download the nanopublication at the specified URI (in specified format). Returns a FairData object.
         """
 
         extension = ''
-        if format == 'trig':
+        if format == Nanopub.Format.TRIG:
             extension = '.trig'
         else:
             raise ValueError(f'Format not supported: {format}')
