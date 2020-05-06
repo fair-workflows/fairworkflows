@@ -2,13 +2,14 @@ import argparse
 import logging
 from io import StringIO
 from pathlib import Path
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Optional
 
 import cwlgen
 import cwltool.main as cwltool_main
 from scriptcwl import WorkflowGenerator
 
 from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR
+from .exceptions import CWLException
 
 _logger = logging.getLogger(__name__)
 
@@ -74,7 +75,7 @@ def create_commandlinetool(step: Dict[str, Union[str, List]]) -> cwlgen.CommandL
     return tool_object
 
 
-def run_workflow(wf_path: Union[Path, str], inputs, output_dir: Union[Path, str]):
+def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: Optional[Union[Path, str]] = None):
     _logger.debug(f'Running CWL tool at {wf_path}')
     _logger.debug(f'Input values: {inputs}')
     _logger.debug(f'Results will be written to {output_dir}')
@@ -90,11 +91,13 @@ def run_workflow(wf_path: Union[Path, str], inputs, output_dir: Union[Path, str]
 
     cwltool_args.append(wf_path)
 
-    # runtime_context = RuntimeContext({'outdir': output_dir})
-    signal = cwltool_main.main(argsl=cwltool_args + wf_input, logger_handler=logging.StreamHandler())
+    try:
+        exit_code = cwltool_main.main(argsl=cwltool_args + wf_input, logger_handler=logging.StreamHandler())
+    except Exception as e:
+        raise CWLException(f'CWL tool run has failed', e)
 
-    if signal > 0:
-        raise Exception('Workflow did not run correctly')
+    if exit_code > 0:
+        raise CWLException(f'Workflow did not run correctly. Exit code: {exit_code}')
 
     _logger.debug('CWL tool has run successfully.')
     return output.read()

@@ -8,6 +8,7 @@ import yaml
 
 from config import TESTS_RESOURCES
 from fairworkflows import cwl
+from fairworkflows.exceptions import CWLException
 
 SAMPLE_CWL_TOOL = TESTS_RESOURCES / 'test_flow.cwl'
 
@@ -55,5 +56,5 @@ def test_run_workflow_produces_result(tmp_path):
 
 
 def test_missing_mandatory_input_raises_exception():
-    with pytest.raises(Exception):
+    with pytest.raises(CWLException):
         cwl.run_workflow(SAMPLE_CWL_TOOL, {})
