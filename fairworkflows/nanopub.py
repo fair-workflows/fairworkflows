@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Union
 
 from fairworkflows import FairData
-from fairworkflows.nanopub import wrapper
+from fairworkflows import wrapper
 
 
 class Nanopub:
