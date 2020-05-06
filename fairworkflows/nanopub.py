@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Union
 
 from fairworkflows import FairData
-from fairworkflows import wrapper
+from fairworkflows import nanopub_wrapper
 
 
 class Nanopub:
@@ -140,8 +140,8 @@ class Nanopub:
         serialized = np_rdf.serialize(destination=unsigned_fname, format='trig')
 
         # Sign the nanopub and publish it
-        signed_file = wrapper.sign(unsigned_fname)
-        nanopuburi = wrapper.publish(signed_file)
+        signed_file = nanopub_wrapper.sign(unsigned_fname)
+        nanopuburi = nanopub_wrapper.publish(signed_file)
 
         print(f'Published to {nanopuburi}')
         return nanopuburi
