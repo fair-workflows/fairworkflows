@@ -3,7 +3,8 @@
 exclude =
     .git,
     __pycache__,
-    core/templates/,
+    fairworkflows/templates/,
+    fairworkflows/old,
     venv,
     env
 
