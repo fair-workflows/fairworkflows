@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 
 from config import TESTS_RESOURCES
-from core import cwl
+from fairworkflows import cwl
 
 SAMPLE_WORKFLOW = 'test_flow.cwl'
 
