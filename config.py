@@ -4,6 +4,8 @@ from pathlib import Path
 ROOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 CLI_DIR = ROOT_DIR / 'cli'
 CORE_DIR = ROOT_DIR / 'fairworkflows'
+TESTS_ROOT = ROOT_DIR/ 'tests'
+TESTS_RESOURCES = TESTS_ROOT/ 'resources'
 
 # Generated workflow directory names
 PYTHON_DIR = 'scripts'

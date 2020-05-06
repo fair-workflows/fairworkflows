@@ -23,7 +23,8 @@ def publish_workflow(project_path: Union[str, Path]):
     steps = project.get_steps(project_path)
 
     for name, values in steps.items():
-        fw_step = FairStepEntry(project.get_step_code(project_path, name), values['in'].values())
+        # TODO: Specify input values
+        fw_step = FairStepEntry(project.get_step_code(project_path, name), [])
         fw.add_step(fw_step)
 
     fw.nanopublish()
