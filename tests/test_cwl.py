@@ -1,4 +1,4 @@
-from core import cwl
+from fairworkflows import cwl
 import yaml
 from pathlib import Path
 

@@ -4,17 +4,25 @@ from typing import Union
 
 import rdflib
 
-from config import NANOPUB_SCRIPT
+# Location of nanopub tool (used to be in config.py)
+# TODO: Sort out the config issue
+ROOT_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+NANOPUB_SCRIPT = str(ROOT_DIR/'np')
+
+
+def shell_command(command):
+    if os.system(command) != 0:
+        raise Exception(f'Shell command failed: {command}')
 
 
 def sign(unsigned_file: Union[str]) -> str:
-    os.system(f'{NANOPUB_SCRIPT} sign ' + unsigned_file)
+    shell_command(f'{NANOPUB_SCRIPT} sign ' + unsigned_file)
 
     return _get_signed_file(unsigned_file)
 
 
 def publish(signed: str):
-    os.system(f'{NANOPUB_SCRIPT} publish ' + signed)
+    shell_command(f'{NANOPUB_SCRIPT} publish ' + signed)
 
     return extract_nanopub_url(signed)
 

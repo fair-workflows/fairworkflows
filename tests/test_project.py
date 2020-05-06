@@ -3,7 +3,7 @@ import shutil
 import tempfile
 
 import config
-from core import project
+from fairworkflows import project
 
 PLEX = 'plex'
 WORKFLOW = 'workflow'

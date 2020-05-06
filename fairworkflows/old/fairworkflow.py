@@ -1,22 +1,17 @@
 import os
-import tempfile
+import rdflib
+from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
 from datetime import datetime
+import tempfile
+import requests
+import xml.etree.ElementTree as et
 from pathlib import Path
 from typing import Union
 
-import rdflib
-from core import project
-from rdflib.namespace import RDF, DC, XSD
+from fairworkflows import FairData
 
-# Some standard ontologies used for nanopubs and describing workflows.
-from core.nanopub import wrapper
-
-NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
-PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
-PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
-DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
-BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
-PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
+from fairworkflows import project
+from fairworkflows.nanopub import wrapper
 
 
 def publish_workflow(project_path: Union[str, Path]):
@@ -33,77 +28,6 @@ def publish_workflow(project_path: Union[str, Path]):
         fw.add_step(fw_step)
 
     fw.nanopublish()
-
-
-class Nanopub:
-    """
-    Provides utility functions for creating and publishing RDF graphs as assertions in a nanopublication.
-    """
-
-    @staticmethod
-    def rdf(assertionrdf, uri='http://purl.org/nanopub/temp/mynanopub'):
-        """
-        Return the nanopub rdf, with given assertion and URI, but does not sign or publish.
-        """
-
-        this_np = rdflib.Namespace(uri+'#')
-
-        # Set up different contexts
-        np_rdf = rdflib.ConjunctiveGraph()
-        head = rdflib.Graph(np_rdf.store, this_np.Head)
-        assertion = rdflib.Graph(np_rdf.store, this_np.assertion)
-        provenance = rdflib.Graph(np_rdf.store, this_np.provenance)
-        pubInfo = rdflib.Graph(np_rdf.store, this_np.pubInfo)
-
-        np_rdf.bind("", this_np)
-        np_rdf.bind("np", NP)
-        np_rdf.bind("p-plan", PPLAN)
-        np_rdf.bind("prov", PROV)
-        np_rdf.bind("dul", DUL)
-        np_rdf.bind("bpmn", BPMN)
-        np_rdf.bind("pwo", PWO)
-
-        head.add((this_np[''], RDF.type, NP.Nanopublication))
-        head.add((this_np[''], NP.hasAssertion, this_np.assertion))
-        head.add((this_np[''], NP.hasProvenance, this_np.provenance))
-        head.add((this_np[''], NP.hasPublicationInfo, this_np.pubInfo))
-
-        assertion += assertionrdf
-
-        creationtime = rdflib.Literal(datetime.now(),datatype=XSD.dateTime)
-        provenance.add((this_np.assertion, PROV.generatedAtTime, creationtime))
-        provenance.add((this_np.assertion, PROV.wasDerivedFrom, this_np.experiment))
-        provenance.add((this_np.assertion, PROV.wasAttributedTo, this_np.experimentScientist))
-
-        pubInfo.add((this_np[''], PROV.wasAttributedTo, this_np.DrBob))
-        pubInfo.add((this_np[''], PROV.generatedAtTime, creationtime))
-
-        return np_rdf
-
-
-    @staticmethod
-    def nanopublish(assertionrdf, uri=None):
-        """
-        Publish the given assertion as a nanopublication with the given URI.
-        Uses np commandline tool to sign and publish.
-        """
-
-        np_rdf = Nanopub.rdf(assertionrdf, uri=uri)
-
-        # Create a temporary dir for files created during serializing and signing
-        tempdir = tempfile.mkdtemp()
-
-        # Convert nanopub rdf to trig
-        fname = 'temp.trig'
-        unsigned_fname = os.path.join(tempdir, fname)
-        serialized = np_rdf.serialize(destination=unsigned_fname, format='trig')
-
-        # Sign the nanopub and publish it
-        signed_file = wrapper.sign(unsigned_fname)
-        nanopuburl = wrapper.publish(signed_file)
-
-        print(f'Published to {nanopuburl}')
-        return nanopuburl
 
 
 class FairWorkflow:
@@ -283,3 +207,4 @@ def FairStep(fairworkflow):
             return fairstep
         return metadata_wrapper
     return fair_wrapper
+
