@@ -26,7 +26,11 @@ setup(name='fairworkflows',
     author_email='r.richardson@esciencecenter.nl',
     url='https://example.org',
     install_requires=open("requirements.txt", "r").readlines(),
-    packages=find_packages(),
-    include_package_data=True,
-    data_files=[('fairworkflows', ['np'])]
+    packages=['fairworkflows'],
+    package_data={
+        'fairworkflows': [
+            'np'
+        ],
+    },
+    include_package_data=True
 )
