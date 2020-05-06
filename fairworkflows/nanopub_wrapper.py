@@ -5,6 +5,7 @@ from typing import Union
 import rdflib
 
 # Location of nanopub tool (used to be in config.py)
+# TODO: Sort out the config issue
 ROOT_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 NANOPUB_SCRIPT = str(ROOT_DIR/'np')
 
