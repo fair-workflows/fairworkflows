@@ -4,8 +4,8 @@ from typing import Union
 
 import rdflib
 
-from config import NANOPUB_SCRIPT
-
+ROOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+NANOPUB_SCRIPT = str(ROOT_DIR/'np')
 
 def sign(unsigned_file: Union[str]) -> str:
     os.system(f'{NANOPUB_SCRIPT} sign ' + unsigned_file)

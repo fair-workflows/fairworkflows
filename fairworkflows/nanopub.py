@@ -5,9 +5,12 @@ from datetime import datetime
 import tempfile
 import requests
 import xml.etree.ElementTree as et
+from pathlib import Path
+from typing import Union
 
 from fairworkflows import FairData
-from .nanopub_wrapper import Nanowrapper
+from fairworkflows.nanopub import wrapper
+
 
 class Nanopub:
     """
@@ -137,8 +140,8 @@ class Nanopub:
         serialized = np_rdf.serialize(destination=unsigned_fname, format='trig')
 
         # Sign the nanopub and publish it
-        signed_file = Nanowrapper.sign(unsigned_fname)
-        nanopuburi = Nanowrapper.publish(signed_file)
+        signed_file = wrapper.sign(unsigned_fname)
+        nanopuburi = wrapper.publish(signed_file)
 
         print(f'Published to {nanopuburi}')
         return nanopuburi

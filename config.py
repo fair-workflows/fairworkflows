@@ -13,5 +13,3 @@ CWL_STEPS_DIR = f'{CWL_DIR}/steps'
 CWL_WORKFLOW_DIR = f'{CWL_DIR}/workflow'
 
 CWL_VERSION = 'v1.0'
-
-NANOPUB_SCRIPT = str(ROOT_DIR/'np')

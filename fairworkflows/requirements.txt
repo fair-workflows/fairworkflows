@@ -1,4 +1,0 @@
-rdflib
-requests
-ipyfilechooser
-tabulate

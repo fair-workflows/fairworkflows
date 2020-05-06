@@ -5,3 +5,6 @@ pytest
 scriptcwl
 cwlgen
 pyyaml
+requests
+ipyfilechooser
+tabulate

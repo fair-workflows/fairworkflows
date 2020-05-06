@@ -1,4 +1,4 @@
-from ._version import __version__ 
+from ._version import __version__
 from .fairdata import FairData
 from .nanopub import Nanopub
 from .workflowhub import Workflowhub
