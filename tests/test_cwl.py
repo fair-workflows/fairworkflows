@@ -1,3 +1,5 @@
+import pytest
+
 from fairworkflows import cwl
 import yaml
 from pathlib import Path
@@ -7,7 +9,7 @@ import yaml
 from config import TESTS_RESOURCES
 from fairworkflows import cwl
 
-SAMPLE_WORKFLOW = 'test_flow.cwl'
+SAMPLE_CWL_TOOL = TESTS_RESOURCES / 'test_flow.cwl'
 
 SAMPLE_STEP = {'name': 'step1',
                'description': 'description of step 1',
@@ -45,9 +47,13 @@ def test_sample_workflow_has_one_step(tmp_path):
 
 
 def test_run_workflow_produces_result(tmp_path):
-    wf_path = TESTS_RESOURCES / SAMPLE_WORKFLOW
-    cwl.run_workflow(wf_path, {'message': 'greetings'}, tmp_path)
+    cwl.run_workflow(SAMPLE_CWL_TOOL, {'message': 'greetings'}, tmp_path)
 
     result = (tmp_path / 'output.txt').read_text()
 
     assert 'greetings' == result.strip()
+
+
+def test_missing_mandatory_input_raises_exception():
+    with pytest.raises(Exception):
+        cwl.run_workflow(SAMPLE_CWL_TOOL, {})

@@ -82,7 +82,14 @@ def run_workflow(wf_path: Union[Path, str], inputs, output_dir: Union[Path, str]
     wf_path = str(wf_path)
     output = StringIO()
     wf_input = [f'--{k}={v}' for k, v in inputs.items()]
-    cwltool_args = [f'--outdir={output_dir}', wf_path]
+
+    cwltool_args = []
+
+    if output_dir:
+        cwltool_args.append(f'--outdir={output_dir}')
+
+    cwltool_args.append(wf_path)
+
     # runtime_context = RuntimeContext({'outdir': output_dir})
     signal = cwltool_main.main(argsl=cwltool_args + wf_input, logger_handler=logging.StreamHandler())
 
