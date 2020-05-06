@@ -2,7 +2,7 @@ import os
 import tempfile
 import shutil
 from unittest.mock import patch
-from core import project
+from fairworkflows import project
 
 CWL = 'cwl'
 WORKFLOW = 'workflow'
