@@ -4,7 +4,10 @@ from typing import Union
 
 import rdflib
 
-from config import NANOPUB_SCRIPT
+# Location of nanopub tool (used to be in config.py)
+ROOT_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+NANOPUB_SCRIPT = str(ROOT_DIR/'np')
+
 
 def shell_command(command):
     if os.system(command) != 0:
