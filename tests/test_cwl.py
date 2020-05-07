@@ -1,7 +1,5 @@
 import pytest
 
-from fairworkflows import cwl
-import yaml
 from pathlib import Path
 
 import yaml

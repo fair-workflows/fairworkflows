@@ -75,7 +75,8 @@ def create_commandlinetool(step: Dict[str, Union[str, List]]) -> cwlgen.CommandL
     return tool_object
 
 
-def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: Optional[Union[Path, str]] = None):
+def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: Optional[Union[Path, str]] = None,
+                 base_dir=None):
     _logger.debug(f'Running CWL tool at {wf_path}')
     _logger.debug(f'Input values: {inputs}')
     _logger.debug(f'Results will be written to {output_dir}')
@@ -88,6 +89,9 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
 
     if output_dir:
         cwltool_args.append(f'--outdir={output_dir}')
+
+    if base_dir:
+        cwltool_args.append(f'--basedir={base_dir}')
 
     cwltool_args.append(wf_path)
 

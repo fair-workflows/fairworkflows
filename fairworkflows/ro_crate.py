@@ -1,8 +1,8 @@
-from pathlib import Path
-from typing import Union, Dict
-from rdflib import Graph
-from . import cwl
 import json
+from pathlib import Path
+from typing import Union, Dict, List
+
+from . import cwl
 
 METADATA_FILE = 'ro-crate-metadata.jsonld'
 
@@ -16,19 +16,20 @@ class ROCrate:
         self.metadata_path = self.path / METADATA_FILE
         self.metadata = self.metadata_path.read_text()
         self.metadata_graph = parse_metadata(self.metadata_path)
+        self.cwltool = self.path/_get_cwltool_path(self.metadata_graph)
 
     def run(self, inputs):
-        cwl.run_workflow(wf_path=self.path, inputs=inputs)
+        cwl.run_workflow(wf_path=self.cwltool, inputs=inputs, base_dir=self.path)
 
     def __str__(self) -> str:
-        return f'''ROCrate(
-                            path={self.path}
-                            metadata_graph={self.metadata_graph}
-                            metadata={self.metadata}
-                          )'''
+        return f'ROCrate(\n' \
+               f'        path={self.path}' \
+               f'        metadata_graph={self.metadata_graph}\n' \
+               f'        metadata={self.metadata}\n' \
+               f'       )'
 
 
-def parse_metadata(path: Path) -> Dict[str, any]:
+def parse_metadata(path: Path) ->Dict[str, any]:
     """
     Parse RO-crate metadata as a regular json file.
 
@@ -39,13 +40,8 @@ def parse_metadata(path: Path) -> Dict[str, any]:
         return json.load(f)
 
 
-#
-# def _get_context(path):
-#     with path.open('r') as f:
-#         j = json.load(f)
-#
-#         return j[CONTEXT_KEY]
+def _get_cwltool_path(metadata: Dict[str, any]) -> str:
+    main_metadata = filter(lambda d: d['@id'] == './', metadata['@graph'])
+    main_metadata = list(main_metadata)[0]
 
-
-def _get_cwltool_path(graph: Graph) -> Path:
-    graph.query('?file type wirjfl')
+    return main_metadata['mainEntity']['@id']
