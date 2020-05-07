@@ -16,7 +16,7 @@ def test_rocrate_finds_cwl_file(tmp_path):
 
     crate = ROCrate(tmp_path)
 
-    assert crate.cwltool == 'workflows/TranscriptsAnnotation-wf.cwl'
+    assert crate.cwltool.name == 'TranscriptsAnnotation-wf.cwl'
 
 
 def _mock_ro_crate(tmp_dir):
