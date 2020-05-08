@@ -24,7 +24,7 @@ def search():
         elif source == 'workflowhub':
             # Search for up to 5 CWL workflows on the workflow hub
             results = Workflowhub.search(text, max_num_results=5)
-            table = [[r['description'], r['url']] for r in results]
+            table = [[r['title'], r['url']] for r in results]
 
         # Output as table
         display(HTML(tabulate.tabulate(table, tablefmt='html')))
