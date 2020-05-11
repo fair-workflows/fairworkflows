@@ -21,3 +21,4 @@ def test_rocrate_finds_cwl_file(tmp_path):
 
 def _mock_ro_crate(tmp_dir):
     shutil.copy(SAMPLE_METADATA, tmp_dir)
+

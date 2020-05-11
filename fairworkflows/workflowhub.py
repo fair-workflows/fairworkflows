@@ -28,7 +28,7 @@ class Workflowhub:
 
         # Query the nanopub server for the specified text
         searchparams = {'filter[query]': searchtext, 'filter[workflow_type]': 'CWL'}
-        headers={"Accept": "application/json"}
+        headers = {"Accept": "application/json"}
         r = requests.get(apiurl, headers=headers, params=searchparams)
 
         results = []
@@ -41,7 +41,6 @@ class Workflowhub:
                 break
 
         return results
-
 
     @staticmethod
     def fetch(uri):
@@ -60,8 +59,3 @@ class Workflowhub:
             z.extractall(path=temp_dir)
 
         return FairData(data=ROCrate(temp_dir), source_uri=uri)
-
-
-
-
-
