@@ -9,3 +9,5 @@ pyyaml
 requests
 ipyfilechooser
 tabulate
+toil
+toil[cwl]
