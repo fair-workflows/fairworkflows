@@ -1,0 +1,2 @@
+class CWLException(Exception):
+    pass

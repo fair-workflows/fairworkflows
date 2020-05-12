@@ -1,9 +1,11 @@
-import requests
-import zipfile
 import io
+import tempfile
+import zipfile
 from urllib.parse import urljoin
 
-from fairworkflows import FairData
+import requests
+
+from . import FairData, ROCrate
 
 
 class Workflowhub:
@@ -26,7 +28,7 @@ class Workflowhub:
 
         # Query the nanopub server for the specified text
         searchparams = {'filter[query]': searchtext, 'filter[workflow_type]': 'CWL'}
-        headers={"Accept": "application/json"}
+        headers = {"Accept": "application/json"}
         r = requests.get(apiurl, headers=headers, params=searchparams)
 
         results = []
@@ -40,7 +42,6 @@ class Workflowhub:
 
         return results
 
-
     @staticmethod
     def fetch(uri):
         """
@@ -48,15 +49,13 @@ class Workflowhub:
         Decompresses it, extracts the CWL file, and returns a FairData object.
         """
 
+        # TODO: Create cache for for RO crates
         # Fetch the RO-Crate .zip, and open it (in memory)
         r = requests.get(uri)
 
-        # Find the first CWL file (for now)
-        cwldata = None
-        with zipfile.ZipFile(io.BytesIO(r.content)) as z:
-            for fname in z.namelist():
-                if '.cwl' in fname:
-                    cwldata = z.open(fname, 'r').read().decode('utf-8')
-                    break
+        temp_dir = tempfile.mkdtemp()
 
-        return FairData(data=cwldata, source_uri=uri)
+        with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+            z.extractall(path=temp_dir)
+
+        return FairData(data=ROCrate(temp_dir), source_uri=uri)

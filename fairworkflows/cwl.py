@@ -1,9 +1,17 @@
+import argparse
+import logging
+from io import StringIO
 from pathlib import Path
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Optional
 
 import cwlgen
+import cwltool.main as cwltool_main
 from scriptcwl import WorkflowGenerator
+
 from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR
+from .exceptions import CWLException
+
+_logger = logging.getLogger(__name__)
 
 DEFAULT_TYPE = 'int'
 
@@ -65,3 +73,42 @@ def create_commandlinetool(step: Dict[str, Union[str, List]]) -> cwlgen.CommandL
     tool_object.outputs += [cwlgen.CommandInputParameter(p, param_type=DEFAULT_TYPE) for p in step['output']]
 
     return tool_object
+
+
+def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: Optional[Union[Path, str]] = None,
+                 base_dir=None):
+    _logger.debug(f'Running CWL tool at {wf_path}')
+    _logger.debug(f'Input values: {inputs}')
+    _logger.debug(f'Results will be written to {output_dir}')
+    output_dir = str(output_dir)
+    wf_path = str(wf_path)
+    output = StringIO()
+    wf_input = [f'--{k}={v}' for k, v in inputs.items()]
+
+    cwltool_args = []
+
+    if output_dir:
+        cwltool_args.append(f'--outdir={output_dir}')
+
+    if base_dir:
+        cwltool_args.append(f'--basedir={base_dir}')
+
+    cwltool_args.append(wf_path)
+
+    try:
+        exit_code = cwltool_main.main(argsl=cwltool_args + wf_input, logger_handler=logging.StreamHandler())
+    except Exception as e:
+        raise CWLException(f'CWL tool run has failed', e)
+
+    if exit_code > 0:
+        raise CWLException(f'Workflow did not run correctly. Exit code: {exit_code}')
+
+    _logger.debug('CWL tool has run successfully.')
+    return output.read()
+
+
+def _create_cwl_args(d: Dict[any, any]):
+    # Convert dict arguments to what they would look like as command line arguments.
+    args = [f'--{k}={v}' for k, v in d.items()]
+
+    return argparse.ArgumentParser().parse_args(args)
