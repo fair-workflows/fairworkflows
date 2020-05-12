@@ -99,9 +99,11 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
     cwltool_args.append(wf_path)
 
     try:
-        exit_code = cwltool_main.main(argsl=cwltool_args + wf_input, logger_handler=logging.StreamHandler())
+        exit_code = cwltool_main.main(argsl=cwltool_args + wf_input, logger_handler=logging.StreamHandler(stream=output))
     except Exception as e:
         raise CWLException(f'CWL tool run has failed', e)
+
+    print(output, output.read())
 
     if exit_code > 0:
         raise CWLException(f'Workflow did not run correctly. Exit code: {exit_code}')

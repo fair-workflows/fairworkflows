@@ -3,7 +3,7 @@ from fairworkflows.ro_crate import ROCrate, parse_metadata
 import shutil
 
 SAMPLE_METADATA = TESTS_RESOURCES / 'ro-crate-metadata.jsonld'
-
+SAMPLE_ROCRATE = TESTS_RESOURCES / 'test_crate.crate.zip'
 
 def test_jsonld_parses_as_json():
     metadata = parse_metadata(SAMPLE_METADATA)
@@ -12,13 +12,7 @@ def test_jsonld_parses_as_json():
 
 
 def test_rocrate_finds_cwl_file(tmp_path):
-    _mock_ro_crate(tmp_path)
 
-    crate = ROCrate(tmp_path)
+    crate = ROCrate(SAMPLE_ROCRATE)
 
-    assert crate.cwltool.name == 'TranscriptsAnnotation-wf.cwl'
-
-
-def _mock_ro_crate(tmp_dir):
-    shutil.copy(SAMPLE_METADATA, tmp_dir)
-
+    assert crate.cwltool.name == 'test_workflow.cwl'

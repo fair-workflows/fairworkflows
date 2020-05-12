@@ -40,7 +40,8 @@ class ROCrate:
         :param inputs:
         :return:
         """
-        cwl.run_workflow(wf_path=self.cwltool, inputs=inputs, base_dir=self.path)
+        log = cwl.run_workflow(wf_path=self.cwltool, inputs=inputs, base_dir=self.path)
+        print("YO", log)
 
     def __str__(self) -> str:
         return f'ROCrate(\n' \
