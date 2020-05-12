@@ -7,8 +7,6 @@ SAMPLE_ROCRATE = TESTS_RESOURCES / 'test_crate.crate.zip'
 def test_run_cwl_from_rocrate():
 
     crate = ROCrate(SAMPLE_ROCRATE)
-    output = crate.run({'message': 'helloworld'})
+    crate.run({'message': 'helloworld'})
 
-    assert True
-
-
+    assert len(crate.run_log) > 0
