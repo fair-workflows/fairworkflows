@@ -1,7 +1,7 @@
 import io
 import tempfile
-import zipfile
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
+from pathlib import Path
 
 import requests
 
@@ -53,9 +53,9 @@ class Workflowhub:
         # Fetch the RO-Crate .zip, and open it (in memory)
         r = requests.get(uri)
 
-        temp_dir = tempfile.mkdtemp()
+        temp_dir = Path(tempfile.mkdtemp())
+        zip_path = temp_dir / 'ro-crate.zip'
+        with open(zip_path, 'wb') as outfile:
+            outfile.write(r.content)
 
-        with zipfile.ZipFile(io.BytesIO(r.content)) as z:
-            z.extractall(path=temp_dir)
-
-        return FairData(data=ROCrate(temp_dir), source_uri=uri)
+        return FairData(data=ROCrate(zip_path), source_uri=uri)

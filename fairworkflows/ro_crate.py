@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 from typing import Union, Dict, List
+import zipfile
+import tempfile
 
 from . import cwl
 
@@ -14,13 +16,18 @@ class ROCrate:
 
     """
 
-    def __init__(self, path: Union[str, Path]):
+    def __init__(self, path_to_zip: Union[str, Path]):
         """
         Find the mandatory metadata file in path and infer the path to the main cwltool.
 
         :param path:
         """
-        self.path = Path(path)
+
+        temp_dir = tempfile.mkdtemp()
+        with zipfile.ZipFile(path_to_zip, 'r') as z:
+            z.extractall(path=temp_dir)
+
+        self.path = Path(temp_dir)
         self.metadata_path = self.path / METADATA_FILE
         self.metadata = self.metadata_path.read_text()
         self.metadata_graph = parse_metadata(self.metadata_path)
