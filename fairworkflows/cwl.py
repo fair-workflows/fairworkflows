@@ -80,7 +80,10 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
     _logger.debug(f'Running CWL tool at {wf_path}')
     _logger.debug(f'Input values: {inputs}')
     _logger.debug(f'Results will be written to {output_dir}')
-    output_dir = str(output_dir)
+
+    if output_dir:
+        output_dir = str(output_dir)
+
     wf_path = str(wf_path)
     output = StringIO()
     wf_input = [f'--{k}={v}' for k, v in inputs.items()]
