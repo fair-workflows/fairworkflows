@@ -10,6 +10,7 @@ from scriptcwl import WorkflowGenerator
 
 from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR
 from .exceptions import CWLException
+from toil.cwl import cwltoil
 
 _logger = logging.getLogger(__name__)
 
@@ -80,31 +81,27 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
     _logger.debug(f'Running CWL tool at {wf_path}')
     _logger.debug(f'Input values: {inputs}')
     _logger.debug(f'Results will be written to {output_dir}')
-    output_dir = str(output_dir)
+
     wf_path = str(wf_path)
-    output = StringIO()
+
     wf_input = [f'--{k}={v}' for k, v in inputs.items()]
 
     cwltool_args = []
 
     if output_dir:
-        cwltool_args.append(f'--outdir={output_dir}')
+        cwltool_args += ['--outdir', str(output_dir)]
 
     if base_dir:
-        cwltool_args.append(f'--basedir={base_dir}')
-
-    cwltool_args.append(wf_path)
+        cwltool_args += ['--basedir', str(base_dir)]
 
     try:
-        exit_code = cwltool_main.main(argsl=cwltool_args + wf_input, logger_handler=logging.StreamHandler())
-    except Exception as e:
-        raise CWLException(f'CWL tool run has failed', e)
-
-    if exit_code > 0:
-        raise CWLException(f'Workflow did not run correctly. Exit code: {exit_code}')
+        cwltoil.main(cwltool_args + [wf_path] + wf_input)
+    except SystemExit as e:
+        raise CWLException(f'Workflow {wf_path} with inputs {inputs} has failed.', e)
 
     _logger.debug('CWL tool has run successfully.')
-    return output.read()
+
+    return output_dir
 
 
 def _create_cwl_args(d: Dict[any, any]):
