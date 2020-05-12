@@ -33,6 +33,8 @@ class ROCrate:
         self.metadata_graph = parse_metadata(self.metadata_path)
         self.cwltool = self.path/_get_cwltool_path(self.metadata_graph)
 
+        self.run_log = ''
+
     def run(self, inputs: Dict[str, any]):
         """
         Run the main cwltool of this RO crate.
@@ -40,8 +42,8 @@ class ROCrate:
         :param inputs:
         :return:
         """
-        log = cwl.run_workflow(wf_path=self.cwltool, inputs=inputs, base_dir=self.path)
-        print("YO", log)
+        self.run_log = cwl.run_workflow(wf_path=self.cwltool, inputs=inputs, base_dir=self.path)
+        return self.run_log
 
     def __str__(self) -> str:
         return f'ROCrate(\n' \
