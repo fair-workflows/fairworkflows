@@ -112,7 +112,7 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
     with open(log_path, 'r') as infile:
         runlogs = infile.read()
 
-    return runlogs
+    return output_dir, runlogs
 
 
 def _create_cwl_args(d: Dict[any, any]):
