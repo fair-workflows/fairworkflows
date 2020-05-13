@@ -88,8 +88,6 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
     log_path = str(output_dir / 'log.txt')
     output_dir = str(output_dir)
 
-    print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', output_dir, log_path)
-
     wf_path = str(wf_path)
 
     wf_input = [f'--{k}={v}' for k, v in inputs.items()]
