@@ -1,3 +1,4 @@
+import os
 import argparse
 import logging
 import tempfile
@@ -15,7 +16,7 @@ from .exceptions import CWLException
 _logger = logging.getLogger(__name__)
 
 DEFAULT_TYPE = 'int'
-
+PROVENANCE = 'provenance'
 
 def create_workflow(name, steps, project_dir):
     # TODO: Right now all steps will be brand new. In the future it should be possible to specify existing steps
@@ -85,7 +86,7 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
     if output_dir is None:
         output_dir = Path(tempfile.mkdtemp())
     log_path = str(output_dir / 'log.txt')
-    output_dir = str(output_dir)
+    prov_dir = output_dir / PROVENANCE
 
     wf_path = str(wf_path)
 
@@ -93,13 +94,14 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
 
     cwltool_args = []
 
-    if output_dir:
-        cwltool_args += ['--outdir', str(output_dir)]
-
     if base_dir:
         cwltool_args += ['--basedir', str(base_dir)]
 
     cwltool_args += ['--logFile', str(log_path)]
+    cwltool_args += ['--outdir', str(output_dir)]
+
+    # RO Crate containing provenance will be stored in a "provenance" subdirectory
+    cwltool_args += ['--provenance', str(prov_dir)]
 
     try:
         cwltoil.main(cwltool_args + [wf_path] + wf_input)
