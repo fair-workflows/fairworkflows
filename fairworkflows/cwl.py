@@ -102,15 +102,13 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
 
     if base_dir:
         cwltool_args += ['--basedir', str(base_dir)]
-    output = StringIO()
 
     cwltool_args += ['--logFile', str(log_path)]
 
     try:
-        cwltoil.main(cwltool_args + [wf_path] + wf_input, logger_handler=logging.StreamHandler(stream=output))
+        cwltoil.main(cwltool_args + [wf_path] + wf_input)
     except SystemExit as e:
         raise CWLException(f'Workflow {wf_path} with inputs {inputs} has failed.', e)
-    print(output, output.read())
 
     _logger.debug('CWL tool has run successfully.')
 
