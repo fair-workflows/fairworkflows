@@ -1,17 +1,16 @@
 import argparse
 import logging
-from io import StringIO
+import tempfile
 from pathlib import Path
 from typing import List, Union, Dict, Optional
 import tempfile
 
 import cwlgen
-import cwltool.main as cwltool_main
 from scriptcwl import WorkflowGenerator
+from toil.cwl import cwltoil
 
 from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR
 from .exceptions import CWLException
-from toil.cwl import cwltoil
 
 _logger = logging.getLogger(__name__)
 
