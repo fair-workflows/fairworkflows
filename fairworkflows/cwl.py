@@ -1,16 +1,16 @@
 import argparse
 import logging
-from io import StringIO
+import tempfile
 from pathlib import Path
 from typing import List, Union, Dict, Optional
+import tempfile
 
 import cwlgen
-import cwltool.main as cwltool_main
 from scriptcwl import WorkflowGenerator
+from toil.cwl import cwltoil
 
 from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR
 from .exceptions import CWLException
-from toil.cwl import cwltoil
 
 _logger = logging.getLogger(__name__)
 
@@ -82,6 +82,11 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
     _logger.debug(f'Input values: {inputs}')
     _logger.debug(f'Results will be written to {output_dir}')
 
+    if output_dir is None:
+        output_dir = Path(tempfile.mkdtemp())
+    log_path = str(output_dir / 'log.txt')
+    output_dir = str(output_dir)
+
     wf_path = str(wf_path)
 
     wf_input = [f'--{k}={v}' for k, v in inputs.items()]
@@ -94,6 +99,8 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
     if base_dir:
         cwltool_args += ['--basedir', str(base_dir)]
 
+    cwltool_args += ['--logFile', str(log_path)]
+
     try:
         cwltoil.main(cwltool_args + [wf_path] + wf_input)
     except SystemExit as e:
@@ -101,7 +108,10 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
 
     _logger.debug('CWL tool has run successfully.')
 
-    return output_dir
+    with open(log_path, 'r') as infile:
+        runlogs = infile.read()
+
+    return output_dir, runlogs
 
 
 def _create_cwl_args(d: Dict[any, any]):
