@@ -7,7 +7,7 @@ from typing import Union, Dict
 
 from rdflib.plugins.sparql.processor import SPARQLResult
 
-from config import PLEX_DIR, PYTHON_DIR
+from fairworkflows.config import PLEX_DIR, PYTHON_DIR
 from . import rdf
 
 

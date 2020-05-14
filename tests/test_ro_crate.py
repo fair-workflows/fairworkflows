@@ -1,6 +1,5 @@
-from config import TESTS_RESOURCES
+from fairworkflows.config import TESTS_RESOURCES
 from fairworkflows.ro_crate import ROCrate, parse_metadata
-import shutil
 
 SAMPLE_METADATA = TESTS_RESOURCES / 'ro-crate-metadata.jsonld'
 SAMPLE_ROCRATE = TESTS_RESOURCES / 'test_crate.crate.zip'

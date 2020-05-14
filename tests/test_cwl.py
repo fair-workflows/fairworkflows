@@ -1,11 +1,7 @@
 import pytest
 
-from pathlib import Path
-
-import yaml
-
-from config import TESTS_RESOURCES
-from fairworkflows import cwl, cwl_cli
+from fairworkflows.config import TESTS_RESOURCES
+from fairworkflows import cwl
 from fairworkflows.exceptions import CWLException
 
 SAMPLE_CWL_TOOL = TESTS_RESOURCES / 'test_flow.cwl'
