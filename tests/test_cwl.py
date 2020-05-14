@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 
 from config import TESTS_RESOURCES
-from fairworkflows import cwl
+from fairworkflows import cwl, cwl_cli
 from fairworkflows.exceptions import CWLException
 
 SAMPLE_CWL_TOOL = TESTS_RESOURCES / 'test_flow.cwl'
@@ -19,7 +19,7 @@ WORKFLOW_NAME = 'test_workflow'
 
 
 def test_sample_step_generates_sample_commandlinetool():
-    tool_dict = cwl.create_commandlinetool(SAMPLE_STEP).get_dict()
+    tool_dict = cwl_cli.create_commandlinetool(SAMPLE_STEP).get_dict()
 
     target = {'cwlVersion': 'v1.0', 'id': 'step1',
               'inputs': [{'id': 'sample_input1', 'type': 'int'},
@@ -37,7 +37,7 @@ def test_sample_workflow_has_one_step(tmp_path):
     if not project_dir.exists():
         project_dir.mkdir()
 
-    result_path = cwl.create_workflow(WORKFLOW_NAME, [SAMPLE_STEP], project_dir)
+    result_path = cwl_cli.create_workflow(WORKFLOW_NAME, [SAMPLE_STEP], project_dir)
 
     with result_path.open('r') as f:
         wf = yaml.load(f)

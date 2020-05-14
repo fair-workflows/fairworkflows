@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Dict, Union
 from config import PYTHON_DIR, PLEX_DIR, CWL_DIR
-from . import rdf, pythongen, cwl, nanopub
+from . import rdf, pythongen, cwl_cli, nanopub
 
 
 # TODO: Per input and output the type should be defined
@@ -29,7 +29,7 @@ def process_workflow(name: str, steps: List[Dict[str, Union[str, List[str]]]], t
 
     pythongen.render_python_workflow(steps, workflow_dir)
     rdf.create_plex_workflow(name, steps, workflow_dir)
-    cwl.create_workflow(name, steps, workflow_dir)
+    cwl_cli.create_workflow(name, steps, workflow_dir)
 
 
 def _create_plex_workflow(name, steps):
