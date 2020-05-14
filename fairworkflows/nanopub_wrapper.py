@@ -14,7 +14,8 @@ def _shell_command(command):
         raise Exception(f'Shell command failed: {command}')
 
 
-def sign(unsigned_file: Union[str]) -> str:
+def sign(unsigned_file: Union[str, Path]) -> str:
+    unsigned_file = str(unsigned_file)
     _shell_command(f'{NANOPUB_SCRIPT} sign ' + unsigned_file)
 
     return _get_signed_file(unsigned_file)
