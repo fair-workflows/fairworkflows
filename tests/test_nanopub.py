@@ -1,8 +1,21 @@
 from fairworkflows import Nanopub, FairData
 import pytest
 
-@pytest.mark.flaky(reruns=5)
+@pytest.mark.flaky(max_runs=10)
 def test_nanopub_search():
+    """
+        Check that Nanopub search is returning results for a few common search terms
+    """
+
+    searches = ['fair', 'heart']
+
+    for search in searches:
+        results = Nanopub.search(search)
+        assert(len(results) > 0)
+
+
+@pytest.mark.flaky(max_runs=10)
+def test_nanopub_fetch():
     """
         Check that Nanopub fetch is returning results for a few known nanopub URIs.
         Check that the returned object is of type FairData, that it has the expected
