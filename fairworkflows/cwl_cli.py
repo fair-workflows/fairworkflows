@@ -6,7 +6,6 @@ from typing import List, Union, Dict, Optional
 import tempfile
 
 import cwlgen
-import cwltool.main as cwltool_main
 from scriptcwl import WorkflowGenerator
 
 from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR

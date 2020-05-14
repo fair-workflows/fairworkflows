@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 from typing import List, Union, Dict, Optional
 import tempfile
+from toil.cwl import cwltoil
 
 from .exceptions import CWLException
 
