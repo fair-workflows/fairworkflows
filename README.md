@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/fair-workflows/FAIRWorkbench/badge.svg?branch=master)](https://coveralls.io/github/fair-workflows/FAIRWorkbench?branch=master)
+
 # FAIRWorkbench
 Modules for implementation of the FAIR Workbench.
 
