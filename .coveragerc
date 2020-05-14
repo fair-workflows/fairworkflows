@@ -1,0 +1,6 @@
+[run]
+source=fairworkflows
+branch=true
+
+[report]
+omit=fairworkflows/templates/*
