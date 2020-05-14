@@ -27,7 +27,7 @@ jobs:
           pip install -r requirements_dev.txt
       - name: Create RSA key for nanopubs
         run: |
-          fairworkflows/np mkkeys -d RSA
+          fairworkflows/np mkkeys -a RSA
 
       - name: Lint with flake8
         run: |

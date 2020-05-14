@@ -8,7 +8,7 @@ Modules for implementation of the FAIR Workbench.
 The np scripts needs to be called to generate rsa keys in the `~/.nanopub` directory.
 
 ```shell script
-./np mkkeys -d RSA
+fairworkflows/np mkkeys -a RSA
 ```
 
 
