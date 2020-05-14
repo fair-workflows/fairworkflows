@@ -15,7 +15,7 @@ def test_nanopub_search():
 
 
 @pytest.mark.flaky(max_runs=10)
-def test_nanopub_search():
+def test_nanopub_fetch():
     """
         Check that Nanopub fetch is returning results for a few known nanopub URIs.
         Check that the returned object is of type FairData, that it has the expected

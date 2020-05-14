@@ -15,7 +15,7 @@ def test_workflowhub_search():
 
 
 @pytest.mark.flaky(max_runs=10)
-def test_workflowhub_search():
+def test_workflowhub_fetch():
     """
         Check that Workflowhub fetch is returning results for a few known URLs.
         Check that the returned object is of type FairData, that it has the expected
