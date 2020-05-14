@@ -9,28 +9,28 @@ ROOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 NANOPUB_SCRIPT = str(ROOT_DIR/'np')
 
 
-def shell_command(command):
+def _shell_command(command):
     if os.system(command) != 0:
         raise Exception(f'Shell command failed: {command}')
 
 
 def sign(unsigned_file: Union[str]) -> str:
-    shell_command(f'{NANOPUB_SCRIPT} sign ' + unsigned_file)
+    _shell_command(f'{NANOPUB_SCRIPT} sign ' + unsigned_file)
 
     return _get_signed_file(unsigned_file)
 
 
 def publish(signed: str):
-    shell_command(f'{NANOPUB_SCRIPT} publish ' + signed)
+    _shell_command(f'{NANOPUB_SCRIPT} publish ' + signed)
 
     return extract_nanopub_url(signed)
 
 
-def extract_nanopub_url(signed):
+def extract_nanopub_url(signed: Union[str, Path]):
     # Extract nanopub URL
     # (this is pretty horrible, switch to python version as soon as it is ready)
     extracturl = rdflib.Graph()
-    extracturl.parse(signed, format="trig")
+    extracturl.parse(str(signed), format="trig")
     return dict(extracturl.namespaces())['this'].__str__()
 
 
