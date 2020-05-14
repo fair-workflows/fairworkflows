@@ -1,8 +1,20 @@
 from fairworkflows import Workflowhub, FairData, ROCrate
 import pytest
 
+@pytest.mark.flaky(max_runs=10)
+def test_workflowhub_search():
+    """
+        Check that Workflowhub search is returning results for a few common search terms
+    """
 
-@pytest.mark.flaky(reruns=5)
+    searches = ['covid', 'workflow']
+
+    for search in searches:
+        results = Workflowhub.search(search)
+        assert(len(results) > 0)
+
+
+@pytest.mark.flaky(max_runs=10)
 def test_workflowhub_search():
     """
         Check that Workflowhub fetch is returning results for a few known URLs.
