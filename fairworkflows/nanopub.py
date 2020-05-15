@@ -36,9 +36,8 @@ class Nanopub:
         """
         TRIG = 1
 
-
     @staticmethod
-    def search(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
+    def search_text(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
         """
         Searches the nanopub servers (at the specified grlc API) for any nanopubs matching the given search text,
         up to max_num_results.
@@ -47,8 +46,27 @@ class Nanopub:
         if len(searchtext) == 0:
             return []
 
-        # Query the nanopub server for the specified text
         searchparams = {'text': searchtext, 'graphpred': '', 'month': '', 'day': '', 'year': ''}
+
+        return Nanopub._search(searchparams=searchparams, max_num_results=max_num_results, apiurl=apiurl)
+
+
+    @staticmethod
+    def _search(searchparams=None, max_num_results=None, apiurl=None):
+        """
+        General nanopub server search method. User should use e.g. search_text() or search_pattern() instead.
+        """
+
+        if apiurl is None:
+            raise ValueError('kwarg "apiurl" must be specified. Consider using search_text() function instead.')
+
+        if max_num_results is None:
+            raise ValueError('kwarg "max_num_results" must be specified. Consider using search_text() function instead.')
+
+        if searchparams is None:
+            raise ValueError('kwarg "searchparams" must be specified. Consider using search_text() function instead.')
+
+        # Query the nanopub server for the specified text
         r = requests.get(apiurl, params=searchparams)
 
         # Parse the resulting xml into a table
