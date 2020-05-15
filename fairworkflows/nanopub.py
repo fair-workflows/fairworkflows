@@ -36,6 +36,7 @@ class Nanopub:
         """
         TRIG = 1
 
+
     @staticmethod
     def search_text(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
         """
@@ -47,6 +48,24 @@ class Nanopub:
             return []
 
         searchparams = {'text': searchtext, 'graphpred': '', 'month': '', 'day': '', 'year': ''}
+
+        return Nanopub._search(searchparams=searchparams, max_num_results=max_num_results, apiurl=apiurl)
+
+
+    @staticmethod
+    def search_pattern(subj=None, pred=None, obj=None, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_pattern'):
+        """
+        Searches the nanopub servers (at the specified grlc API) for any nanopubs matching the given RDF pattern,
+        up to max_num_results.
+        """
+
+        searchparams = {}
+        if subj:
+            searchparams['subj'] = subj
+        if pred:
+            searchparams['pred'] = pred
+        if obj:
+            searchparams['obj'] = obj
 
         return Nanopub._search(searchparams=searchparams, max_num_results=max_num_results, apiurl=apiurl)
 
@@ -68,6 +87,8 @@ class Nanopub:
 
         # Query the nanopub server for the specified text
         r = requests.get(apiurl, params=searchparams)
+        print(r.url)
+        print(r.text)
 
         # Parse the resulting xml into a table
         xmltree = et.ElementTree(et.fromstring(r.text))
