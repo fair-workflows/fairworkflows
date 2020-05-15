@@ -8,6 +8,7 @@
 .DS_Store
 
 *.trig
+!tests/resources/*.trig
 *.rdf
 
 build
@@ -33,3 +34,5 @@ venv/
 
 sample_output/
 .coveralls.yml
+
+tests/tmp*
