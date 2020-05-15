@@ -87,8 +87,6 @@ class Nanopub:
 
         # Query the nanopub server for the specified text
         r = requests.get(apiurl, params=searchparams)
-        print(r.url)
-        print(r.text)
 
         # Parse the resulting xml into a table
         xmltree = et.ElementTree(et.fromstring(r.text))
@@ -119,12 +117,15 @@ class Nanopub:
         extension = ''
         if format == Nanopub.Format.TRIG:
             extension = '.trig'
+            parse_format = 'trig'
         else:
             raise ValueError(f'Format not supported: {format}')
 
         r = requests.get(uri + extension)
-        return FairData(data=r.text, source_uri=uri)
+        nanopub_rdf = rdflib.ConjunctiveGraph()
+        nanopub_rdf.parse(data=r.text, format=parse_format)
 
+        return FairData(data=nanopub_rdf, source_uri=uri)
 
     @staticmethod
     def rdf(assertionrdf, uri=DEFAULT_URI):
