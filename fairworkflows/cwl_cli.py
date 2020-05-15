@@ -1,15 +1,12 @@
 import argparse
 import logging
-from io import StringIO
 from pathlib import Path
-from typing import List, Union, Dict, Optional
-import tempfile
+from typing import List, Union, Dict
 
 import cwlgen
 from scriptcwl import WorkflowGenerator
 
-from config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR
-from .exceptions import CWLException
+from fairworkflows.config import CWL_WORKFLOW_DIR, CWL_STEPS_DIR, CWL_DIR
 
 _logger = logging.getLogger(__name__)
 

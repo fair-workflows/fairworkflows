@@ -2,10 +2,10 @@ from pathlib import Path
 
 from jinja2 import FileSystemLoader, select_autoescape, Environment
 
-import config
-from config import PYTHON_DIR
+from fairworkflows import config
+from fairworkflows.config import PYTHON_DIR
 
-TEMPLATE_DIR = config.CORE_DIR / 'templates'
+TEMPLATE_DIR = config.PACKAGE_DIR / 'templates'
 
 ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR),
                   autoescape=select_autoescape('py'))

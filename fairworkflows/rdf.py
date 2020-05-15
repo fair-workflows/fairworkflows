@@ -1,8 +1,8 @@
 import rdflib
-from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
+from rdflib.namespace import RDF, DC
 from pathlib import Path
 
-from config import PLEX_DIR
+from fairworkflows.config import PLEX_DIR
 
 PPLAN = rdflib.Namespace("http://purl.org/net/p-plan/")
 # TODO: Fix plex URL

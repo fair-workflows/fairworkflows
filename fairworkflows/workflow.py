@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Dict, Union
-from config import PYTHON_DIR, PLEX_DIR, CWL_DIR
-from . import rdf, pythongen, cwl_cli, nanopub
+from fairworkflows.config import PYTHON_DIR, PLEX_DIR, CWL_DIR
+from . import rdf, pythongen, cwl_cli
 
 
 # TODO: Per input and output the type should be defined

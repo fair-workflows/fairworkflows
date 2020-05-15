@@ -1,9 +1,8 @@
-import os
 from pathlib import Path
 
-ROOT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+PACKAGE_DIR = Path(__file__).parent.absolute()
+ROOT_DIR = PACKAGE_DIR.parent
 CLI_DIR = ROOT_DIR / 'cli'
-CORE_DIR = ROOT_DIR / 'fairworkflows'
 TESTS_ROOT = ROOT_DIR/ 'tests'
 TESTS_RESOURCES = TESTS_ROOT/ 'resources'
 

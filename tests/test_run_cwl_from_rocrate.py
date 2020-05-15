@@ -1,6 +1,5 @@
-from config import TESTS_RESOURCES
-from fairworkflows.ro_crate import ROCrate, parse_metadata
-import shutil
+from fairworkflows.config import TESTS_RESOURCES
+from fairworkflows.ro_crate import ROCrate
 
 SAMPLE_ROCRATE = TESTS_RESOURCES / 'test_crate.crate.zip'
 
