@@ -10,7 +10,7 @@ def test_nanopub_search():
     searches = ['fair', 'heart']
 
     for search in searches:
-        results = Nanopub.search(search)
+        results = Nanopub.search_text(search)
         assert(len(results) > 0)
 
 
