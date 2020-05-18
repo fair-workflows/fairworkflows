@@ -6,6 +6,7 @@ from fairworkflows import Nanopub, FairData
 DEFAULT_FORMAT = '.trig'
 BAD_GATEWAY = 502
 NANOPUB_SERVER = 'http://purl.org/np/'
+SERVER_UNAVAILABLE = 'Nanopub server is unavailable'
 
 
 def nanopub_server_unavailable():
@@ -15,7 +16,7 @@ def nanopub_server_unavailable():
 
 
 @pytest.mark.flaky(max_runs=10)
-@pytest.mark.skipif(nanopub_server_unavailable())
+@pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
 def test_nanopub_search():
     """
         Check that Nanopub search is returning results for a few common search terms
@@ -29,7 +30,7 @@ def test_nanopub_search():
 
 
 @pytest.mark.flaky(max_runs=10)
-@pytest.mark.skipif(nanopub_server_unavailable())
+@pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
 def test_nanopub_fetch():
     """
         Check that Nanopub fetch is returning results for a few known nanopub URIs.
