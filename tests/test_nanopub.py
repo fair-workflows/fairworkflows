@@ -35,7 +35,10 @@ def test_nanopub_search_pattern():
         Check that Nanopub pattern search is returning results
     """
 
-    searches = [('', '', 'https://www.omg.org/spec/BPMN/scriptTask')]
+    searches = [
+        ('', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'https://www.omg.org/spec/BPMN/scriptTask'),
+        ('http://purl.org/np/RANhYfdZCVDQr8ItxDYCZWhvBhzjJTs9Cq-vPnmSBDd5g', '', '')
+    ]
 
     for subj, pred, obj in searches:
         results = Nanopub.search_pattern(subj=subj, pred=pred, obj=obj)
