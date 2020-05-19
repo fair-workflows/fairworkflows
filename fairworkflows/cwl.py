@@ -34,6 +34,7 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
 
     cwltool_args += ['--logFile', str(log_path)]
     cwltool_args += ['--outdir', str(output_dir)]
+    cwltool_args += ['--enable-dev']
 
     # RO Crate containing provenance will be stored in a "provenance" subdirectory
     cwltool_args += ['--provenance', str(prov_dir)]
