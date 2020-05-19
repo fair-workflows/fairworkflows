@@ -2,15 +2,27 @@ from fairworkflows import Nanopub, FairData
 import pytest
 
 @pytest.mark.flaky(max_runs=10)
-def test_nanopub_search():
+def test_nanopub_search_text():
     """
-        Check that Nanopub search is returning results for a few common search terms
+        Check that Nanopub text search is returning results for a few common search terms
     """
 
     searches = ['fair', 'heart']
 
     for search in searches:
         results = Nanopub.search_text(search)
+        assert(len(results) > 0)
+
+@pytest.mark.flaky(max_runs=10)
+def test_nanopub_search_pattern():
+    """
+        Check that Nanopub pattern search is returning results
+    """
+
+    searches = [('', '', 'https://www.omg.org/spec/BPMN/scriptTask')]
+
+    for subj, pred, obj in searches:
+        results = Nanopub.search_pattern(subj=subj, pred=pred, obj=obj)
         assert(len(results) > 0)
 
 
