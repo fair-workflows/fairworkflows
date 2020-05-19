@@ -1,5 +1,8 @@
 import pytest
 import requests
+import rdflib
+from rdflib.namespace import RDF
+from urllib.parse import urldefrag
 
 from fairworkflows import Nanopub, FairData
 
@@ -27,6 +30,8 @@ def test_nanopub_search_text():
     for search in searches:
         results = Nanopub.search_text(search)
         assert(len(results) > 0)
+
+    assert(len(Nanopub.search_text('')) == 0)
 
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
@@ -65,3 +70,20 @@ def test_nanopub_fetch():
         assert (isinstance(np, FairData))
         assert (np.source_uri == np_uri)
         assert (len(np.data) > 0)
+
+def test_nanopub_rdf():
+    """
+    Test that Nanopub.rdf() is creating an rdf graph with the right features (contexts)
+    for a nanopub.
+    """
+
+    assertionrdf = rdflib.Graph()
+    assertionrdf.add((Nanopub.AUTHOR.DrBob, Nanopub.HYCL.claims, rdflib.Literal('This is a test')))
+
+    generated_rdf = Nanopub.rdf(assertionrdf)
+
+    assert(generated_rdf is not None)
+    assert((None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf)
+    assert((None, Nanopub.NP.hasAssertion, None) in generated_rdf)
+    assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
+    assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
