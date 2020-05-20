@@ -38,7 +38,7 @@ class Nanopub:
 
 
     @staticmethod
-    def search(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
+    def search_text(searchtext, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_text'):
         """
         Searches the nanopub servers (at the specified grlc API) for any nanopubs matching the given search text,
         up to max_num_results.
@@ -47,8 +47,45 @@ class Nanopub:
         if len(searchtext) == 0:
             return []
 
-        # Query the nanopub server for the specified text
         searchparams = {'text': searchtext, 'graphpred': '', 'month': '', 'day': '', 'year': ''}
+
+        return Nanopub._search(searchparams=searchparams, max_num_results=max_num_results, apiurl=apiurl)
+
+
+    @staticmethod
+    def search_pattern(subj=None, pred=None, obj=None, max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl//api/local/local/find_nanopubs_with_pattern'):
+        """
+        Searches the nanopub servers (at the specified grlc API) for any nanopubs matching the given RDF pattern,
+        up to max_num_results.
+        """
+
+        searchparams = {}
+        if subj:
+            searchparams['subj'] = subj
+        if pred:
+            searchparams['pred'] = pred
+        if obj:
+            searchparams['obj'] = obj
+
+        return Nanopub._search(searchparams=searchparams, max_num_results=max_num_results, apiurl=apiurl)
+
+
+    @staticmethod
+    def _search(searchparams=None, max_num_results=None, apiurl=None):
+        """
+        General nanopub server search method. User should use e.g. search_text() or search_pattern() instead.
+        """
+
+        if apiurl is None:
+            raise ValueError('kwarg "apiurl" must be specified. Consider using search_text() function instead.')
+
+        if max_num_results is None:
+            raise ValueError('kwarg "max_num_results" must be specified. Consider using search_text() function instead.')
+
+        if searchparams is None:
+            raise ValueError('kwarg "searchparams" must be specified. Consider using search_text() function instead.')
+
+        # Query the nanopub server for the specified text
         r = requests.get(apiurl, params=searchparams)
 
         # Parse the resulting xml into a table
@@ -80,12 +117,15 @@ class Nanopub:
         extension = ''
         if format == Nanopub.Format.TRIG:
             extension = '.trig'
+            parse_format = 'trig'
         else:
             raise ValueError(f'Format not supported: {format}')
 
         r = requests.get(uri + extension)
-        return FairData(data=r.text, source_uri=uri)
+        nanopub_rdf = rdflib.ConjunctiveGraph()
+        nanopub_rdf.parse(data=r.text, format=parse_format)
 
+        return FairData(data=nanopub_rdf, source_uri=uri)
 
     @staticmethod
     def rdf(assertionrdf, uri=DEFAULT_URI):
