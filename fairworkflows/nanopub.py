@@ -20,9 +20,9 @@ class Nanopub:
     NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
     PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
     PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
-    DUL = rdflib.Namespace("http://ontologydesignpatterns.org/wiki/Ontology:DOLCE+DnS_Ultralite/")
+    DUL = rdflib.Namespace("http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#")
     BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
-    PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
+    PWO = rdflib.Namespace("http://purl.org/spar/pwo#")
     HYCL = rdflib.Namespace("http://purl.org/petapico/o/hycl#")
 
     AUTHOR = rdflib.Namespace("http://purl.org/person#")
@@ -150,6 +150,7 @@ class Nanopub:
         np_rdf.bind("bpmn", Nanopub.BPMN)
         np_rdf.bind("pwo", Nanopub.PWO)
         np_rdf.bind("HYCL", Nanopub.HYCL)
+        np_rdf.bind("DC", DC)
 
         head.add((this_np[''], RDF.type, Nanopub.NP.Nanopublication))
         head.add((this_np[''], Nanopub.NP.hasAssertion, this_np.assertion))
