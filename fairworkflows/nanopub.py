@@ -104,8 +104,9 @@ class Nanopub:
 
 
         # Query the nanopub server for the specified text
-        headers = {"Accept": "application/json"}
-        r = requests.get(apiurl, params=searchparams, headers=headers)
+#        headers = {"Accept": "application/json"}
+#        r = requests.get(apiurl, params=searchparams, headers=headers)
+        r = requests.get(apiurl, params=searchparams)
 
         print(r.url)
         print(r.text)
