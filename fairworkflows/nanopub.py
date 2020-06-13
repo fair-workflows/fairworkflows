@@ -71,6 +71,23 @@ class Nanopub:
 
 
     @staticmethod
+    def search_things(thing_type=None, searchterm=' ', max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/find_things'):
+        """
+        Searches the nanopub servers (at the specified grlc API) for any nanopubs of the given type, with given search term,
+        up to max_num_results.
+        """
+
+        searchparams = {}
+        if not thing_type or not searchterm:
+            raise ValueError('thing_type and searchterm must BOTH be specified in calls to Nanopub.search_things')
+
+        searchparams['type'] = thing_type
+        searchparams['searchterm'] = searchterm
+
+        return Nanopub._search(searchparams=searchparams, max_num_results=max_num_results, apiurl=apiurl)
+
+
+    @staticmethod
     def _search(searchparams=None, max_num_results=None, apiurl=None):
         """
         General nanopub server search method. User should use e.g. search_text() or search_pattern() instead.
@@ -85,8 +102,13 @@ class Nanopub:
         if searchparams is None:
             raise ValueError('kwarg "searchparams" must be specified. Consider using search_text() function instead.')
 
+
         # Query the nanopub server for the specified text
-        r = requests.get(apiurl, params=searchparams)
+        headers = {"Accept": "application/json"}
+        r = requests.get(apiurl, params=searchparams, headers=headers)
+
+        print(r.url)
+        print(r.text)
 
         # Parse the resulting xml into a table
         xmltree = et.ElementTree(et.fromstring(r.text))
