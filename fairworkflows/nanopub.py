@@ -79,6 +79,7 @@ class Nanopub:
 
         searchparams = {}
         if not thing_type or not searchterm:
+            print(f"Received thing_type='{thing_type}', searchterm='{searchterm}'")
             raise ValueError('thing_type and searchterm must BOTH be specified in calls to Nanopub.search_things')
 
         searchparams['type'] = thing_type
