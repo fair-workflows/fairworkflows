@@ -8,7 +8,6 @@ import xml.etree.ElementTree as et
 from pathlib import Path
 from enum import Enum, unique
 
-from fairworkflows import FairData
 from fairworkflows import nanopub_wrapper
 
 
@@ -35,6 +34,37 @@ class Nanopub:
         Enums to specify the format of nanopub desired   
         """
         TRIG = 1
+
+
+    class NanopubObj:
+        """
+        Stores the rdf parsed from nanopubs from the nanopub servers etc.
+        """
+
+        def __init__(self, rdf=None, source_uri=None):
+            self._rdf = rdf
+            self._source_uri = source_uri
+
+        @property
+        def rdf(self):
+            return self._rdf
+
+        @rdf.setter
+        def rdf(self, rdf):
+            self._rdf = rdf
+
+        @property
+        def source_uri(self):
+            return self._source_uri
+
+        @source_uri.setter
+        def source_uri(self, source_uri):
+            self._source_uri = source_uri
+
+        def __str__(self):
+            s = f'Source URI = {self._source_uri}\n'
+            s += self._rdf.serialize(format='trig').decode('utf-8')
+            return s
 
 
     @staticmethod
@@ -135,7 +165,7 @@ class Nanopub:
     @staticmethod
     def fetch(uri, format=Format.TRIG):
         """
-        Download the nanopublication at the specified URI (in specified format). Returns a FairData object.
+        Download the nanopublication at the specified URI (in specified format). Returns a Nanopub object.
         """
 
         extension = ''
@@ -149,7 +179,8 @@ class Nanopub:
         nanopub_rdf = rdflib.ConjunctiveGraph()
         nanopub_rdf.parse(data=r.text, format=parse_format)
 
-        return FairData(data=nanopub_rdf, source_uri=uri)
+        return Nanopub.NanopubObj(rdf=nanopub_rdf, source_uri=uri)
+
 
     @staticmethod
     def rdf(assertionrdf, uri=DEFAULT_URI):
