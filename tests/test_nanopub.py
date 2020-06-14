@@ -49,6 +49,21 @@ def test_nanopub_search_pattern():
         results = Nanopub.search_pattern(subj=subj, pred=pred, obj=obj)
         assert(len(results) > 0)
 
+@pytest.mark.flaky(max_runs=10)
+@pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
+def test_nanopub_search_things():
+    """
+        Check that Nanopub 'things' search is returning results
+    """
+
+    searches = [
+        'https://www.omg.org/spec/BPMN/scriptTask',
+        'http://purl.org/net/p-plan#Plan'
+    ]
+
+    for thing_type in searches:
+        results = Nanopub.search_things(thing_type=thing_type)
+        assert(len(results) > 0)
 
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
