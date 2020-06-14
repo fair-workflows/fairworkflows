@@ -4,7 +4,7 @@ import rdflib
 from rdflib.namespace import RDF
 from urllib.parse import urldefrag
 
-from fairworkflows import Nanopub, FairData
+from fairworkflows import Nanopub
 
 DEFAULT_FORMAT = '.trig'
 BAD_GATEWAY = 502
@@ -55,7 +55,7 @@ def test_nanopub_search_pattern():
 def test_nanopub_fetch():
     """
         Check that Nanopub fetch is returning results for a few known nanopub URIs.
-        Check that the returned object is of type FairData, that it has the expected
+        Check that the returned object is of type NNanopubObj, that it has the expected
         source_uri, and that it has non-zero data.
     """
 
@@ -67,9 +67,9 @@ def test_nanopub_fetch():
 
     for np_uri in known_nps:
         np = Nanopub.fetch(np_uri)
-        assert (isinstance(np, FairData))
+        assert (isinstance(np, Nanopub.NanopubObj))
         assert (np.source_uri == np_uri)
-        assert (len(np.data) > 0)
+        assert (len(np.rdf) > 0)
 
 def test_nanopub_rdf():
     """
