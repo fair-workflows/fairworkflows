@@ -142,25 +142,28 @@ class Nanopub:
         print(r.url)
         print(r.text)
 
-        # Parse the resulting xml into a table
-        xmltree = et.ElementTree(et.fromstring(r.text))
-        xmlroot = xmltree.getroot()
-        namespace = '{http://www.w3.org/2005/sparql-results#}'
-        results = xmlroot.find(namespace + 'results')
+        # Check for success
+        if r.ok:
+            # Parse the resulting xml into a table
+            xmltree = et.ElementTree(et.fromstring(r.text))
+            xmlroot = xmltree.getroot()
+            namespace = '{http://www.w3.org/2005/sparql-results#}'
+            results = xmlroot.find(namespace + 'results')
 
-        nanopubs = []
-        for child in results:
+            nanopubs = []
+            for child in results:
 
-            nanopub = {}
-            for sub in child.iter(namespace + 'binding'):
-                nanopub[sub.get('name')] = sub[0].text
-            nanopubs.append(nanopub)
+                nanopub = {}
+                for sub in child.iter(namespace + 'binding'):
+                    nanopub[sub.get('name')] = sub[0].text
+                nanopubs.append(nanopub)
 
-            if len(nanopubs) >= max_num_results:
-                break
+                if len(nanopubs) >= max_num_results:
+                    break
 
-        return nanopubs
-
+            return nanopubs
+        else:
+            return [{'Error': f'Error when searching {apiurl}: Status code {r.status_code}'}]
 
     @staticmethod
     def fetch(uri, format=Format.TRIG):
