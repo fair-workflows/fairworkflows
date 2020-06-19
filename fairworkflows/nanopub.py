@@ -168,7 +168,7 @@ class Nanopub:
     @staticmethod
     def fetch(uri, format=Format.TRIG):
         """
-        Download the nanopublication at the specified URI (in specified format). Returns a Nanopub object.
+        Download the nanopublication at the specified URI (in specified format). If successful, returns a Nanopub object.
         """
 
         extension = ''
@@ -178,11 +178,14 @@ class Nanopub:
         else:
             raise ValueError(f'Format not supported: {format}')
 
-        r = requests.get(uri + extension)
-        nanopub_rdf = rdflib.ConjunctiveGraph()
-        nanopub_rdf.parse(data=r.text, format=parse_format)
 
-        return Nanopub.NanopubObj(rdf=nanopub_rdf, source_uri=uri)
+        r = requests.get(uri + extension)
+        r.raise_for_status()
+
+        if r.ok:
+            nanopub_rdf = rdflib.ConjunctiveGraph()
+            nanopub_rdf.parse(data=r.text, format=parse_format)
+            return Nanopub.NanopubObj(rdf=nanopub_rdf, source_uri=uri)
 
 
     @staticmethod
