@@ -7,6 +7,7 @@ import requests
 import xml.etree.ElementTree as et
 from pathlib import Path
 from enum import Enum, unique
+from urllib.parse import urldefrag
 
 from fairworkflows import nanopub_wrapper
 
@@ -191,8 +192,11 @@ class Nanopub:
     @staticmethod
     def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None):
         """
-        Return the nanopub rdf, with given assertion and URI, but does not sign or publish.
+        Return the nanopub rdf, with given assertion and (defrag'd) URI, but does not sign or publish.
         """
+
+        # Make sure passed URI is defrag'd        
+        uri, _ = urldefrag(uri)
 
         this_np = rdflib.Namespace(uri+'#')
 
