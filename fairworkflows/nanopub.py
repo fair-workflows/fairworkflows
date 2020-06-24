@@ -214,9 +214,9 @@ class Nanopub:
         np_rdf.bind("dul", Nanopub.DUL)
         np_rdf.bind("bpmn", Nanopub.BPMN)
         np_rdf.bind("pwo", Nanopub.PWO)
-        np_rdf.bind("HYCL", Nanopub.HYCL)
-        np_rdf.bind("DC", DC)
-        np_rdf.bind("DCTERMS", DCTERMS)
+        np_rdf.bind("hycl", Nanopub.HYCL)
+        np_rdf.bind("dc", DC)
+        np_rdf.bind("dcterms", DCTERMS)
 
         head.add((this_np[''], RDF.type, Nanopub.NP.Nanopublication))
         head.add((this_np[''], Nanopub.NP.hasAssertion, this_np.assertion))
