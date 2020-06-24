@@ -1,6 +1,6 @@
 import os
 import rdflib
-from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
+from rdflib.namespace import RDF, RDFS, DC, DCTERMS, XSD, OWL
 from datetime import datetime
 import tempfile
 import requests
@@ -216,6 +216,7 @@ class Nanopub:
         np_rdf.bind("pwo", Nanopub.PWO)
         np_rdf.bind("HYCL", Nanopub.HYCL)
         np_rdf.bind("DC", DC)
+        np_rdf.bind("DCTERMS", DCTERMS)
 
         head.add((this_np[''], RDF.type, Nanopub.NP.Nanopublication))
         head.add((this_np[''], Nanopub.NP.hasAssertion, this_np.assertion))
