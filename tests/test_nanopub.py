@@ -102,3 +102,16 @@ def test_nanopub_rdf():
     assert((None, Nanopub.NP.hasAssertion, None) in generated_rdf)
     assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
     assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
+
+    new_concept = rdflib.term.URIRef('www.purl.org/new/concept/test')
+    generated_rdf = Nanopub.rdf(assertionrdf, introduces_concept=new_concept)
+
+    assert(generated_rdf is not None)
+    assert((None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf)
+    assert((None, Nanopub.NP.hasAssertion, None) in generated_rdf)
+    assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
+    assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
+
+    assert((None, Nanopub.NPX.introduces, new_concept) in generated_rdf)
+
+

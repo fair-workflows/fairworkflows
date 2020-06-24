@@ -8,6 +8,7 @@ SAMPLE_CWL_TOOL = TESTS_RESOURCES / 'test_flow.cwl'
 
 
 def test_run_workflow_produces_result(tmp_path):
+
     cwl.run_workflow(SAMPLE_CWL_TOOL, {'message': 'greetings'}, tmp_path)
 
     result = (tmp_path / 'output.txt').read_text()
