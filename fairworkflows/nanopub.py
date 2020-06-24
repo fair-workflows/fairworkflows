@@ -23,7 +23,6 @@ class Nanopub:
     BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
     PWO = rdflib.Namespace("http://purl.org/spar/pwo#")
     HYCL = rdflib.Namespace("http://purl.org/petapico/o/hycl#")
-    NPX = rdflib.Namespace("http://purl.org/nanopub/x/")
 
     AUTHOR = rdflib.Namespace("http://purl.org/person#")
 
@@ -230,7 +229,7 @@ class Nanopub:
         pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
 
         if introduces_concept:
-            pubInfo.add((this_np[''], Nanopub.NPX.introduces, introduces_concept))
+            pubInfo.add((this_np[''], Nanopub.NP.introduces, introduces_concept))
 
         return np_rdf
 

@@ -112,6 +112,6 @@ def test_nanopub_rdf():
     assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
     assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
 
-    assert((None, Nanopub.NPX.introduces, new_concept) in generated_rdf)
+    assert((None, Nanopub.NP.introduces, new_concept) in generated_rdf)
 
 
