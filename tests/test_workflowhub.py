@@ -1,4 +1,4 @@
-from fairworkflows import Workflowhub, FairData, ROCrate
+from fairworkflows import Workflowhub, ROCrate
 import pytest
 
 @pytest.mark.flaky(max_runs=10)
@@ -30,6 +30,4 @@ def test_workflowhub_fetch():
 
     for wf_url in known_urls:
         wf = Workflowhub.fetch(wf_url)
-        assert (isinstance(wf, FairData))
-        assert (wf.source_uri == wf_url)
-        assert (isinstance(wf.data, ROCrate))
+        assert (isinstance(wf, ROCrate))

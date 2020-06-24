@@ -5,7 +5,7 @@ from pathlib import Path
 
 import requests
 
-from . import FairData, ROCrate
+from . import ROCrate
 
 
 class Workflowhub:
@@ -45,8 +45,8 @@ class Workflowhub:
     @staticmethod
     def fetch(uri):
         """
-        Download the RO-Crate zip file found at the specified URI.
-        Decompresses it, extracts the CWL file, and returns a FairData object.
+        Download the RO-Crate zip file found at the specified URI,
+        and returns it as an ROCrate python object.
         """
 
         # TODO: Create cache for for RO crates
@@ -58,4 +58,4 @@ class Workflowhub:
         with open(zip_path, 'wb') as outfile:
             outfile.write(r.content)
 
-        return FairData(data=ROCrate(zip_path), source_uri=uri)
+        return ROCrate(zip_path)
