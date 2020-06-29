@@ -190,7 +190,7 @@ class Nanopub:
 
 
     @staticmethod
-    def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None):
+    def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None):
         """
         Return the nanopub rdf, with given assertion and (defrag'd) URI, but does not sign or publish.
         """
@@ -227,8 +227,10 @@ class Nanopub:
 
         creationtime = rdflib.Literal(datetime.now(),datatype=XSD.dateTime)
         provenance.add((this_np.assertion, Nanopub.PROV.generatedAtTime, creationtime))
-        provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, this_np.experiment))
         provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, this_np.experimentScientist))
+
+        if derived_from:
+            provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, derived_from))
 
         pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, Nanopub.AUTHOR.DrBob))
         pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
@@ -240,16 +242,16 @@ class Nanopub:
 
 
     @staticmethod
-    def publish(assertionrdf, uri=None, introduces_concept=None):
+    def publish(assertionrdf, uri=None, introduces_concept=None, derived_from=None):
         """
         Publish the given assertion as a nanopublication with the given URI.
         Uses np commandline tool to sign and publish.
         """
 
         if uri is None:
-            np_rdf = Nanopub.rdf(assertionrdf, introduces_concept=introduces_concept)
+            np_rdf = Nanopub.rdf(assertionrdf, introduces_concept=introduces_concept, derived_from=derived_from)
         else:
-            np_rdf = Nanopub.rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept)
+            np_rdf = Nanopub.rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept, derived_from=derived_from)
 
         # Create a temporary dir for files created during serializing and signing
         tempdir = tempfile.mkdtemp()
