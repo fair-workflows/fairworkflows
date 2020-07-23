@@ -18,6 +18,7 @@ class Nanopub:
     """
 
     NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
+    NPX = rdflib.Namespace("http://purl.org/nanopub/x/")
     PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
     PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
     DUL = rdflib.Namespace("http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#")
@@ -209,6 +210,7 @@ class Nanopub:
 
         np_rdf.bind("", this_np)
         np_rdf.bind("np", Nanopub.NP)
+        np_rdf.bind("npx", Nanopub.NPX)
         np_rdf.bind("p-plan", Nanopub.PPLAN)
         np_rdf.bind("prov", Nanopub.PROV)
         np_rdf.bind("dul", Nanopub.DUL)
@@ -236,7 +238,7 @@ class Nanopub:
         pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
 
         if introduces_concept:
-            pubInfo.add((this_np[''], Nanopub.NP.introduces, introduces_concept))
+            pubInfo.add((this_np[''], Nanopub.NPX.introduces, introduces_concept))
 
         return np_rdf
 
