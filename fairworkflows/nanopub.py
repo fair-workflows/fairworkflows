@@ -66,7 +66,8 @@ class Nanopub:
 
         @rdf.setter
         def rdf(self, rdf):
-            self._rdf = rdf
+            raise ValueError('Cannot modify NanopubObj rdf directly. Please try using the assertion setter (i.e. X.assertion = [new rdf graph]')
+#            self._rdf = rdf
 
 #        @property
 #        def assertion(self):
