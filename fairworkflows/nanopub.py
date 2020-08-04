@@ -46,6 +46,19 @@ class Nanopub:
         def __init__(self, rdf=None, source_uri=None):
             self._rdf = rdf
             self._source_uri = source_uri
+            self._modified = False
+
+            # Extract the Head, pubinfo, provenance and assertion graphs from the assigned nanopub rdf
+            self.graphs = {}
+            for c in rdf.contexts():
+                graphid = urldefrag(c.identifier).fragment.lower()
+                self.graphs[graphid] = c
+
+            # Check all four expected graphs are provided
+            expected_graphs = ['head', 'pubinfo', 'provenance', 'assertion']
+            for expected in expected_graphs:
+                if expected not in self.graphs.keys():
+                    raise ValueError(f'Expected to find {expected} graph in nanopub rdf, but not found. Graphs found: {list(self.graphs.keys())}.')
 
         @property
         def rdf(self):
@@ -54,6 +67,15 @@ class Nanopub:
         @rdf.setter
         def rdf(self, rdf):
             self._rdf = rdf
+
+#        @property
+#        def assertion(self):
+#            return assertion
+#
+#        @assertion.setter
+#        def set_assertion(self, assertion_rdf):
+#            self._modified = True
+#            self._rdf.assertion = assertion_rdf
 
         @property
         def source_uri(self):
