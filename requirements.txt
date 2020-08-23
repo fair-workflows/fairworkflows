@@ -4,7 +4,7 @@ rdflib<4.3.0,>=4.2.2
 flaky
 pytest
 scriptcwl
-cwltool==2.0.20200312183052
+cwltool==3.0.20200807132242
 cwlgen
 pyyaml
 requests
