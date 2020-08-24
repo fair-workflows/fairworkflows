@@ -177,6 +177,7 @@ class Nanopub:
                 results_json = r.json()
             except:
                 # If the returned message can't be serialized as JSON (such as due to virtuoso error) then there are no results
+                print('Error: Could not serialize response as JSON:\n', r.content)
                 return []
 
             results_list = results_json['results']['bindings']
