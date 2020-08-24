@@ -188,9 +188,9 @@ class Nanopub:
                 nanopub['np'] = result['np']['value']
 
                 if 'v' in result:
-                    nanopub['v'] = result['v']['value']
+                    nanopub['description'] = result['v']['value']
                 elif 'description' in result:
-                    nanopub['v'] = result['description']['value']
+                    nanopub['description'] = result['description']['value']
                 else:
                     nanopub['v'] = ''
                     
