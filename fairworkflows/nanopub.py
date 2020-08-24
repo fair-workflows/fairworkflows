@@ -186,7 +186,14 @@ class Nanopub:
             for result in results_list:
                 nanopub = {}
                 nanopub['np'] = result['np']['value']
-                nanopub['v'] = result['v']['value']
+
+                if 'v' in result:
+                    nanopub['v'] = result['v']['value']
+                elif 'description' in result:
+                    nanopub['v'] = result['description']['value']
+                else:
+                    nanopub['v'] = ''
+                    
                 nanopub['date'] = result['date']['value']
 
                 nanopubs.append(nanopub)
