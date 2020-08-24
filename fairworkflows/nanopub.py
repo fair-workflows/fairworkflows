@@ -167,35 +167,29 @@ class Nanopub:
 
 
         # Query the nanopub server for the specified text
-#        headers = {"Accept": "application/json"}
-#        r = requests.get(apiurl, params=searchparams, headers=headers)
-        r = requests.get(apiurl, params=searchparams)
+        headers = {"Accept": "application/json"}
+        r = requests.get(apiurl, params=searchparams, headers=headers)
 
-        print(r.url)
-        print(r.text)
-
-        # Check for success
         if r.ok:
-            # Parse the resulting xml into a table
-            xmltree = et.ElementTree(et.fromstring(r.text))
-            xmlroot = xmltree.getroot()
-            namespace = '{http://www.w3.org/2005/sparql-results#}'
-            results = xmlroot.find(namespace + 'results')
-
+            results_list = r.json()['results']['bindings']
             nanopubs = []
-            for child in results:
 
+            for result in results_list:
                 nanopub = {}
-                for sub in child.iter(namespace + 'binding'):
-                    nanopub[sub.get('name')] = sub[0].text
+                nanopub['np'] = result['np']['value']
+                nanopub['v'] = result['v']['value']
+                nanopub['date'] = result['date']['value']
+
                 nanopubs.append(nanopub)
 
                 if len(nanopubs) >= max_num_results:
                     break
 
             return nanopubs
+
         else:
-            return [{'Error': f'Error when searching {apiurl}: Status code {r.status_code}'}]
+            return[{'Error': f'Error when searching {apiurl}: Status code {r.status_code}'}]
+
 
     @staticmethod
     def fetch(uri, format=Format.TRIG):
