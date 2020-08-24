@@ -171,7 +171,15 @@ class Nanopub:
         r = requests.get(apiurl, params=searchparams, headers=headers)
 
         if r.ok:
-            results_list = r.json()['results']['bindings']
+ 
+            # Make sure that results are provided
+            try:
+                results_json = r.json()
+            except:
+                # If the returned message can't be serialized as JSON (such as due to virtuoso error) then there are no results
+                return []
+
+            results_list = results_json['results']['bindings']
             nanopubs = []
 
             for result in results_list:
