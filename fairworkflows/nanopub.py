@@ -49,16 +49,16 @@ class Nanopub:
             self._modified = False
 
             # Extract the Head, pubinfo, provenance and assertion graphs from the assigned nanopub rdf
-            self.graphs = {}
+            self._graphs = {}
             for c in rdf.contexts():
                 graphid = urldefrag(c.identifier).fragment.lower()
-                self.graphs[graphid] = c
+                self._graphs[graphid] = c
 
             # Check all four expected graphs are provided
             expected_graphs = ['head', 'pubinfo', 'provenance', 'assertion']
             for expected in expected_graphs:
-                if expected not in self.graphs.keys():
-                    raise ValueError(f'Expected to find {expected} graph in nanopub rdf, but not found. Graphs found: {list(self.graphs.keys())}.')
+                if expected not in self._graphs.keys():
+                    raise ValueError(f'Expected to find {expected} graph in nanopub rdf, but not found. Graphs found: {list(self._graphs.keys())}.')
 
         @property
         def rdf(self):
@@ -67,16 +67,23 @@ class Nanopub:
         @rdf.setter
         def rdf(self, rdf):
             raise ValueError('Cannot modify NanopubObj rdf directly. Please try using the assertion setter (i.e. X.assertion = [new rdf graph]')
-#            self._rdf = rdf
 
-#        @property
-#        def assertion(self):
-#            return assertion
-#
-#        @assertion.setter
-#        def set_assertion(self, assertion_rdf):
-#            self._modified = True
-#            self._rdf.assertion = assertion_rdf
+        @property
+        def assertion(self):
+            return self._graphs['assertion']
+
+        @property
+        def pubinfo(self):
+            return self._graphs['pubinfo']
+
+        @property
+        def provenance(self):
+            return self._graphs['provenance']
+
+        @assertion.setter
+        def set_assertion(self, assertion_rdf):
+            self._modified = True
+            self._rdf.assertion = assertion_rdf
 
         @property
         def source_uri(self):
