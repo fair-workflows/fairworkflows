@@ -57,7 +57,7 @@ def test_nanopub_search_things():
     """
 
     searches = [
-        'https://www.omg.org/spec/BPMN/scriptTask',
+        'http://dkm.fbk.eu/index.php/BPMN2_Ontology#ManualTask',
         'http://purl.org/net/p-plan#Plan'
     ]
 
@@ -112,6 +112,6 @@ def test_nanopub_rdf():
     assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
     assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
 
-    assert((None, Nanopub.NP.introduces, new_concept) in generated_rdf)
+    assert((None, Nanopub.NPX.introduces, new_concept) in generated_rdf)
 
 
