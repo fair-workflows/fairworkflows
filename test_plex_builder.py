@@ -37,3 +37,5 @@ workflow.add_step(step1, step2)
 
 
 print(workflow)
+
+workflow.draw()
