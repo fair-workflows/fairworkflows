@@ -25,6 +25,10 @@ class FairStep:
     def rdf(self):
         return self._rdf
 
+    @property
+    def uri(self):
+        return self._uri
+
     def is_pplan_step(self):
         if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf:
             return True
