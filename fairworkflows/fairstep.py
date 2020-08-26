@@ -10,9 +10,9 @@ class FairStep:
     def __init__(self, step_rdf:rdflib.Graph = None, uri=None):
         
         if step_rdf:
-            self.rdf = step_rdf
+            self._rdf = step_rdf
         else:
-            self.rdf = rdflib.Graph()
+            self._rdf = rdflib.Graph()
 
         if uri:
             self.uri = uri
@@ -21,26 +21,30 @@ class FairStep:
 
         self.this_step = rdflib.URIRef(self.uri)
 
+    @property
+    def rdf(self):
+        return self._rdf
+
     def is_pplan_step(self):
-        if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self.rdf:
+        if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf:
             return True
         else:
             return False
 
     def is_manual_task(self):
-        if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self.rdf:
+        if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf:
             return True
         else:
             return False
 
     def is_script_task(self):
-        if (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self.rdf:
+        if (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf:
             return True
         else:
             return False
         
     def description(self):
-        descriptions = list(self.rdf.objects(subject=self.this_step, predicate=DCTERMS.description))
+        descriptions = list(self._rdf.objects(subject=self.this_step, predicate=DCTERMS.description))
         if len(descriptions) == 0:
             return None
         elif len(descriptions) == 1:
