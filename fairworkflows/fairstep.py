@@ -27,6 +27,18 @@ class FairStep:
         else:
             return False
 
+    def is_manual_task(self):
+        if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self.rdf:
+            return True
+        else:
+            return False
+
+    def is_script_task(self):
+        if (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self.rdf:
+            return True
+        else:
+            return False
+        
     def description(self):
         descriptions = list(self.rdf.objects(subject=self.this_step, predicate=DCTERMS.description))
         if len(descriptions) == 0:
@@ -35,7 +47,7 @@ class FairStep:
             return descriptions[0]
         else:
             return descriptions
-        
+            
     def validate(self, verbose=True):
         """
         Checks whether this step rdf has sufficient information required of
@@ -46,11 +58,15 @@ class FairStep:
         log = ''
 
         if not self.is_pplan_step():
-            log += 'RDF is not a pplan:step\n'
+            log += 'Step RDF does not say it is a pplan:step\n'
             conforms = False
 
         if not self.description():
-            log += 'RDF has no dcterms:description\n'
+            log += 'Step RDF has no dcterms:description\n'
+            conforms = False
+
+        if self.is_manual_task() == self.is_script_task():
+            log += 'Step RDF must be either a bpmn:ManualTask or a bpmn:ScriptTask\n'
             conforms = False
 
         if verbose:
