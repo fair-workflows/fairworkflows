@@ -46,7 +46,6 @@ class Nanopub:
         def __init__(self, rdf=None, source_uri=None):
             self._rdf = rdf
             self._source_uri = source_uri
-            self._modified = False
 
             # Extract the Head, pubinfo, provenance and assertion graphs from the assigned nanopub rdf
             self._graphs = {}
@@ -64,10 +63,6 @@ class Nanopub:
         def rdf(self):
             return self._rdf
 
-        @rdf.setter
-        def rdf(self, rdf):
-            raise ValueError('Cannot modify NanopubObj rdf directly. Please try using the assertion setter (i.e. X.assertion = [new rdf graph]')
-
         @property
         def assertion(self):
             return self._graphs['assertion']
@@ -80,21 +75,12 @@ class Nanopub:
         def provenance(self):
             return self._graphs['provenance']
 
-        @assertion.setter
-        def set_assertion(self, assertion_rdf):
-            self._modified = True
-            self._rdf.assertion = assertion_rdf
-
         @property
         def source_uri(self):
             return self._source_uri
 
-        @source_uri.setter
-        def source_uri(self, source_uri):
-            self._source_uri = source_uri
-
         def __str__(self):
-            s = f'Source URI = {self._source_uri}\n'
+            s = f'Original source URI = {self._source_uri}\n'
             s += self._rdf.serialize(format='trig').decode('utf-8')
             return s
 
@@ -272,6 +258,9 @@ class Nanopub:
         provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, this_np.experimentScientist))
 
         if derived_from:
+            # Convert derived_from URI to an rdflib term first (if necessary)
+            derived_from = rdflib.URIRef(derived_from)
+
             provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, derived_from))
 
         pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, Nanopub.AUTHOR.DrBob))
