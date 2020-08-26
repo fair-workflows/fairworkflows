@@ -77,3 +77,7 @@ class FairStep:
             print(log)
 
         return conforms
+
+    def __str__(self):
+        s = self._rdf.serialize(format='trig').decode('utf-8')
+        return s
