@@ -73,11 +73,3 @@ class FairStep:
             print(log)
 
         return conforms
-
-
-#    def is_manual(self):
-#        """
-#        Returns true if this Plex step is a ManualTask
-#        """
-#        sub:step dcterms:description Literal 
-#    a <http://dkm.fbk.eu/index.php/BPMN2_Ontology#ManualTask>, p-plan:Step        
