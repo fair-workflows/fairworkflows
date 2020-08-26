@@ -7,19 +7,19 @@ class FairStep:
 
     DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
 
-    def __init__(self, step_rdf:rdflib.Graph = None, uri=None):
-        
+    def __init__(self, step_rdf:rdflib.Graph = None, uri = DEFAULT_STEP_URI):
+
+        self._uri = uri
+
         if step_rdf:
             self._rdf = step_rdf
+
+            if self._uri not in step_rdf.subjects():
+                print(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
         else:
             self._rdf = rdflib.Graph()
 
-        if uri:
-            self.uri = uri
-        else:
-            self.uri = self.DEFAULT_STEP_URI
-
-        self.this_step = rdflib.URIRef(self.uri)
+        self.this_step = rdflib.URIRef(self._uri)
 
     @property
     def rdf(self):
@@ -79,5 +79,6 @@ class FairStep:
         return conforms
 
     def __str__(self):
-        s = self._rdf.serialize(format='trig').decode('utf-8')
+        s = f'Step URI = {self._uri}\n'
+        s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
