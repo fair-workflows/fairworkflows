@@ -20,33 +20,41 @@ class FairStep:
             self.uri = self.DEFAULT_STEP_URI
 
         self.this_step = rdflib.URIRef(self.uri)
-        
 
-    def validate(self):
+    def is_pplan_step(self):
+        if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self.rdf:
+            return True
+        else:
+            return False
+
+    def description(self):
+        descriptions = list(self.rdf.objects(subject=self.this_step, predicate=DCTERMS.description))
+        if len(descriptions) == 0:
+            return None
+        elif len(descriptions) == 1:
+            return descriptions[0]
+        else:
+            return descriptions
+        
+    def validate(self, verbose=True):
         """
         Checks whether this step rdf has sufficient information required of
         a step in the Plex ontology.
         """
 
-        # Use shacl later (once the schema is properly defined)
-        #
-        #shacl_graph = rdflib.Graph()
-        #ex = rdflib.Namespace('http://www.example.com/ns#')
-        #shacl_graph.add( (ex.PlexStepShape, RDF.type, Nanopub.PPLAN.Plan) )
-        #conforms, results_graph, results_txt = pyshacl.validate(self.rdf, shacl_graph=shacl_graph)
-        #print(results_txt)
-        #return conforms
-
         conforms = True
+        log = ''
 
-        necessary_triples = [
-            (self.this_step, RDF.type, Nanopub.PPLAN.Step), # Must be a pplan:Step
-            (self.this_step, DCTERMS.description, None)     # Must have a dcterms:description
-        ]
-        for t in necessary_triples:
-            if t not in self.rdf:
-                print("Plex step is missing triple of the form:", t)
-                conforms = False
+        if not self.is_pplan_step():
+            log += 'RDF is not a pplan:step\n'
+            conforms = False
+
+        if not self.description():
+            log += 'RDF has no dcterms:description\n'
+            conforms = False
+
+        if verbose:
+            print(log)
 
         return conforms
 
