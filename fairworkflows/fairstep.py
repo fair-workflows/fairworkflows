@@ -2,6 +2,7 @@ from .nanopub import Nanopub
 import pyshacl
 import rdflib
 from rdflib import RDF, DCTERMS
+import inspect
 
 class FairStep:
 
