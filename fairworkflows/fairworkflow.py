@@ -37,6 +37,7 @@ class FairWorkflow:
             self.add_step(new_step, self._last_step_added)
             self._last_step_added = new_step
 
+
     @property
     def rdf(self):
         return self._rdf
@@ -47,19 +48,19 @@ class FairWorkflow:
         predicate_map[rdflib.term.URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#precedes')] = 'precedes'
         predicate_map[rdflib.term.URIRef('http://purl.org/dc/terms/description')] = 'description'
         predicate_map[rdflib.term.URIRef('http://purl.org/spar/pwo#hasFirstStep')] = 'hasFirstStep'
+        predicate_map[RDF.type] = 'a'
 
         G = nx.MultiDiGraph()
         edge_labels = {}
         for s, p, o in self._rdf:
             if p in predicate_map:
+                edge_labels[(s,o)] = predicate_map[p]
                 G.add_edge(s, o)
-                edge_labels[(s,o)] = predicate_map[p] 
 
-        pos = nx.spring_layout(G)
-        print(edge_labels)
+        pos = nx.spring_layout(G, scale=200, k = 1)
             
-        nx.draw(G, pos=pos, with_labels=True)
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+        nx.draw_networkx(G, pos=pos, with_labels=True, font_size=7, node_size=100, node_color='gray')
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7)
         plt.show()
 
     def __str__(self):
