@@ -6,7 +6,7 @@ def fairstep(fw:FairWorkflow):
     def decorated_step(func):
 
         def wrapped_step(*args, **kwargs):
-            fw.add_step_sequentially(FairStep())
+            fw.add(FairStep(func=func))
             func(*args, **kwargs)
 
         return wrapped_step

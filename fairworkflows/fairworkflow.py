@@ -26,16 +26,69 @@ class FairWorkflow:
         self._rdf.add( (self.this_plan, Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri)) )
         self._last_step_added = step
 
-    def add_step(self, new_step, parent_step):
-        self._rdf.add( (rdflib.URIRef(parent_step.uri), Nanopub.DUL.precedes, rdflib.URIRef(new_step.uri)) )
-        self._last_step_added = new_step
-
-    def add_step_sequentially(self, new_step):
-        if self._last_step_added is None:
-            self.set_first_step(new_step)
+    def add(self, new_step, follows=None):
+        if not follows:
+            if not self.first_step():
+                self.set_first_step(new_step)
+            else:
+                self.add(new_step, follows=self._last_step_added)
+                self._last_step_added = new_step
         else:
-            self.add_step(new_step, self._last_step_added)
+            self._rdf.add( (rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(new_step.uri)) )
             self._last_step_added = new_step
+
+    def is_pplan_plan(self):
+        if (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) in self._rdf:
+            return True
+        else:
+            return False
+
+    def first_step(self):
+        first_step = list(self._rdf.objects(subject=self.this_plan, predicate=Nanopub.PWO.hasFirstStep))
+        if len(first_step) == 0:
+            return None
+        elif len(first_step) == 1:
+            return first_step[0]
+        else:
+            return first_step
+
+    def description(self):
+        descriptions = list(self._rdf.objects(subject=self.this_plan, predicate=DCTERMS.description))
+        if len(descriptions) == 0:
+            return None
+        elif len(descriptions) == 1:
+            return descriptions[0]
+        else:
+            return descriptions
+
+    def validate(self, verbose=True):
+        """
+        Checks whether this workflow rdf has sufficient information required of
+        a plan in the Plex ontology.
+        """
+
+        conforms = True
+        log = ''
+
+        if not self.is_pplan_plan():
+            log += 'Plan RDF does not say it is a pplan:Plan\n'
+            conforms = False
+
+        if not self.description():
+            log += 'Plan RDF has no dcterms:description\n'
+            conforms = False
+
+        if not self.first_step():
+            log += 'Plan RDF does not specify a first step (pwo:hasFirstStep)\n'
+            conforms = False
+        elif len(self.first_step()) > 1:
+            log += 'Plan RDF contains more than one first step (pwo:hasFirstStep)\n'
+            conforms = False
+            
+        if verbose:
+            print(log)
+
+        return conforms
 
 
     @property
@@ -59,7 +112,7 @@ class FairWorkflow:
 
         pos = nx.spring_layout(G, scale=200, k = 1)
             
-        nx.draw_networkx(G, pos=pos, with_labels=True, font_size=7, node_size=100, node_color='gray')
+        nx.draw(G, pos=pos, with_labels=True, font_size=7, node_size=100, node_color='gray')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7)
         plt.show()
 

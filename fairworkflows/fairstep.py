@@ -8,9 +8,11 @@ class FairStep:
 
     DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
 
-    def __init__(self, step_rdf:rdflib.Graph = None, uri = DEFAULT_STEP_URI, from_nanopub=False):
+    def __init__(self, step_rdf:rdflib.Graph = None, uri = DEFAULT_STEP_URI, from_nanopub=False, func=None):
 
-        if from_nanopub:
+        if func:
+            self.from_function(func)
+        elif from_nanopub:
             self.load_from_nanopub(uri)
         else:
             self._uri = uri
@@ -25,24 +27,55 @@ class FairStep:
 
         self.this_step = rdflib.URIRef(self._uri)
 
-    def load_from_nanopub(self, step_uri):
+
+    def load_from_nanopub(self, uri):
 
         # Work out the nanopub URI by defragging the step URI
-        np_uri, _ = urldefrag(step_uri)
+        np_uri, frag = urldefrag(uri)
 
         # Fetch the nanopub
         np = Nanopub.fetch(np_uri)
 
+        # If there was no fragment in the original uri, then the uri was already the nanopub one.
+        # Try to work out what the step's URI is, by looking at what the np is introducing.
+        if len(frag) == 0:
+            concepts_introduced = []
+            for s, p, o in np.pubinfo.triples((None, Nanopub.NPX.introduces, None)):
+                concepts_introduced.append(o)
+
+            if len(concepts_introduced) == 0:
+                raise ValueError('This nanopub does not introduce any concepts. Please provide URI to the step itself (not just the nanopub).')
+            elif len(concepts_introduced) > 0:
+                step_uri = concepts_introduced[0]
+
+            print('Assuming step URI is', step_uri)
+
+        else:
+            step_uri = uri
+
+        self._uri = step_uri
+        self.this_step = rdflib.URIRef(self._uri)
+
         # Check that the nanopub's assertion actually contains triples refering to the given step's uri 
-        if (rdflib.URIRef(step_uri), None, None) not in np.assertion:
+        if (rdflib.URIRef(self.this_step), None, None) not in np.assertion:
             raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
 
         # Else extract all triples in the assertion into the rdf graph for this step
         self._rdf = rdflib.Graph()
         self._rdf += np.assertion
 
-        self._uri = step_uri
+
+    def from_function(self, func):
+        self._rdf = rdflib.Graph()
+        name = func.__name__
+        code = inspect.getsource(func)
+        self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
         self.this_step = rdflib.URIRef(self._uri)
+        self.add_description(code)
+
+
+    def add_description(self, text):
+        self._rdf.add( (self.this_step, DCTERMS.description, rdflib.term.Literal(text)) )
 
 
     @property
