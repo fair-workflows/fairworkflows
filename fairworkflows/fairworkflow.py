@@ -43,19 +43,17 @@ class FairWorkflow:
 
     def draw(self):
 
-        # rdflib_to_networkx_multidigraph() appears broken currently, so is reimplemented below
+        predicate_map = {}
+        predicate_map[rdflib.term.URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#precedes')] = 'precedes'
+        predicate_map[rdflib.term.URIRef('http://purl.org/dc/terms/description')] = 'description'
+        predicate_map[rdflib.term.URIRef('http://purl.org/spar/pwo#hasFirstStep')] = 'hasFirstStep'
+
         G = nx.MultiDiGraph()
         edge_labels = {}
         for s, p, o in self._rdf:
-            if rdflib.term.URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#precedes') in p:
+            if p in predicate_map:
                 G.add_edge(s, o)
-                edge_labels[(s,o)] = 'precedes' 
-            if rdflib.term.URIRef('http://purl.org/dc/terms/description') in p:
-                G.add_edge(s, o)
-                edge_labels[(s,o)] = 'description' 
-            if rdflib.term.URIRef('http://purl.org/spar/pwo#hasFirstStep') in p:
-                G.add_edge(s, o)
-                edge_labels[(s,o)] = 'hasFirstStep'
+                edge_labels[(s,o)] = predicate_map[p] 
 
         pos = nx.spring_layout(G)
         print(edge_labels)
