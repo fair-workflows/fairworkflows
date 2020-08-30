@@ -33,9 +33,10 @@ print(workflow)
 step2 = FairStep(uri=rdflib.term.URIRef('http://www.step.org'))
 print(step2)
 
-workflow.add_step(step1, step2)
+workflow.add(step1, follows=step2)
 
 
 print(workflow)
 
-workflow.draw()
+for a in workflow:
+    print(a)

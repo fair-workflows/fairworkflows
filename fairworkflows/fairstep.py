@@ -66,8 +66,9 @@ class FairStep:
 
 
     def from_function(self, func):
+        import time
+        name = func.__name__ + str(time.time())
         self._rdf = rdflib.Graph()
-        name = func.__name__
         code = inspect.getsource(func)
         self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
         self.this_step = rdflib.URIRef(self._uri)

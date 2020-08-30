@@ -20,11 +20,14 @@ class FairWorkflow:
         self._rdf.add( (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) )
         self._rdf.add( (self.this_plan, DCTERMS.description, rdflib.term.Literal(description)) )
 
+        self._steps = {}
         self._last_step_added = None
 
     def set_first_step(self, step:FairStep):
         self._rdf.add( (self.this_plan, Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri)) )
+        self._steps[step.uri] = step
         self._last_step_added = step
+        print(self._steps)
 
     def add(self, new_step, follows=None):
         if not follows:
@@ -32,10 +35,13 @@ class FairWorkflow:
                 self.set_first_step(new_step)
             else:
                 self.add(new_step, follows=self._last_step_added)
-                self._last_step_added = new_step
         else:
             self._rdf.add( (rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(new_step.uri)) )
+            self._steps[new_step.uri] = new_step
             self._last_step_added = new_step
+
+    def __iter__(self):
+        return PlexIterator(self)
 
     def is_pplan_plan(self):
         if (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) in self._rdf:
@@ -51,6 +57,9 @@ class FairWorkflow:
             return first_step[0]
         else:
             return first_step
+
+    def get_step(self, uri):
+        return self._steps[uri]
 
     def description(self):
         descriptions = list(self._rdf.objects(subject=self.this_plan, predicate=DCTERMS.description))
@@ -120,3 +129,39 @@ class FairWorkflow:
         s = f'Workflow URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
+
+
+class PlexIterator:
+
+    def __init__(self, plex:FairWorkflow):
+        self.plex = plex
+        self.current_step = self.plex.first_step()
+        self.deps = {}
+        self.remaining = []
+        for s, p, o in self.plex.rdf.triples((None, Nanopub.DUL.precedes, None)):
+            if o not in self.deps:
+                self.deps[o] = []
+            self.deps[o].append(s)
+
+            self.remaining.append(s)
+            self.remaining.append(o)
+
+        self.remaining = list(set(self.remaining))
+
+#        print(self.deps)
+#        print(self.remaining)
+
+    def __next__(self):
+        for step in self.remaining:
+            can_run = True
+            if step in self.deps:
+                for dep in self.deps[step]:
+                    if dep in self.remaining:
+                        can_run = False
+                        break
+            if can_run == True:
+                self.remaining.remove(step)
+                return self.plex.get_step(str(step))
+
+        raise StopIteration
+
