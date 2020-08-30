@@ -1,25 +1,49 @@
 from .nanopub import Nanopub
 import rdflib
 from rdflib import RDF, DCTERMS
+from urllib.parse import urldefrag
 import inspect
 
 class FairStep:
 
     DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
 
-    def __init__(self, step_rdf:rdflib.Graph = None, uri = DEFAULT_STEP_URI):
+    def __init__(self, step_rdf:rdflib.Graph = None, uri = DEFAULT_STEP_URI, from_nanopub=False):
 
-        self._uri = uri
-
-        if step_rdf:
-            self._rdf = step_rdf
-
-            if self._uri not in step_rdf.subjects():
-                print(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
+        if from_nanopub:
+            self.load_from_nanopub(uri)
         else:
-            self._rdf = rdflib.Graph()
+            self._uri = uri
+
+            if step_rdf:
+                self._rdf = step_rdf
+
+                if self._uri not in step_rdf.subjects():
+                    print(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
+            else:
+                self._rdf = rdflib.Graph()
 
         self.this_step = rdflib.URIRef(self._uri)
+
+    def load_from_nanopub(self, step_uri):
+
+        # Work out the nanopub URI by defragging the step URI
+        np_uri, _ = urldefrag(step_uri)
+
+        # Fetch the nanopub
+        np = Nanopub.fetch(np_uri)
+
+        # Check that the nanopub's assertion actually contains triples refering to the given step's uri 
+        if (rdflib.URIRef(step_uri), None, None) not in np.assertion:
+            raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
+
+        # Else extract all triples in the assertion into the rdf graph for this step
+        self._rdf = rdflib.Graph()
+        self._rdf += np.assertion
+
+        self._uri = step_uri
+        self.this_step = rdflib.URIRef(self._uri)
+
 
     @property
     def rdf(self):
