@@ -53,4 +53,5 @@ def test_fairstep_from_function():
     assert(step.is_manual_task() is False)
     assert(step.is_script_task() is True)
 
-    print(step)
+    assert(step.__str__() is not None)
+    assert(len(step.__str__()) > 0)
