@@ -36,6 +36,7 @@ def test_fairstep_from_nanopub():
         assert(step.is_manual_task() is True)
         assert(step.is_script_task() is False)
 
+
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
 def test_fairstep_from_nanopub_without_fragment():
@@ -81,3 +82,10 @@ def test_fairstep_from_function():
     assert(step.__str__() is not None)
     assert(len(step.__str__()) > 0)
     assert(step.rdf is not None)
+
+
+def test_validation():
+    step = FairStep(uri='http://www.example.org/step')
+    assert(step.validate() is False)
+
+
