@@ -45,4 +45,21 @@ def test_decorator():
     test_fn(1, 2)
 
     assert(workflow.validate() is True)
-    
+
+
+def test_draw():
+    workflow = FairWorkflow(description='This is a test workflow.')
+
+    assert(workflow is not None)
+    assert(workflow.description() is not None)
+
+    step1 = FairStep(uri='http://www.example.org/step1')
+    step2 = FairStep(uri='http://www.example.org/step2')
+    step3 = FairStep(uri='http://www.example.org/step3')
+
+    workflow.add(step2, follows=step1)
+    workflow.add(step3, follows=step2)
+
+    # Check for errors when calling draw()...
+    workflow.draw(show=False)
+ 

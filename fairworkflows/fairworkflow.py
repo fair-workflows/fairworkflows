@@ -104,7 +104,7 @@ class FairWorkflow:
     def rdf(self):
         return self._rdf
 
-    def draw(self):
+    def draw(self, show=True):
 
         predicate_map = {}
         predicate_map[rdflib.term.URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#precedes')] = 'precedes'
@@ -123,7 +123,9 @@ class FairWorkflow:
             
         nx.draw(G, pos=pos, with_labels=True, font_size=7, node_size=100, node_color='gray')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7)
-        plt.show()
+
+        if show is True:
+            plt.show()
 
     def __str__(self):
         s = f'Workflow URI = {self._uri}\n'
