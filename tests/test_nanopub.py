@@ -1,4 +1,6 @@
 import pytest
+from unittest.mock import patch
+
 import requests
 import rdflib
 from rdflib.namespace import RDF
@@ -65,6 +67,20 @@ def test_nanopub_search_things():
         results = Nanopub.search_things(thing_type=thing_type)
         assert(len(results) > 0)
 
+    with pytest.raises(Exception):
+        Nanopub.search_things()
+
+
+def test_nanopub_search():
+
+    with pytest.raises(Exception):
+        Nanopub._search(searchparams=None, max_num_results=100, apiurl='http://www.api.url')
+    with pytest.raises(Exception):
+        Nanopub._search(searchparams={'search': 'text'}, max_num_results=None, apiurl='http://www.api.url')
+    with pytest.raises(Exception):
+        Nanopub._search(searchparams={'search': 'text'}, max_num_results=100, apiurl=None)
+ 
+
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
 def test_nanopub_fetch():
@@ -82,9 +98,13 @@ def test_nanopub_fetch():
 
     for np_uri in known_nps:
         np = Nanopub.fetch(np_uri)
-        assert (isinstance(np, Nanopub.NanopubObj))
-        assert (np.source_uri == np_uri)
-        assert (len(np.rdf) > 0)
+        assert(isinstance(np, Nanopub.NanopubObj))
+        assert(np.source_uri == np_uri)
+        assert(len(np.rdf) > 0)
+        assert(np.assertion is not None)
+        assert(np.pubinfo is not None)
+        assert(np.provenance is not None)
+        assert(len(np.__str__()) > 0)
 
 def test_nanopub_rdf():
     """
@@ -115,3 +135,15 @@ def test_nanopub_rdf():
     assert((None, Nanopub.NPX.introduces, new_concept) in generated_rdf)
 
 
+@patch('fairworkflows.nanopub_wrapper.publish')
+def test_nanopub_claim(nanopub_wrapper_publish_mock):
+    optional_triple = (rdflib.term.URIRef('http://www.uri1.com'), rdflib.term.URIRef('http://www.uri2.com'), rdflib.Literal('Something'))
+    Nanopub.claim('Some controversial statement', rdftriple=optional_triple)
+
+@patch('fairworkflows.nanopub_wrapper.publish')
+def test_nanopub_publish(nanopub_wrapper_publish_mock):
+
+    assertionrdf = rdflib.Graph()
+    assertionrdf.add((Nanopub.AUTHOR.DrBob, Nanopub.HYCL.claims, rdflib.Literal('This is a test')))
+
+    Nanopub.publish(assertionrdf, uri=rdflib.term.URIRef('http://www.example.com/auri'), introduces_concept=Nanopub.AUTHOR.DrBob, derived_from=rdflib.term.URIRef('http://www.example.com/someuri'))

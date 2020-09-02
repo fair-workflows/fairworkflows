@@ -1,91 +1,207 @@
+from .nanopub import Nanopub
+import rdflib
+from rdflib import RDF, DCTERMS
+from urllib.parse import urldefrag
 import inspect
-import textwrap
-import os
-from pathlib import Path
 
-STEPS_DIR = Path('./steps')
-
-def write_pytool(name=None, code=None, inputs=None):
-
-    # Make a directory to keep the steps in if not already existing
-    STEPS_DIR.mkdir(parents=True, exist_ok=True)
-
-    fname = STEPS_DIR / (name + ".py")
-    with open(fname, 'w') as out:
-        s = "import click\nimport json\n\n"
-        s += "@click.command()"
-        for arg, typ in inputs.items():
-            typ = typ.__name__
-            s += f"\n@click.argument('{arg}', type={typ})"
- 
-        s += '\ndef run(*args, **kwargs):\n'
-        indented_code = textwrap.indent(code, prefix='    ').replace('@fairstep', '')
-        s += '\n' + indented_code + '\n'
-        s += "    click.echo(json.dumps({'answer': " + name + "(*args, **kwargs)}))\n"
-
-        s += "\nif __name__ == '__main__':\n"
-        s += "    run()\n"
-
-        out.write(s)
-
-    return os.path.abspath(fname)
-
-
-def write_cwltool(name=None, code=None, inputs=None, return_type=None):
-
-    # Make a directory to keep the steps in if not already existing
-    STEPS_DIR.mkdir(parents=True, exist_ok=True)
-
-    pytool_path = write_pytool(name=name, code=code, inputs=inputs)
-
-    fname = STEPS_DIR / (name + ".cwl")
-    with open(fname, 'w') as out:
-        s = "#!/usr/bin/env cwl-runner\n"
-        s += "cwlVersion: v1.0\n"
-        s += "class: CommandLineTool\n"
-        s += f'baseCommand: ["python3", "{pytool_path}"]\n'
-        s += "inputs:\n"
-        i = 0
-        for arg, typ in inputs.items():
-            i += 1
-            s += f'    {arg}:\n'
-            s += f'        type: {typ.__name__}\n'
-            s += f'        inputBinding:\n'
-            s += f'            position: {i}\n'
-
-        s += "\nstdout: cwl.output.json\n"
-        s += "\noutputs:\n"
-        s += "    answer:\n"
-        s += f'        type: {return_type.__name__}\n'
-
-        out.write(s)
-
-    return os.path.abspath(fname)
-
-
-def fairstep(func):
+class FairStep:
     """
-    Decorator to convert step to an appropriate workflow format (e.g. CWL)
+        Class for building, validating and publishing Fair Steps, as described by the plex ontology in the publication:
+
+        Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study. arXiv preprint arXiv:1911.09531.
+
+        Fair Steps may be fetched from Nanopublications, or created from rdflib graphs or python functions.
     """
 
-    arginfo = inspect.getfullargspec(func) 
+    DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
 
-    # Check that all variables provided have been given types
-    inputs = {}
-    for arg in arginfo.args:
-        if arg not in arginfo.annotations:
-            raise ValueError(f'Argument {arg} does not have a type annotation.')
+    def __init__(self, step_rdf:rdflib.Graph = None, uri = DEFAULT_STEP_URI, from_nanopub=False, func=None):
+
+        if func:
+            self.from_function(func)
+        elif from_nanopub:
+            self.load_from_nanopub(uri)
         else:
-            inputs[arg] = arginfo.annotations[arg]
+            self._uri = uri
 
-    # Check that return type is explicitly stated
-    if 'return' not in arginfo.annotations:
-        raise ValueError(f'Function does not have a return type specified')
-    else:
-        return_type = arginfo.annotations['return']
+            if step_rdf:
+                self._rdf = step_rdf
 
-    cwltool_path = write_cwltool(name=func.__name__, code=inspect.getsource(func), inputs=inputs, return_type=return_type)
+                if self._uri not in step_rdf.subjects():
+                    print(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
+            else:
+                self._rdf = rdflib.Graph()
 
-    print('Created cwltool at ', cwltool_path)
+        self.this_step = rdflib.URIRef(self._uri)
 
-    return func
+
+    def load_from_nanopub(self, uri):
+        """
+            Fetches the nanopublication corresponding to the specified URI, and attempts to extract the rdf describing a fairstep from
+            its assertion graph. If the URI passed to this function is the uri of the nanopublication (and not the step itself) then
+            an attempt will be made to identify what the URI of the step actually is, by checking if the nanopub npx:introduces a
+            particular concept.
+
+            If the assertion graph does not contain any triples with the step URI as subject, an exception is raised. If such triples
+            are found, then ALL triples in the assertion are added to the rdf graph for this FairStep.
+        """
+
+
+        # Work out the nanopub URI by defragging the step URI
+        np_uri, frag = urldefrag(uri)
+
+        # Fetch the nanopub
+        np = Nanopub.fetch(np_uri)
+
+        # If there was no fragment in the original uri, then the uri was already the nanopub one.
+        # Try to work out what the step's URI is, by looking at what the np is introducing.
+        if len(frag) == 0:
+            concepts_introduced = []
+            for s, p, o in np.pubinfo.triples((None, Nanopub.NPX.introduces, None)):
+                concepts_introduced.append(o)
+
+            if len(concepts_introduced) == 0:
+                raise ValueError('This nanopub does not introduce any concepts. Please provide URI to the step itself (not just the nanopub).')
+            elif len(concepts_introduced) > 0:
+                step_uri = concepts_introduced[0]
+
+            print('Assuming step URI is', step_uri)
+
+        else:
+            step_uri = uri
+
+        self._uri = step_uri
+        self.this_step = rdflib.URIRef(self._uri)
+
+        # Check that the nanopub's assertion actually contains triples refering to the given step's uri 
+        if (rdflib.URIRef(self.this_step), None, None) not in np.assertion:
+            raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
+
+        # Else extract all triples in the assertion into the rdf graph for this step
+        self._rdf = rdflib.Graph()
+        self._rdf += np.assertion
+
+
+    def from_function(self, func):
+        """
+            Generates a plex rdf decription for the given python function, and makes this FairStep object a bpmn:ScriptTask.
+        """
+        import time
+        name = func.__name__ + str(time.time())
+        self._rdf = rdflib.Graph()
+        code = inspect.getsource(func)
+        self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
+        self.this_step = rdflib.URIRef(self._uri)
+
+        # Set description of step to the raw function code
+        self.add_description(code)
+
+        # Specify that step is a pplan:Step
+        self._rdf.add( (self.this_step, RDF.type, Nanopub.PPLAN.Step) )
+
+        # Specify that step is a ScriptTask
+        self._rdf.add( (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) )
+
+
+    def add_description(self, text):
+        """
+            Adds the given text string as a dcterms:description for this FairStep object.
+        """
+        self._rdf.add( (self.this_step, DCTERMS.description, rdflib.term.Literal(text)) )
+
+
+    @property
+    def rdf(self):
+        """
+            Getter for the rdf graph describing this FairStep.
+        """
+        return self._rdf
+
+    @property
+    def uri(self):
+        """
+            Getter for the URI of this FairStep.
+        """
+        return self._uri
+
+    def is_pplan_step(self):
+        """
+            Returns True if this FairStep is a pplan:Step, else False.
+        """
+        if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf:
+            return True
+        else:
+            return False
+
+    def is_manual_task(self):
+        """
+            Returns True if this FairStep is a bpmn:ManualTask, else False.
+        """
+        if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf:
+            return True
+        else:
+            return False
+
+    def is_script_task(self):
+        """
+            Returns True if this FairStep is a bpmn:ScriptTask, else False.
+        """
+        if (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf:
+            return True
+        else:
+            return False
+        
+
+    def description(self):
+        """
+            Returns the dcterms:description of this step (or a list, if more than one matching triple is found)
+        """
+
+        descriptions = list(self._rdf.objects(subject=self.this_step, predicate=DCTERMS.description))
+        if len(descriptions) == 0:
+            return None
+        elif len(descriptions) == 1:
+            return descriptions[0]
+        else:
+            return descriptions
+
+            
+    def validate(self, verbose=True):
+        """
+            Checks whether this step rdf has sufficient information required of
+            a step in the Plex ontology. If not, a message is printed explaining
+            the problem, and the function returns False.
+
+            If verbose is set to False, no explanation messages will be printed.
+        """
+
+        conforms = True
+        log = ''
+
+        if not self.is_pplan_step():
+            log += 'Step RDF does not say it is a pplan:Step\n'
+            conforms = False
+
+        if not self.description():
+            log += 'Step RDF has no dcterms:description\n'
+            conforms = False
+
+        if self.is_manual_task() == self.is_script_task():
+            log += 'Step RDF must be either a bpmn:ManualTask or a bpmn:ScriptTask\n'
+            conforms = False
+
+        if verbose:
+            print(log)
+
+        return conforms
+
+
+    def __str__(self):
+        """
+            Returns string representation of this FairStep object.
+        """
+        s = f'Step URI = {self._uri}\n'
+        s += self._rdf.serialize(format='trig').decode('utf-8')
+        return s
+
+

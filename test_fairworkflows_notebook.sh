@@ -1,4 +1,4 @@
 #!/bin/bash -i
 
 python3 -m pip install . || exit 1
-jupyter-notebook test_search.ipynb
+jupyter-lab test_plex_builder.ipynb
