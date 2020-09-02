@@ -13,7 +13,6 @@ class FairStep:
         Fair Steps may be fetched from Nanopublications, or created from rdflib graphs or python functions.
     """
 
-
     DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
 
     def __init__(self, step_rdf:rdflib.Graph = None, uri = DEFAULT_STEP_URI, from_nanopub=False, func=None):
@@ -126,10 +125,10 @@ class FairStep:
         return self._uri
 
     def is_pplan_step(self):
-       """
+        """
             Returns True if this FairStep is a pplan:Step, else False.
-       """
-       if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf:
+        """
+        if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf:
             return True
         else:
             return False
@@ -137,16 +136,16 @@ class FairStep:
     def is_manual_task(self):
         """
             Returns True if this FairStep is a bpmn:ManualTask, else False.
-       """
-       if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf:
+        """
+        if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf:
             return True
         else:
             return False
 
     def is_script_task(self):
-       """
+        """
             Returns True if this FairStep is a bpmn:ScriptTask, else False.
-       """
+        """
         if (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf:
             return True
         else:
@@ -154,9 +153,9 @@ class FairStep:
         
 
     def description(self):
-       """
+        """
             Returns the dcterms:description of this step (or a list, if more than one matching triple is found)
-       """
+        """
 
         descriptions = list(self._rdf.objects(subject=self.this_step, predicate=DCTERMS.description))
         if len(descriptions) == 0:
@@ -204,3 +203,5 @@ class FairStep:
         s = f'Step URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
+
+
