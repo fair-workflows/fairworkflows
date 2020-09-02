@@ -55,3 +55,4 @@ def test_fairstep_from_function():
 
     assert(step.__str__() is not None)
     assert(len(step.__str__()) > 0)
+    assert(step.rdf is not None)

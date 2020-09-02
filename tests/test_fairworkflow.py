@@ -24,4 +24,11 @@ def test_build_fairworkflow():
 
     assert(workflow.__str__() is not None)
     assert(len(workflow.__str__()) > 0)
+    assert(workflow.rdf is not None)
 
+    # Now test plex iterator of the workflow
+    steps = [step1, step2, step3]
+    i = 0
+    for step in workflow:
+        assert(step.uri == steps[i].uri)
+        i += 1
