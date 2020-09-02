@@ -68,6 +68,17 @@ def test_nanopub_search_things():
     with pytest.raises(Exception):
         Nanopub.search_things()
 
+
+def test_nanopub_search():
+
+    with pytest.raises(Exception):
+        Nanopub._search(searchparams=None, max_num_results=100, apiurl='http://www.api.url')
+    with pytest.raises(Exception):
+        Nanopub._search(searchparams={'search': 'text'}, max_num_results=None, apiurl='http://www.api.url')
+    with pytest.raises(Exception):
+        Nanopub._search(searchparams={'search': 'text'}, max_num_results=100, apiurl=None)
+ 
+
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
 def test_nanopub_fetch():
