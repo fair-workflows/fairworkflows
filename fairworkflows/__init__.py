@@ -3,6 +3,3 @@ from .fairstep import FairStep
 from .fairworkflow import FairWorkflow
 from .decorators import fairstep
 from .nanopub import Nanopub
-from .manualstep import manualstep
-
-from .cwlstep import cwlstep
