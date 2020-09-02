@@ -1,4 +1,6 @@
 import pytest
+from unittest.mock import patch
+
 import requests
 import rdflib
 from rdflib.namespace import RDF
@@ -133,3 +135,14 @@ def test_nanopub_rdf():
     assert((None, Nanopub.NPX.introduces, new_concept) in generated_rdf)
 
 
+@patch.object(Nanopub, 'publish')
+def test_nanopub_claim(nanopub_publish_mock):
+    Nanopub.claim('Some controversial statement')
+
+@patch.object(Nanopub, 'publish')
+def test_nanopub_publish(nanopub_publish_mock):
+
+    assertionrdf = rdflib.Graph()
+    assertionrdf.add((Nanopub.AUTHOR.DrBob, Nanopub.HYCL.claims, rdflib.Literal('This is a test')))
+
+    Nanopub.publish(assertionrdf, introduces_concept=Nanopub.AUTHOR.DrBob, derived_from=rdflib.term.URIRef('http://www.example.com/someuri'))
