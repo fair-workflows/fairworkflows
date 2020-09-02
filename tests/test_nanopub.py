@@ -135,12 +135,12 @@ def test_nanopub_rdf():
     assert((None, Nanopub.NPX.introduces, new_concept) in generated_rdf)
 
 
-@patch.object(Nanopub, 'publish')
-def test_nanopub_claim(nanopub_publish_mock):
+@patch('fairworkflows.nanopub_wrapper.publish')
+def test_nanopub_claim(nanopub_wrapper_publish_mock):
     Nanopub.claim('Some controversial statement')
 
-@patch.object(Nanopub, 'publish')
-def test_nanopub_publish(nanopub_publish_mock):
+@patch('fairworkflows.nanopub_wrapper.publish')
+def test_nanopub_publish(nanopub_wrapper_publish_mock):
 
     assertionrdf = rdflib.Graph()
     assertionrdf.add((Nanopub.AUTHOR.DrBob, Nanopub.HYCL.claims, rdflib.Literal('This is a test')))
