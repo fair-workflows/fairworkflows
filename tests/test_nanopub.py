@@ -4,7 +4,7 @@ import rdflib
 from rdflib.namespace import RDF
 from urllib.parse import urldefrag
 
-from fairworkflows import Nanopub, FairData
+from fairworkflows import Nanopub
 
 DEFAULT_FORMAT = '.trig'
 BAD_GATEWAY = 502
@@ -49,13 +49,28 @@ def test_nanopub_search_pattern():
         results = Nanopub.search_pattern(subj=subj, pred=pred, obj=obj)
         assert(len(results) > 0)
 
+@pytest.mark.flaky(max_runs=10)
+@pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
+def test_nanopub_search_things():
+    """
+        Check that Nanopub 'things' search is returning results
+    """
+
+    searches = [
+        'http://dkm.fbk.eu/index.php/BPMN2_Ontology#ManualTask',
+        'http://purl.org/net/p-plan#Plan'
+    ]
+
+    for thing_type in searches:
+        results = Nanopub.search_things(thing_type=thing_type)
+        assert(len(results) > 0)
 
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
 def test_nanopub_fetch():
     """
         Check that Nanopub fetch is returning results for a few known nanopub URIs.
-        Check that the returned object is of type FairData, that it has the expected
+        Check that the returned object is of type NNanopubObj, that it has the expected
         source_uri, and that it has non-zero data.
     """
 
@@ -67,9 +82,9 @@ def test_nanopub_fetch():
 
     for np_uri in known_nps:
         np = Nanopub.fetch(np_uri)
-        assert (isinstance(np, FairData))
+        assert (isinstance(np, Nanopub.NanopubObj))
         assert (np.source_uri == np_uri)
-        assert (len(np.data) > 0)
+        assert (len(np.rdf) > 0)
 
 def test_nanopub_rdf():
     """
@@ -87,3 +102,16 @@ def test_nanopub_rdf():
     assert((None, Nanopub.NP.hasAssertion, None) in generated_rdf)
     assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
     assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
+
+    new_concept = rdflib.term.URIRef('www.purl.org/new/concept/test')
+    generated_rdf = Nanopub.rdf(assertionrdf, introduces_concept=new_concept)
+
+    assert(generated_rdf is not None)
+    assert((None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf)
+    assert((None, Nanopub.NP.hasAssertion, None) in generated_rdf)
+    assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
+    assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
+
+    assert((None, Nanopub.NPX.introduces, new_concept) in generated_rdf)
+
+

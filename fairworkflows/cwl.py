@@ -20,6 +20,7 @@ def run_workflow(wf_path: Union[Path, str], inputs: Dict[str, any], output_dir: 
 
     if output_dir is None:
         output_dir = Path(tempfile.mkdtemp())
+
     log_path = str(output_dir / 'log.txt')
     prov_dir = output_dir / PROVENANCE
 

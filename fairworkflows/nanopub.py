@@ -1,14 +1,14 @@
 import os
 import rdflib
-from rdflib.namespace import RDF, RDFS, DC, XSD, OWL
+from rdflib.namespace import RDF, RDFS, DC, DCTERMS, XSD, OWL
 from datetime import datetime
 import tempfile
 import requests
 import xml.etree.ElementTree as et
 from pathlib import Path
 from enum import Enum, unique
+from urllib.parse import urldefrag
 
-from fairworkflows import FairData
 from fairworkflows import nanopub_wrapper
 
 
@@ -18,10 +18,11 @@ class Nanopub:
     """
 
     NP = rdflib.Namespace("http://www.nanopub.org/nschema#")
+    NPX = rdflib.Namespace("http://purl.org/nanopub/x/")
     PPLAN = rdflib.Namespace("http://purl.org/net/p-plan#")
     PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
     DUL = rdflib.Namespace("http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#")
-    BPMN = rdflib.Namespace("https://www.omg.org/spec/BPMN/")
+    BPMN = rdflib.Namespace("http://dkm.fbk.eu/index.php/BPMN2_Ontology#")
     PWO = rdflib.Namespace("http://purl.org/spar/pwo#")
     HYCL = rdflib.Namespace("http://purl.org/petapico/o/hycl#")
 
@@ -35,6 +36,53 @@ class Nanopub:
         Enums to specify the format of nanopub desired   
         """
         TRIG = 1
+
+
+    class NanopubObj:
+        """
+        Stores the rdf parsed from nanopubs from the nanopub servers etc.
+        """
+
+        def __init__(self, rdf=None, source_uri=None):
+            self._rdf = rdf
+            self._source_uri = source_uri
+
+            # Extract the Head, pubinfo, provenance and assertion graphs from the assigned nanopub rdf
+            self._graphs = {}
+            for c in rdf.contexts():
+                graphid = urldefrag(c.identifier).fragment.lower()
+                self._graphs[graphid] = c
+
+            # Check all four expected graphs are provided
+            expected_graphs = ['head', 'pubinfo', 'provenance', 'assertion']
+            for expected in expected_graphs:
+                if expected not in self._graphs.keys():
+                    raise ValueError(f'Expected to find {expected} graph in nanopub rdf, but not found. Graphs found: {list(self._graphs.keys())}.')
+
+        @property
+        def rdf(self):
+            return self._rdf
+
+        @property
+        def assertion(self):
+            return self._graphs['assertion']
+
+        @property
+        def pubinfo(self):
+            return self._graphs['pubinfo']
+
+        @property
+        def provenance(self):
+            return self._graphs['provenance']
+
+        @property
+        def source_uri(self):
+            return self._source_uri
+
+        def __str__(self):
+            s = f'Original source URI = {self._source_uri}\n'
+            s += self._rdf.serialize(format='trig').decode('utf-8')
+            return s
 
 
     @staticmethod
@@ -71,6 +119,24 @@ class Nanopub:
 
 
     @staticmethod
+    def search_things(thing_type=None, searchterm=' ', max_num_results=1000, apiurl='http://grlc.nanopubs.lod.labs.vu.nl/api/local/local/find_things'):
+        """
+        Searches the nanopub servers (at the specified grlc API) for any nanopubs of the given type, with given search term,
+        up to max_num_results.
+        """
+
+        searchparams = {}
+        if not thing_type or not searchterm:
+            print(f"Received thing_type='{thing_type}', searchterm='{searchterm}'")
+            raise ValueError('thing_type and searchterm must BOTH be specified in calls to Nanopub.search_things')
+
+        searchparams['type'] = thing_type
+        searchparams['searchterm'] = searchterm
+
+        return Nanopub._search(searchparams=searchparams, max_num_results=max_num_results, apiurl=apiurl)
+
+
+    @staticmethod
     def _search(searchparams=None, max_num_results=None, apiurl=None):
         """
         General nanopub server search method. User should use e.g. search_text() or search_pattern() instead.
@@ -85,33 +151,52 @@ class Nanopub:
         if searchparams is None:
             raise ValueError('kwarg "searchparams" must be specified. Consider using search_text() function instead.')
 
+
         # Query the nanopub server for the specified text
-        r = requests.get(apiurl, params=searchparams)
+        headers = {"Accept": "application/json"}
+        r = requests.get(apiurl, params=searchparams, headers=headers)
 
-        # Parse the resulting xml into a table
-        xmltree = et.ElementTree(et.fromstring(r.text))
-        xmlroot = xmltree.getroot()
-        namespace = '{http://www.w3.org/2005/sparql-results#}'
-        results = xmlroot.find(namespace + 'results')
+        if r.ok:
+ 
+            # Make sure that results are provided
+            try:
+                results_json = r.json()
+            except:
+                # If the returned message can't be serialized as JSON (such as due to virtuoso error) then there are no results
+                print('Error: Could not serialize response as JSON:\n', r.content)
+                return []
 
-        nanopubs = []
-        for child in results:
+            results_list = results_json['results']['bindings']
+            nanopubs = []
 
-            nanopub = {}
-            for sub in child.iter(namespace + 'binding'):
-                nanopub[sub.get('name')] = sub[0].text
-            nanopubs.append(nanopub)
+            for result in results_list:
+                nanopub = {}
+                nanopub['np'] = result['np']['value']
 
-            if len(nanopubs) >= max_num_results:
-                break
+                if 'v' in result:
+                    nanopub['description'] = result['v']['value']
+                elif 'description' in result:
+                    nanopub['description'] = result['description']['value']
+                else:
+                    nanopub['v'] = ''
+                    
+                nanopub['date'] = result['date']['value']
 
-        return nanopubs
+                nanopubs.append(nanopub)
+
+                if len(nanopubs) >= max_num_results:
+                    break
+
+            return nanopubs
+
+        else:
+            return[{'Error': f'Error when searching {apiurl}: Status code {r.status_code}'}]
 
 
     @staticmethod
     def fetch(uri, format=Format.TRIG):
         """
-        Download the nanopublication at the specified URI (in specified format). Returns a FairData object.
+        Download the nanopublication at the specified URI (in specified format). If successful, returns a Nanopub object.
         """
 
         extension = ''
@@ -121,17 +206,24 @@ class Nanopub:
         else:
             raise ValueError(f'Format not supported: {format}')
 
-        r = requests.get(uri + extension)
-        nanopub_rdf = rdflib.ConjunctiveGraph()
-        nanopub_rdf.parse(data=r.text, format=parse_format)
 
-        return FairData(data=nanopub_rdf, source_uri=uri)
+        r = requests.get(uri + extension)
+        r.raise_for_status()
+
+        if r.ok:
+            nanopub_rdf = rdflib.ConjunctiveGraph()
+            nanopub_rdf.parse(data=r.text, format=parse_format)
+            return Nanopub.NanopubObj(rdf=nanopub_rdf, source_uri=uri)
+
 
     @staticmethod
-    def rdf(assertionrdf, uri=DEFAULT_URI):
+    def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None):
         """
-        Return the nanopub rdf, with given assertion and URI, but does not sign or publish.
+        Return the nanopub rdf, with given assertion and (defrag'd) URI, but does not sign or publish.
         """
+
+        # Make sure passed URI is defrag'd        
+        uri, _ = urldefrag(uri)
 
         this_np = rdflib.Namespace(uri+'#')
 
@@ -144,13 +236,15 @@ class Nanopub:
 
         np_rdf.bind("", this_np)
         np_rdf.bind("np", Nanopub.NP)
+        np_rdf.bind("npx", Nanopub.NPX)
         np_rdf.bind("p-plan", Nanopub.PPLAN)
         np_rdf.bind("prov", Nanopub.PROV)
         np_rdf.bind("dul", Nanopub.DUL)
         np_rdf.bind("bpmn", Nanopub.BPMN)
         np_rdf.bind("pwo", Nanopub.PWO)
-        np_rdf.bind("HYCL", Nanopub.HYCL)
-        np_rdf.bind("DC", DC)
+        np_rdf.bind("hycl", Nanopub.HYCL)
+        np_rdf.bind("dc", DC)
+        np_rdf.bind("dcterms", DCTERMS)
 
         head.add((this_np[''], RDF.type, Nanopub.NP.Nanopublication))
         head.add((this_np[''], Nanopub.NP.hasAssertion, this_np.assertion))
@@ -161,26 +255,34 @@ class Nanopub:
 
         creationtime = rdflib.Literal(datetime.now(),datatype=XSD.dateTime)
         provenance.add((this_np.assertion, Nanopub.PROV.generatedAtTime, creationtime))
-        provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, this_np.experiment))
         provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, this_np.experimentScientist))
+
+        if derived_from:
+            # Convert derived_from URI to an rdflib term first (if necessary)
+            derived_from = rdflib.URIRef(derived_from)
+
+            provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, derived_from))
 
         pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, Nanopub.AUTHOR.DrBob))
         pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
+
+        if introduces_concept:
+            pubInfo.add((this_np[''], Nanopub.NPX.introduces, introduces_concept))
 
         return np_rdf
 
 
     @staticmethod
-    def publish(assertionrdf, uri=None):
+    def publish(assertionrdf, uri=None, introduces_concept=None, derived_from=None):
         """
         Publish the given assertion as a nanopublication with the given URI.
         Uses np commandline tool to sign and publish.
         """
 
         if uri is None:
-            np_rdf = Nanopub.rdf(assertionrdf)
+            np_rdf = Nanopub.rdf(assertionrdf, introduces_concept=introduces_concept, derived_from=derived_from)
         else:
-            np_rdf = Nanopub.rdf(assertionrdf, uri=uri)
+            np_rdf = Nanopub.rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept, derived_from=derived_from)
 
         # Create a temporary dir for files created during serializing and signing
         tempdir = tempfile.mkdtemp()
