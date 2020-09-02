@@ -137,7 +137,8 @@ def test_nanopub_rdf():
 
 @patch('fairworkflows.nanopub_wrapper.publish')
 def test_nanopub_claim(nanopub_wrapper_publish_mock):
-    Nanopub.claim('Some controversial statement')
+    optional_triple = (rdflib.term.URIRef('http://www.uri1.com'), rdflib.term.URIRef('http://www.uri2.com'), rdflib.Literal('Something'))
+    Nanopub.claim('Some controversial statement', rdftriple=optional_triple)
 
 @patch('fairworkflows.nanopub_wrapper.publish')
 def test_nanopub_publish(nanopub_wrapper_publish_mock):
@@ -145,4 +146,4 @@ def test_nanopub_publish(nanopub_wrapper_publish_mock):
     assertionrdf = rdflib.Graph()
     assertionrdf.add((Nanopub.AUTHOR.DrBob, Nanopub.HYCL.claims, rdflib.Literal('This is a test')))
 
-    Nanopub.publish(assertionrdf, introduces_concept=Nanopub.AUTHOR.DrBob, derived_from=rdflib.term.URIRef('http://www.example.com/someuri'))
+    Nanopub.publish(assertionrdf, uri=rdflib.term.URIRef('http://www.example.com/auri'), introduces_concept=Nanopub.AUTHOR.DrBob, derived_from=rdflib.term.URIRef('http://www.example.com/someuri'))
