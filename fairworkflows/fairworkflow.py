@@ -27,7 +27,6 @@ class FairWorkflow:
         self._rdf.add( (self.this_plan, Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri)) )
         self._steps[step.uri] = step
         self._last_step_added = step
-        print(self._steps)
 
     def add(self, new_step, follows=None):
         if not follows:
@@ -51,6 +50,7 @@ class FairWorkflow:
 
     def first_step(self):
         first_step = list(self._rdf.objects(subject=self.this_plan, predicate=Nanopub.PWO.hasFirstStep))
+
         if len(first_step) == 0:
             return None
         elif len(first_step) == 1:
@@ -90,8 +90,8 @@ class FairWorkflow:
         if not self.first_step():
             log += 'Plan RDF does not specify a first step (pwo:hasFirstStep)\n'
             conforms = False
-        elif len(self.first_step()) > 1:
-            log += 'Plan RDF contains more than one first step (pwo:hasFirstStep)\n'
+        elif len(self.first_step()) > 1 and isinstance(self.first_step(), list):
+            log += f'Plan RDF contains more than one first step (pwo:hasFirstStep): {self.first_step()}\n'
             conforms = False
             
         if verbose:
@@ -147,9 +147,6 @@ class PlexIterator:
             self.remaining.append(o)
 
         self.remaining = list(set(self.remaining))
-
-#        print(self.deps)
-#        print(self.remaining)
 
     def __next__(self):
         for step in self.remaining:
