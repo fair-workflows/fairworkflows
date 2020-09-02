@@ -65,6 +65,9 @@ def test_nanopub_search_things():
         results = Nanopub.search_things(thing_type=thing_type)
         assert(len(results) > 0)
 
+    with pytest.raises(Exception):
+        Nanopub.search_things()
+
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
 def test_nanopub_fetch():
@@ -82,9 +85,13 @@ def test_nanopub_fetch():
 
     for np_uri in known_nps:
         np = Nanopub.fetch(np_uri)
-        assert (isinstance(np, Nanopub.NanopubObj))
-        assert (np.source_uri == np_uri)
-        assert (len(np.rdf) > 0)
+        assert(isinstance(np, Nanopub.NanopubObj))
+        assert(np.source_uri == np_uri)
+        assert(len(np.rdf) > 0)
+        assert(np.assertion is not None)
+        assert(np.pubinfo is not None)
+        assert(np.provenance is not None)
+        assert(len(np.__str__()) > 0)
 
 def test_nanopub_rdf():
     """
