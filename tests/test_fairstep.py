@@ -35,3 +35,22 @@ def test_fairstep_from_nanopub():
         assert(step.description() is not None)
         assert(step.is_manual_task() is True)
         assert(step.is_script_task() is False)
+
+
+def test_fairstep_from_function():
+    def add(a: int, b: int):
+        """
+        Computational step adding two ints together.
+        """
+        return a + b
+
+    step = FairStep(func=add)
+
+    assert(step is not None)
+    assert(step.validate())
+    assert(step.is_pplan_step())
+    assert(step.description() is not None)
+    assert(step.is_manual_task() is False)
+    assert(step.is_script_task() is True)
+
+    print(step)

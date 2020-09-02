@@ -72,8 +72,15 @@ class FairStep:
         code = inspect.getsource(func)
         self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
         self.this_step = rdflib.URIRef(self._uri)
+
+        # Set description of step to the raw function code
         self.add_description(code)
 
+        # Specify that step is a pplan:Step
+        self._rdf.add( (self.this_step, RDF.type, Nanopub.PPLAN.Step) )
+
+        # Specify that step is a ScriptTask
+        self._rdf.add( (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) )
 
     def add_description(self, text):
         self._rdf.add( (self.this_step, DCTERMS.description, rdflib.term.Literal(text)) )
@@ -124,7 +131,7 @@ class FairStep:
         log = ''
 
         if not self.is_pplan_step():
-            log += 'Step RDF does not say it is a pplan:step\n'
+            log += 'Step RDF does not say it is a pplan:Step\n'
             conforms = False
 
         if not self.description():
