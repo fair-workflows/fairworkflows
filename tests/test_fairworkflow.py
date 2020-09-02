@@ -1,7 +1,7 @@
 import pytest
 import requests
 
-from fairworkflows import FairWorkflow, FairStep
+from fairworkflows import FairWorkflow, FairStep, fairstep
 
 def test_build_fairworkflow():
     workflow = FairWorkflow(description='This is a test workflow.')
@@ -32,3 +32,17 @@ def test_build_fairworkflow():
     for step in workflow:
         assert(step.uri == steps[i].uri)
         i += 1
+
+def test_decorator():
+    workflow = FairWorkflow(description='This is a test workflow.')
+
+    @fairstep(workflow)
+    def test_fn(x, y):
+        return x * y
+
+    assert(workflow.validate() is False)
+
+    test_fn(1, 2)
+
+    assert(workflow.validate() is True)
+    
