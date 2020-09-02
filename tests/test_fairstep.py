@@ -36,6 +36,31 @@ def test_fairstep_from_nanopub():
         assert(step.is_manual_task() is True)
         assert(step.is_script_task() is False)
 
+@pytest.mark.flaky(max_runs=10)
+@pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
+def test_fairstep_from_nanopub_without_fragment():
+    """
+        Check that we can load a FairStep from known nanopub URIs also
+        in cases where the full step URI is not used (i.e. missing a fragment).
+        In other words, only the nanopub URI is given, but not the URI of the
+        step itself within that nanopub.
+    """
+
+    nanopub_uris = [
+        'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg',
+        'http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BBy92bDlt991X4',
+        'http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M'
+    ]
+
+    for uri in nanopub_uris:
+        step = FairStep(uri=uri, from_nanopub=True)
+        assert(step is not None)
+        assert(step.validate())
+        assert(step.is_pplan_step())
+        assert(step.description() is not None)
+        assert(step.is_manual_task() is True)
+        assert(step.is_script_task() is False)
+
 
 def test_fairstep_from_function():
     def add(a: int, b: int):
