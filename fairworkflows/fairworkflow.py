@@ -10,6 +10,15 @@ import networkx as nx
 
 class FairWorkflow:
 
+    """
+        Class for building, validating and publishing Fair Workflows, as described by the plex ontology in the publication:
+
+        Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study. arXiv preprint arXiv:1911.09531.
+
+        Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
+    """
+
+
     DEFAULT_PLAN_URI = 'http://purl.org/nanopub/temp/mynanopub#plan'
 
     def __init__(self, description, uri=DEFAULT_PLAN_URI):
@@ -24,31 +33,51 @@ class FairWorkflow:
         self._last_step_added = None
 
     def set_first_step(self, step:FairStep):
+        """
+            Sets the first step of this plex workflow to the given FairStep
+        """
         self._rdf.add( (self.this_plan, Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri)) )
         self._steps[step.uri] = step
         self._last_step_added = step
 
-    def add(self, new_step, follows=None):
+    def add(self, step:FairStep, follows:FairStep=None):
+        """
+            Adds the specified FairStep to the workflow rdf. If 'follows' is specified,
+            then it dul:precedes the step. If 'follows' is None, the last added step (to this workflow)
+            dul:precedes the step. If no steps have yet been added to the workflow, and 'follows' is None,
+            then this step is automatically set to by the first step in the workflow.
+        """
         if not follows:
             if not self.first_step():
-                self.set_first_step(new_step)
+                self.set_first_step(step)
             else:
-                self.add(new_step, follows=self._last_step_added)
+                self.add(step, follows=self._last_step_added)
         else:
-            self._rdf.add( (rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(new_step.uri)) )
-            self._steps[new_step.uri] = new_step
-            self._last_step_added = new_step
+            self._rdf.add( (rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(step.uri)) )
+            self._steps[step.uri] = step
+            self._last_step_added = step
 
     def __iter__(self):
+        """
+            Returns an iterator over this FairWorkflow, that returns one step at a time in the order specified by the precedes relations.
+        """
         return PlexIterator(self)
 
     def is_pplan_plan(self):
+        """
+            Returns True if this object's rdf specifies that it is a pplan:Plan
+        """
         if (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) in self._rdf:
             return True
         else:
             return False
 
     def first_step(self):
+        """
+            Returns the first step in this plex workflow, if currently specified, otherwise None.
+            If more than one first step is specified in the rdf (this is bad) then the list of
+            'first' steps is returned. 
+        """
         first_step = list(self._rdf.objects(subject=self.this_plan, predicate=Nanopub.PWO.hasFirstStep))
 
         if len(first_step) == 0:
@@ -59,9 +88,15 @@ class FairWorkflow:
             return first_step
 
     def get_step(self, uri):
+        """
+            Returns the FairStep instance associated with the given step URI (if such a step was added to this workflow)
+        """
         return self._steps[uri]
 
     def description(self):
+        """
+            Returns any dcterms:description found in the rdf for this workflow (returns a list if more than one matching triple found)
+        """
         descriptions = list(self._rdf.objects(subject=self.this_plan, predicate=DCTERMS.description))
         if len(descriptions) == 0:
             return None
@@ -72,8 +107,11 @@ class FairWorkflow:
 
     def validate(self, verbose=True):
         """
-        Checks whether this workflow rdf has sufficient information required of
-        a plan in the Plex ontology.
+            Checks whether this workflow's rdf has sufficient information required of
+            a workflow in the Plex ontology. If not, a message is printed explaining
+            the problem, and the function returns False.
+
+            If verbose is set to False, no explanation messages will be printed.
         """
 
         conforms = True
@@ -102,9 +140,16 @@ class FairWorkflow:
 
     @property
     def rdf(self):
+        """
+            Getter for the rdf graph describing this FairWorkflow.
+        """
         return self._rdf
 
     def draw(self, show=True):
+        """
+            Ugly networkx implementation of graph visualization for this plex workflow.
+            If show is False, the plot will not be displayed to screen.
+        """
 
         predicate_map = {}
         predicate_map[rdflib.term.URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#precedes')] = 'precedes'
@@ -128,12 +173,19 @@ class FairWorkflow:
             plt.show()
 
     def __str__(self):
+        """
+            Returns string representation of this FairWorkflow object.
+        """
         s = f'Workflow URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
 
 
 class PlexIterator:
+    """
+        Iterator over a FairWorkflow object. Returns one FairStep at a time, in the order
+        specified by the dul:precedes relations.
+    """
 
     def __init__(self, plex:FairWorkflow):
         self.plex = plex

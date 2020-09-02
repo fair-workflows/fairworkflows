@@ -5,6 +5,14 @@ from urllib.parse import urldefrag
 import inspect
 
 class FairStep:
+    """
+        Class for building, validating and publishing Fair Steps, as described by the plex ontology in the publication:
+
+        Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study. arXiv preprint arXiv:1911.09531.
+
+        Fair Steps may be fetched from Nanopublications, or created from rdflib graphs or python functions.
+    """
+
 
     DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
 
@@ -29,6 +37,16 @@ class FairStep:
 
 
     def load_from_nanopub(self, uri):
+        """
+            Fetches the nanopublication corresponding to the specified URI, and attempts to extract the rdf describing a fairstep from
+            its assertion graph. If the URI passed to this function is the uri of the nanopublication (and not the step itself) then
+            an attempt will be made to identify what the URI of the step actually is, by checking if the nanopub npx:introduces a
+            particular concept.
+
+            If the assertion graph does not contain any triples with the step URI as subject, an exception is raised. If such triples
+            are found, then ALL triples in the assertion are added to the rdf graph for this FairStep.
+        """
+
 
         # Work out the nanopub URI by defragging the step URI
         np_uri, frag = urldefrag(uri)
@@ -66,6 +84,9 @@ class FairStep:
 
 
     def from_function(self, func):
+        """
+            Generates a plex rdf decription for the given python function, and makes this FairStep object a bpmn:ScriptTask.
+        """
         import time
         name = func.__name__ + str(time.time())
         self._rdf = rdflib.Graph()
@@ -82,37 +103,61 @@ class FairStep:
         # Specify that step is a ScriptTask
         self._rdf.add( (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) )
 
+
     def add_description(self, text):
+        """
+            Adds the given text string as a dcterms:description for this FairStep object.
+        """
         self._rdf.add( (self.this_step, DCTERMS.description, rdflib.term.Literal(text)) )
 
 
     @property
     def rdf(self):
+        """
+            Getter for the rdf graph describing this FairStep.
+        """
         return self._rdf
 
     @property
     def uri(self):
+        """
+            Getter for the URI of this FairStep.
+        """
         return self._uri
 
     def is_pplan_step(self):
-        if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf:
+       """
+            Returns True if this FairStep is a pplan:Step, else False.
+       """
+       if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf:
             return True
         else:
             return False
 
     def is_manual_task(self):
-        if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf:
+        """
+            Returns True if this FairStep is a bpmn:ManualTask, else False.
+       """
+       if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf:
             return True
         else:
             return False
 
     def is_script_task(self):
+       """
+            Returns True if this FairStep is a bpmn:ScriptTask, else False.
+       """
         if (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf:
             return True
         else:
             return False
         
+
     def description(self):
+       """
+            Returns the dcterms:description of this step (or a list, if more than one matching triple is found)
+       """
+
         descriptions = list(self._rdf.objects(subject=self.this_step, predicate=DCTERMS.description))
         if len(descriptions) == 0:
             return None
@@ -120,11 +165,15 @@ class FairStep:
             return descriptions[0]
         else:
             return descriptions
+
             
     def validate(self, verbose=True):
         """
-        Checks whether this step rdf has sufficient information required of
-        a step in the Plex ontology.
+            Checks whether this step rdf has sufficient information required of
+            a step in the Plex ontology. If not, a message is printed explaining
+            the problem, and the function returns False.
+
+            If verbose is set to False, no explanation messages will be printed.
         """
 
         conforms = True
@@ -147,7 +196,11 @@ class FairStep:
 
         return conforms
 
+
     def __str__(self):
+        """
+            Returns string representation of this FairStep object.
+        """
         s = f'Step URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
