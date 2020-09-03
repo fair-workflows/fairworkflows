@@ -29,13 +29,19 @@ The ```fairworkflows``` library has a number of modules to help with FAIRifying 
 ## Example
 * See [test_plex_builder.ipynb](test_plex_builder.ipynb) for a current example of using the fairworkflows library to build a workflow using plex rdf
 
-# Notes
+## Notes
 The np script needs to be called to generate rsa keys in the `~/.nanopub` directory.
 
 ```shell script
 fairworkflows/np mkkeys -a RSA
 ```
 
-# How is the ```fairworkflows``` library expected to be used?
+## How is the ```fairworkflows``` library expected to be used?
 While this library could be used as a standalone tool to build/publish RDF workflows, it is intended more as a component to be used in a variety of other tools that seek to add FAIR elements to workflows. At present the library is used in the following tools:
+
+* [NanopubJL](https://github.com/fair-workflows/NanopubJL): A Jupyter Lab extension that adds a widget for searching the nanopublication servers, and helps the user fetch desired nanopubs through injection of the necessary python code into a notebook cell.
+* [FAIRWorkflowsExtension](https://github.com/fair-workflows/FAIRWorkflowsExtension): A Jupyter Lab extension that adds a widget for searching for previously published FairSteps or FairWorkflows. These can then be loaded into the notebook for modification or combination into new workflows.
+
+## Relation to existing workflow formats/engines (e.g. CWL, WDL, Snakemake etc)
+This library is not intended to replace or compete with the hundreds of existing computational workflow formats, but rather to aid in RDF description and comparison of workflows in the most general sense of the term (including manual experiemental steps, notebooks, and so on). Steps in a FAIRWorkflow may very well be 'run this CWL workflow' or 'run this script', so such workflows are expected to sit more on a meta-level, describing the before-and-after of running one of these fully automated computational workflows as well.
 
