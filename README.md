@@ -5,7 +5,7 @@
 
 This repository contains some core software components for building the 'FAIR Workbench', as part of the FAIR is FAIR project. The workbench is intended to allow the description of workflows consisting of manual and computational steps using semantic technology, such as the ontology described in the publication:
 
-Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study. arXiv preprint arXiv:1911.09531.
+_Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study._ [_arXiv:1911.09531._](https://arxiv.org/abs/1911.09531)
 
 The goals of the project are to facilitate the construction of RDF descriptions of a variety of 'workflows', in the most general sense, that are commonly found in science (experimental procedures, ipython notebooks, manual procedures with computational analysis etc), and to allow validation and publication of the RDF, for example by means of nanopublications.
 
