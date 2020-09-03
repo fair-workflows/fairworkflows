@@ -42,6 +42,8 @@ While this library could be used as a standalone tool to build/publish RDF workf
 * [NanopubJL](https://github.com/fair-workflows/NanopubJL): A Jupyter Lab extension that adds a widget for searching the nanopublication servers, and helps the user fetch desired nanopubs through injection of the necessary python code into a notebook cell.
 * [FAIRWorkflowsExtension](https://github.com/fair-workflows/FAIRWorkflowsExtension): A Jupyter Lab extension that adds a widget for searching for previously published FairSteps or FairWorkflows. These can then be loaded into the notebook for modification or combination into new workflows.
 
+It is expected that the library will soon interact with FAIR Data Points as well e.g. [fairdatapoint](https://github.com/NLeSC/fairdatapoint).
+
 ## Relation to existing workflow formats/engines (e.g. CWL, WDL, Snakemake etc)
 This library is not intended to replace or compete with the hundreds of existing computational workflow formats, but rather to aid in RDF description and comparison of workflows in the most general sense of the term (including manual experiemental steps, notebooks, and so on). Steps in a FAIRWorkflow may very well be 'run this CWL workflow' or 'run this script', so such workflows are expected to sit more on a meta-level, describing the before-and-after of running one of these fully automated computational workflows as well.
 
