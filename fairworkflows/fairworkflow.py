@@ -8,6 +8,9 @@ from rdflib.extras.external_graph_libs import rdflib_to_networkx_multidigraph
 import matplotlib.pyplot as plt
 import networkx as nx
 
+DEFAULT_PLAN_URI = 'http://purl.org/nanopub/temp/mynanopub#plan'
+
+
 class FairWorkflow:
 
     """
@@ -17,9 +20,6 @@ class FairWorkflow:
 
         Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
     """
-
-
-    DEFAULT_PLAN_URI = 'http://purl.org/nanopub/temp/mynanopub#plan'
 
     def __init__(self, description, uri=DEFAULT_PLAN_URI):
         self._uri = uri
@@ -59,9 +59,16 @@ class FairWorkflow:
 
     def __iter__(self):
         """
-            Returns an iterator over this FairWorkflow, that returns one step at a time in the order specified by the precedes relations.
+        Iterate over this FairWorkflow, return one step at a
+        time in the order specified by the precedes relations (
+        i.e. topologically sorted).
         """
-        return PlexIterator(self)
+        G = nx.MultiDiGraph()
+        for s, p, o in self._rdf:
+            if p == Nanopub.DUL.precedes:
+                G.add_edge(s, o)
+        for step_uri in nx.topological_sort(G):
+            yield self.get_step(str(step_uri))
 
     def is_pplan_plan(self):
         """
@@ -76,7 +83,7 @@ class FairWorkflow:
         """
             Returns the first step in this plex workflow, if currently specified, otherwise None.
             If more than one first step is specified in the rdf (this is bad) then the list of
-            'first' steps is returned. 
+            'first' steps is returned.
         """
         first_step = list(self._rdf.objects(subject=self.this_plan, predicate=Nanopub.PWO.hasFirstStep))
 
@@ -93,9 +100,12 @@ class FairWorkflow:
         """
         return self._steps[uri]
 
+    @property
     def description(self):
         """
-            Returns any dcterms:description found in the rdf for this workflow (returns a list if more than one matching triple found)
+        Description of the workflow. This is the dcterms:description found in
+        the rdf for this workflow (or a list if more than one matching triple
+        found)
         """
         descriptions = list(self._rdf.objects(subject=self.this_plan, predicate=DCTERMS.description))
         if len(descriptions) == 0:
@@ -121,7 +131,7 @@ class FairWorkflow:
             log += 'Plan RDF does not say it is a pplan:Plan\n'
             conforms = False
 
-        if not self.description():
+        if not self.description:
             log += 'Plan RDF has no dcterms:description\n'
             conforms = False
 
@@ -131,7 +141,7 @@ class FairWorkflow:
         elif len(self.first_step()) > 1 and isinstance(self.first_step(), list):
             log += f'Plan RDF contains more than one first step (pwo:hasFirstStep): {self.first_step()}\n'
             conforms = False
-            
+
         if verbose:
             print(log)
 
@@ -165,7 +175,7 @@ class FairWorkflow:
                 G.add_edge(s, o)
 
         pos = nx.spring_layout(G, scale=200, k = 1)
-            
+
         nx.draw(G, pos=pos, with_labels=True, font_size=7, node_size=100, node_color='gray')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7)
 
@@ -179,40 +189,3 @@ class FairWorkflow:
         s = f'Workflow URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
-
-
-class PlexIterator:
-    """
-        Iterator over a FairWorkflow object. Returns one FairStep at a time, in the order
-        specified by the dul:precedes relations.
-    """
-
-    def __init__(self, plex:FairWorkflow):
-        self.plex = plex
-        self.current_step = self.plex.first_step()
-        self.deps = {}
-        self.remaining = []
-        for s, p, o in self.plex.rdf.triples((None, Nanopub.DUL.precedes, None)):
-            if o not in self.deps:
-                self.deps[o] = []
-            self.deps[o].append(s)
-
-            self.remaining.append(s)
-            self.remaining.append(o)
-
-        self.remaining = list(set(self.remaining))
-
-    def __next__(self):
-        for step in self.remaining:
-            can_run = True
-            if step in self.deps:
-                for dep in self.deps[step]:
-                    if dep in self.remaining:
-                        can_run = False
-                        break
-            if can_run == True:
-                self.remaining.remove(step)
-                return self.plex.get_step(str(step))
-
-        raise StopIteration
-
