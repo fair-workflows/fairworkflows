@@ -29,12 +29,12 @@ def test_fairstep_from_nanopub():
 
     for uri in nanopub_uris:
         step = FairStep(uri=uri, from_nanopub=True)
-        assert(step is not None)
-        assert(step.validate())
-        assert(step.is_pplan_step())
-        assert(step.description() is not None)
-        assert(step.is_manual_task() is True)
-        assert(step.is_script_task() is False)
+        assert step is not None
+        assert step.validate()
+        assert step.is_pplan_step()
+        assert step.description() is not None
+        assert step.is_manual_task() is True
+        assert step.is_script_task() is False
 
 
 @pytest.mark.flaky(max_runs=10)
@@ -55,12 +55,12 @@ def test_fairstep_from_nanopub_without_fragment():
 
     for uri in nanopub_uris:
         step = FairStep(uri=uri, from_nanopub=True)
-        assert(step is not None)
-        assert(step.validate())
-        assert(step.is_pplan_step())
-        assert(step.description() is not None)
-        assert(step.is_manual_task() is True)
-        assert(step.is_script_task() is False)
+        assert step is not None
+        assert step.validate()
+        assert step.is_pplan_step()
+        assert step.description() is not None
+        assert step.is_manual_task() is True
+        assert step.is_script_task() is False
 
 
 def test_fairstep_from_function():
@@ -72,20 +72,20 @@ def test_fairstep_from_function():
 
     step = FairStep(func=add)
 
-    assert(step is not None)
-    assert(step.validate())
-    assert(step.is_pplan_step())
-    assert(step.description() is not None)
-    assert(step.is_manual_task() is False)
-    assert(step.is_script_task() is True)
+    assert step is not None
+    assert step.validate()
+    assert step.is_pplan_step()
+    assert step.description() is not None
+    assert step.is_manual_task() is False
+    assert step.is_script_task() is True
 
-    assert(step.__str__() is not None)
-    assert(len(step.__str__()) > 0)
-    assert(step.rdf is not None)
+    assert step.__str__() is not None
+    assert len(step.__str__()) > 0
+    assert step.rdf is not None
 
 
 def test_validation():
     step = FairStep(uri='http://www.example.org/step')
-    assert(step.validate() is False)
+    assert step.validate() is False
 
 

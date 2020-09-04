@@ -31,9 +31,9 @@ def test_nanopub_search_text():
 
     for search in searches:
         results = Nanopub.search_text(search)
-        assert(len(results) > 0)
+        assert len(results) > 0
 
-    assert(len(Nanopub.search_text('')) == 0)
+    assert len(Nanopub.search_text('')) == 0
 
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
@@ -49,7 +49,7 @@ def test_nanopub_search_pattern():
 
     for subj, pred, obj in searches:
         results = Nanopub.search_pattern(subj=subj, pred=pred, obj=obj)
-        assert(len(results) > 0)
+        assert len(results) > 0
 
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
@@ -65,7 +65,7 @@ def test_nanopub_search_things():
 
     for thing_type in searches:
         results = Nanopub.search_things(thing_type=thing_type)
-        assert(len(results) > 0)
+        assert len(results) > 0
 
     with pytest.raises(Exception):
         Nanopub.search_things()
@@ -79,7 +79,7 @@ def test_nanopub_search():
         Nanopub._search(searchparams={'search': 'text'}, max_num_results=None, apiurl='http://www.api.url')
     with pytest.raises(Exception):
         Nanopub._search(searchparams={'search': 'text'}, max_num_results=100, apiurl=None)
- 
+
 
 @pytest.mark.flaky(max_runs=10)
 @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
@@ -98,13 +98,13 @@ def test_nanopub_fetch():
 
     for np_uri in known_nps:
         np = Nanopub.fetch(np_uri)
-        assert(isinstance(np, Nanopub.NanopubObj))
-        assert(np.source_uri == np_uri)
-        assert(len(np.rdf) > 0)
-        assert(np.assertion is not None)
-        assert(np.pubinfo is not None)
-        assert(np.provenance is not None)
-        assert(len(np.__str__()) > 0)
+        assert isinstance(np, Nanopub.NanopubObj)
+        assert np.source_uri == np_uri
+        assert len(np.rdf) > 0
+        assert np.assertion is not None
+        assert np.pubinfo is not None
+        assert np.provenance is not None
+        assert len(np.__str__()) > 0
 
 def test_nanopub_rdf():
     """
@@ -117,22 +117,22 @@ def test_nanopub_rdf():
 
     generated_rdf = Nanopub.rdf(assertionrdf)
 
-    assert(generated_rdf is not None)
-    assert((None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf)
-    assert((None, Nanopub.NP.hasAssertion, None) in generated_rdf)
-    assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
-    assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
+    assert generated_rdf is not None
+    assert (None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf
+    assert (None, Nanopub.NP.hasAssertion, None) in generated_rdf
+    assert (None, Nanopub.NP.hasProvenance, None) in generated_rdf
+    assert (None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf
 
     new_concept = rdflib.term.URIRef('www.purl.org/new/concept/test')
     generated_rdf = Nanopub.rdf(assertionrdf, introduces_concept=new_concept)
 
-    assert(generated_rdf is not None)
-    assert((None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf)
-    assert((None, Nanopub.NP.hasAssertion, None) in generated_rdf)
-    assert((None, Nanopub.NP.hasProvenance, None) in generated_rdf)
-    assert((None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf)
+    assert generated_rdf is not None
+    assert (None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf
+    assert (None, Nanopub.NP.hasAssertion, None) in generated_rdf
+    assert (None, Nanopub.NP.hasProvenance, None) in generated_rdf
+    assert (None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf
 
-    assert((None, Nanopub.NPX.introduces, new_concept) in generated_rdf)
+    assert (None, Nanopub.NPX.introduces, new_concept) in generated_rdf
 
 
 @patch('fairworkflows.nanopub_wrapper.publish')

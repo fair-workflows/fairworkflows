@@ -20,7 +20,7 @@ class TestFairWorkflow:
         assert str(workflow.description) == self.test_description
 
         assert not workflow.validate()
-        
+
         workflow.add(self.step2, follows=self.step1)
         workflow.add(self.step3, follows=self.step2)
 
@@ -30,9 +30,9 @@ class TestFairWorkflow:
 
         assert workflow.validate()
 
-        assert(workflow.__str__() is not None)
-        assert(len(workflow.__str__()) > 0)
-        assert(workflow.rdf is not None)
+        assert workflow.__str__() is not None
+        assert len(workflow.__str__()) > 0
+        assert workflow.rdf is not None
 
     def test_iterator(self):
         """Test iterating over the workflow."""
@@ -49,11 +49,11 @@ class TestFairWorkflow:
         def test_fn(x, y):
             return x * y
 
-        assert(workflow.validate() is False)
+        assert workflow.validate() is False
 
         test_fn(1, 2)
 
-        assert(workflow.validate() is True)
+        assert workflow.validate() is True
 
     def test_draw(self):
         # Check for errors when calling draw()...
