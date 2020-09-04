@@ -100,9 +100,12 @@ class FairWorkflow:
         """
         return self._steps[uri]
 
+    @property
     def description(self):
         """
-            Returns any dcterms:description found in the rdf for this workflow (returns a list if more than one matching triple found)
+        Description of the workflow. This is the dcterms:description found in
+        the rdf for this workflow (or a list if more than one matching triple
+        found)
         """
         descriptions = list(self._rdf.objects(subject=self.this_plan, predicate=DCTERMS.description))
         if len(descriptions) == 0:
@@ -128,7 +131,7 @@ class FairWorkflow:
             log += 'Plan RDF does not say it is a pplan:Plan\n'
             conforms = False
 
-        if not self.description():
+        if not self.description:
             log += 'Plan RDF has no dcterms:description\n'
             conforms = False
 

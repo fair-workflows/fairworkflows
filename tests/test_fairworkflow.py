@@ -1,13 +1,9 @@
-import pytest
-import requests
-
 from fairworkflows import FairWorkflow, FairStep, fairstep
 
-def test_build_fairworkflow():
-    workflow = FairWorkflow(description='This is a test workflow.')
 
-    assert(workflow is not None)
-    assert(workflow.description() is not None)
+class TestFairWorkflow:
+    test_description = 'This is a test workflow.'
+    workflow = FairWorkflow(description=test_description)
 
     step1 = FairStep(uri='http://www.example.org/step1')
     step2 = FairStep(uri='http://www.example.org/step2')
@@ -15,51 +11,48 @@ def test_build_fairworkflow():
 
     workflow.add(step2, follows=step1)
     workflow.add(step3, follows=step2)
-
-    assert(workflow.validate() is False)
-
     workflow.set_first_step(step1)
 
-    assert(workflow.validate() is True)
+    def test_build(self):
+        workflow = FairWorkflow(description=self.test_description)
 
-    assert(workflow.__str__() is not None)
-    assert(len(workflow.__str__()) > 0)
-    assert(workflow.rdf is not None)
+        assert workflow is not None
+        assert str(workflow.description) == self.test_description
 
-    # Now test plex iterator of the workflow
-    steps = [step1, step2, step3]
-    i = 0
-    for step in workflow:
-        assert(step.uri == steps[i].uri)
-        i += 1
+        workflow.add(self.step2, follows=self.step1)
+        workflow.add(self.step3, follows=self.step2)
 
-def test_decorator():
-    workflow = FairWorkflow(description='This is a test workflow.')
+        assert not workflow.validate()
 
-    @fairstep(workflow)
-    def test_fn(x, y):
-        return x * y
+        workflow.set_first_step(self.step1)
 
-    assert(workflow.validate() is False)
+        assert workflow.validate()
 
-    test_fn(1, 2)
+        assert(workflow.__str__() is not None)
+        assert(len(workflow.__str__()) > 0)
+        assert(workflow.rdf is not None)
 
-    assert(workflow.validate() is True)
+    def test_iterator(self):
+        """Test iterating over the workflow."""
+        right_order_steps = [self.step1, self.step2, self.step3]
+        workflow_steps = list(self.workflow)
+        assert len(workflow_steps) == len(right_order_steps)
+        for i, step in enumerate(workflow_steps):
+            assert step == right_order_steps[i]
 
+    def test_decorator(self):
+        workflow = FairWorkflow(description='This is a test workflow.')
 
-def test_draw():
-    workflow = FairWorkflow(description='This is a test workflow.')
+        @fairstep(workflow)
+        def test_fn(x, y):
+            return x * y
 
-    assert(workflow is not None)
-    assert(workflow.description() is not None)
+        assert(workflow.validate() is False)
 
-    step1 = FairStep(uri='http://www.example.org/step1')
-    step2 = FairStep(uri='http://www.example.org/step2')
-    step3 = FairStep(uri='http://www.example.org/step3')
+        test_fn(1, 2)
 
-    workflow.add(step2, follows=step1)
-    workflow.add(step3, follows=step2)
+        assert(workflow.validate() is True)
 
-    # Check for errors when calling draw()...
-    workflow.draw(show=False)
- 
+    def test_draw(self):
+        # Check for errors when calling draw()...
+        self.workflow.draw(show=False)
