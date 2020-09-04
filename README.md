@@ -3,11 +3,19 @@
 
 # FAIR Workbench
 
-This repository contains some core software components for building the 'FAIR Workbench', as part of the FAIR is FAIR project. The workbench is intended to allow the description of workflows consisting of manual and computational steps using semantic technology, such as the ontology described in the publication:
+This repository contains some core software components for building the 'FAIR Workbench', as part of the FAIR is FAIR project. The focus is on description of workflows consisting of manual and computational steps using semantic technology, such as the ontology described in the publication:
 
 _Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study._ [_arXiv:1911.09531._](https://arxiv.org/abs/1911.09531)
 
-The goals of the project are to facilitate the construction of RDF descriptions of a variety of 'workflows', in the most general sense, that are commonly found in science (experimental procedures, ipython notebooks, manual procedures with computational analysis etc), and to allow validation and publication of the RDF, for example by means of nanopublications.
+The goals of the project are:
+1. To facilitate the construction of RDF descriptions of a variety of scientific 'workflows', in the most general sense. This includes experimental procedures, ipython notebooks, computational analysis of results, etc.
+2. To allow validation and publication of the resultant RDF (for example, by means of nanopublications).
+3. Re-use of previously published steps, in new workflows.
+4. FAIR data flow from end-to-end.
+
+We seek to provide an easy-to-use python interface for achieving the above.
+
+
 
 
 ## ```fairworkflows``` python library
@@ -25,6 +33,36 @@ The ```fairworkflows``` library has a number of modules to help with FAIRifying 
 * ```from fairworkflows import Nanopub```: This module provides a python classes and methods for searching, fetching and publishing to the nanopublication servers.
 * ```from fairworkflows import FairStep```: This class is used to create, validate and publish rdf descriptions of an individual step (that can then be used in one or more workflows). Steps may be created from an rdflib graph, a function or by passing a URI to a nanopublication that describes a workflow step.
 * ```from fairworkflows import FairWorkflow```: This class is used to create, validate and publish rdf descriptions of a general workflow. The workflow can be constructed from ```FairStep``` objects, or loaded from a nanopublication that describes a fair workflow. ```FairWorkflow``` objects are iterators, returning their constituent ```FairStep```s in an order specified by the step dependencies.
+
+
+## Quick Start
+
+```
+# Create a workflow
+workflow = FairWorkflow(description='This is a test workflow.')
+
+# Load some steps from nanopublications
+preheat_oven = FairStep(uri='http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step', from_nanopub=True)
+melt_butter = FairStep(uri='http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BBy92bDlt991X4#step', from_nanopub=True)
+arrange_chicken = FairStep(uri='http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M#step', from_nanopub=True)
+
+# Specify ordering of steps
+workflow.set_first_step(preheat_oven)
+workflow.add(melt_butter, follows=preheat_oven)
+workflow.add(arrange_chicken, follows=melt_butter)
+
+# Validates?
+workflow.validate()
+
+# Visualize the workflow
+workflow.draw()
+
+# Iterate through all steps in the workflow 
+for step in workflow:
+    print(step)
+
+```
+
 
 ### Example
 * See [test_plex_builder.ipynb](test_plex_builder.ipynb) for a current example of using the fairworkflows library to build a workflow using plex rdf
