@@ -19,6 +19,8 @@ class TestFairWorkflow:
         assert workflow is not None
         assert str(workflow.description) == self.test_description
 
+        assert not workflow.validate()
+        
         workflow.add(self.step2, follows=self.step1)
         workflow.add(self.step3, follows=self.step2)
 
