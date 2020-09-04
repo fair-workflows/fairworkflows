@@ -23,7 +23,7 @@ We seek to provide an easy-to-use python interface for achieving the above.
 
 From the root of the repo (directory containing ```setup.py```), run:
 
-```
+```shell script
 pip install .
 ```
 
@@ -37,7 +37,7 @@ The ```fairworkflows``` library has a number of modules to help with FAIRifying 
 
 ## Quick Start
 
-```
+```python
 # Create a workflow
 workflow = FairWorkflow(description='This is a test workflow.')
 
