@@ -55,6 +55,9 @@ class TestFairWorkflow:
 
         assert workflow.validate() is True
 
-    def test_draw(self):
+    def test_draw(self, tmp_path):
         # Check for errors when calling draw()...
-        self.workflow.draw(show=False)
+        self.workflow.draw(filepath=str(tmp_path))
+
+    def test_display(self):
+        self.workflow.display()

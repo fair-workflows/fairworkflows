@@ -1,12 +1,14 @@
-from .fairstep import FairStep
-from .nanopub import Nanopub
+from pathlib import Path
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 
+import graphviz
+import networkx as nx
 import rdflib
 from rdflib import RDF, DCTERMS
+from rdflib.tools.rdf2dot import rdf2dot
 
-from rdflib.extras.external_graph_libs import rdflib_to_networkx_multidigraph
-import matplotlib.pyplot as plt
-import networkx as nx
+from .fairstep import FairStep
+from .nanopub import Nanopub
 
 DEFAULT_PLAN_URI = 'http://purl.org/nanopub/temp/mynanopub#plan'
 
@@ -155,32 +157,26 @@ class FairWorkflow:
         """
         return self._rdf
 
-    def draw(self, show=True):
+    def display(self):
+        """Visualize workflow directly in notebook."""
+        with TemporaryDirectory() as td:
+            filename = Path(td) / 'dag.dot'
+            with open(filename, 'w') as f:
+                rdf2dot(self._rdf, f)
+            return graphviz.Source.from_file(filename)
+
+    def draw(self, filepath):
+        """Visualize workflow.
+
+        Writes a .dot file and a .dot.png file of the workflow
+        visualization based on filepath argument. Use the .dot file to create
+        different renderings of the visualization using Graphviz library. The
+        .dot.png file is one of those renderings.
         """
-            Ugly networkx implementation of graph visualization for this plex workflow.
-            If show is False, the plot will not be displayed to screen.
-        """
-
-        predicate_map = {}
-        predicate_map[rdflib.term.URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#precedes')] = 'precedes'
-        predicate_map[rdflib.term.URIRef('http://purl.org/dc/terms/description')] = 'description'
-        predicate_map[rdflib.term.URIRef('http://purl.org/spar/pwo#hasFirstStep')] = 'hasFirstStep'
-        predicate_map[RDF.type] = 'a'
-
-        G = nx.MultiDiGraph()
-        edge_labels = {}
-        for s, p, o in self._rdf:
-            if p in predicate_map:
-                edge_labels[(s,o)] = predicate_map[p]
-                G.add_edge(s, o)
-
-        pos = nx.spring_layout(G, scale=200, k = 1)
-
-        nx.draw(G, pos=pos, with_labels=True, font_size=7, node_size=100, node_color='gray')
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7)
-
-        if show is True:
-            plt.show()
+        filepath = filepath.split('.')[0] + '.dot'
+        with open(filepath, 'w') as f:
+            rdf2dot(self._rdf, f)
+        graphviz.render('dot', 'png', filepath)
 
     def __str__(self):
         """
