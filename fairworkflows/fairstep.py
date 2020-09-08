@@ -4,6 +4,7 @@ from rdflib import RDF, DCTERMS
 from urllib.parse import urldefrag
 import inspect
 
+
 class FairStep:
     """
         Class for building, validating and publishing Fair Steps, as described by the plex ontology in the publication:
@@ -15,7 +16,8 @@ class FairStep:
 
     DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
 
-    def __init__(self, step_rdf:rdflib.Graph = None, uri = DEFAULT_STEP_URI, from_nanopub=False, func=None):
+    def __init__(self, step_rdf: rdflib.Graph = None, uri=DEFAULT_STEP_URI,
+                 from_nanopub=False, func=None):
 
         if func:
             self.from_function(func)
@@ -73,7 +75,7 @@ class FairStep:
         self._uri = step_uri
         self.this_step = rdflib.URIRef(self._uri)
 
-        # Check that the nanopub's assertion actually contains triples refering to the given step's uri 
+        # Check that the nanopub's assertion actually contains triples refering to the given step's uri
         if (rdflib.URIRef(self.this_step), None, None) not in np.assertion:
             raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
 
@@ -124,40 +126,31 @@ class FairStep:
         """
         return self._uri
 
+    @property
     def is_pplan_step(self):
-        """
-            Returns True if this FairStep is a pplan:Step, else False.
-        """
-        if (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf:
-            return True
-        else:
-            return False
+        """Return True if this FairStep is a pplan:Step, else False."""
+        return (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf
 
+    @property
     def is_manual_task(self):
-        """
-            Returns True if this FairStep is a bpmn:ManualTask, else False.
-        """
-        if (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf:
-            return True
-        else:
-            return False
+        """Returns True if this FairStep is a bpmn:ManualTask, else False."""
+        return (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf
 
+    @property
     def is_script_task(self):
-        """
-            Returns True if this FairStep is a bpmn:ScriptTask, else False.
-        """
-        if (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf:
-            return True
-        else:
-            return False
-        
+        """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
+        return (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
 
+    @property
     def description(self):
-        """
-            Returns the dcterms:description of this step (or a list, if more than one matching triple is found)
+        """Description.
+
+        Returns the dcterms:description of this step (or a list, if more than
+        one matching triple is found)
         """
 
-        descriptions = list(self._rdf.objects(subject=self.this_step, predicate=DCTERMS.description))
+        descriptions = list(self._rdf.objects(subject=self.this_step,
+                                              predicate=DCTERMS.description))
         if len(descriptions) == 0:
             return None
         elif len(descriptions) == 1:
@@ -165,7 +158,6 @@ class FairStep:
         else:
             return descriptions
 
-            
     def validate(self, verbose=True):
         """
             Checks whether this step rdf has sufficient information required of
@@ -178,15 +170,15 @@ class FairStep:
         conforms = True
         log = ''
 
-        if not self.is_pplan_step():
+        if not self.is_pplan_step:
             log += 'Step RDF does not say it is a pplan:Step\n'
             conforms = False
 
-        if not self.description():
+        if not self.description:
             log += 'Step RDF has no dcterms:description\n'
             conforms = False
 
-        if self.is_manual_task() == self.is_script_task():
+        if self.is_manual_task == self.is_script_task:
             log += 'Step RDF must be either a bpmn:ManualTask or a bpmn:ScriptTask\n'
             conforms = False
 
@@ -194,7 +186,6 @@ class FairStep:
             print(log)
 
         return conforms
-
 
     def __str__(self):
         """

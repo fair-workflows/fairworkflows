@@ -31,10 +31,10 @@ def test_fairstep_from_nanopub():
         step = FairStep(uri=uri, from_nanopub=True)
         assert step is not None
         assert step.validate()
-        assert step.is_pplan_step()
-        assert step.description() is not None
-        assert step.is_manual_task() is True
-        assert step.is_script_task() is False
+        assert step.is_pplan_step
+        assert step.description is not None
+        assert step.is_manual_task
+        assert not step.is_script_task
 
 
 @pytest.mark.flaky(max_runs=10)
@@ -57,10 +57,10 @@ def test_fairstep_from_nanopub_without_fragment():
         step = FairStep(uri=uri, from_nanopub=True)
         assert step is not None
         assert step.validate()
-        assert step.is_pplan_step()
-        assert step.description() is not None
-        assert step.is_manual_task() is True
-        assert step.is_script_task() is False
+        assert step.is_pplan_step
+        assert step.description is not None
+        assert step.is_manual_task
+        assert not step.is_script_task
 
 
 def test_fairstep_from_function():
@@ -74,10 +74,10 @@ def test_fairstep_from_function():
 
     assert step is not None
     assert step.validate()
-    assert step.is_pplan_step()
-    assert step.description() is not None
-    assert step.is_manual_task() is False
-    assert step.is_script_task() is True
+    assert step.is_pplan_step
+    assert step.description is not None
+    assert not step.is_manual_task
+    assert step.is_script_task
 
     assert step.__str__() is not None
     assert len(step.__str__()) > 0
