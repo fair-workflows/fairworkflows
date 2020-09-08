@@ -7,11 +7,12 @@ from rdflib import RDF, DCTERMS
 
 from .fairstep import FairStep
 from .nanopub import Nanopub
+from .rdf_wrapper import RdfWrapper
 
 DEFAULT_PLAN_URI = 'http://purl.org/nanopub/temp/mynanopub#plan'
 
 
-class FairWorkflow:
+class FairWorkflow(RdfWrapper):
 
     """
         Class for building, validating and publishing Fair Workflows, as described by the plex ontology in the publication:
@@ -23,10 +24,10 @@ class FairWorkflow:
 
     def __init__(self, description, uri=DEFAULT_PLAN_URI):
         self._uri = uri
-        self.this_plan = rdflib.URIRef(self._uri)
+        self.this = rdflib.URIRef(self._uri)
 
         self._rdf = rdflib.Graph()
-        self._rdf.add( (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) )
+        self._rdf.add((self.this, RDF.type, Nanopub.PPLAN.Plan))
         self.description = description
         self._steps = {}
         self._last_step_added = None
@@ -40,26 +41,14 @@ class FairWorkflow:
              RDF has multiple first steps and is thus invalid) return a list of
              first steps.
         """
-        first_steps = list(self._rdf.objects(
-            subject=self.this_plan, predicate=Nanopub.PWO.hasFirstStep))
-        if len(first_steps) == 0:
-            return None
-        elif len(first_steps) == 1:
-            return first_steps[0]
-        else:
-            return first_steps
+        return self.get_attribute(Nanopub.PWO.hasFirstStep)
 
     @first_step.setter
     def first_step(self, step: FairStep):
         """
         Sets the first step of this plex workflow to the given FairStep
         """
-        if self.first_step is not None:
-            warn('A first step was already defined, overwriting first step')
-            self._rdf.remove((None, Nanopub.PWO.hasFirstStep, None))
-        self._rdf.add((self.this_plan,
-                       Nanopub.PWO.hasFirstStep,
-                       rdflib.URIRef(step.uri)))
+        self.set_attribute(Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri))
         self._steps[step.uri] = step
         self._last_step_added = step
 
@@ -98,7 +87,7 @@ class FairWorkflow:
         """
         Returns True if this object's rdf specifies that it is a pplan:Plan
         """
-        return (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) in self._rdf
+        return (self.this, RDF.type, Nanopub.PPLAN.Plan) in self._rdf
 
     def get_step(self, uri):
         """
@@ -113,23 +102,11 @@ class FairWorkflow:
         the rdf for this workflow (or a list if more than one matching triple
         found)
         """
-        descriptions = list(self._rdf.objects(subject=self.this_plan,
-                                              predicate=DCTERMS.description))
-        if len(descriptions) == 0:
-            return None
-        elif len(descriptions) == 1:
-            return descriptions[0]
-        else:
-            return descriptions
+        return self.get_attribute(DCTERMS.description)
 
     @description.setter
     def description(self, value):
-        if self.description is not None:
-            warn('A description was already defined, overwriting description')
-            self._rdf.remove((self.this_plan, DCTERMS.description, None))
-        self._rdf.add((self.this_plan,
-                       DCTERMS.description,
-                       rdflib.term.Literal(value)) )
+        self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
 
     def validate(self):
         """Validate workflow.

@@ -6,8 +6,10 @@ from rdflib import RDF, DCTERMS
 from urllib.parse import urldefrag
 import inspect
 
+from .rdf_wrapper import RdfWrapper
 
-class FairStep:
+
+class FairStep(RdfWrapper):
     """
         Class for building, validating and publishing Fair Steps, as described by the plex ontology in the publication:
 
@@ -36,7 +38,7 @@ class FairStep:
             else:
                 self._rdf = rdflib.Graph()
 
-        self.this_step = rdflib.URIRef(self._uri)
+        self.this = rdflib.URIRef(self._uri)
 
 
     def load_from_nanopub(self, uri):
@@ -75,10 +77,10 @@ class FairStep:
             step_uri = uri
 
         self._uri = step_uri
-        self.this_step = rdflib.URIRef(self._uri)
+        self.this = rdflib.URIRef(self._uri)
 
         # Check that the nanopub's assertion actually contains triples refering to the given step's uri
-        if (rdflib.URIRef(self.this_step), None, None) not in np.assertion:
+        if (rdflib.URIRef(self.this), None, None) not in np.assertion:
             raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
 
         # Else extract all triples in the assertion into the rdf graph for this step
@@ -95,16 +97,16 @@ class FairStep:
         self._rdf = rdflib.Graph()
         code = inspect.getsource(func)
         self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
-        self.this_step = rdflib.URIRef(self._uri)
+        self.this = rdflib.URIRef(self._uri)
 
         # Set description of step to the raw function code
         self.description  = code
 
         # Specify that step is a pplan:Step
-        self._rdf.add( (self.this_step, RDF.type, Nanopub.PPLAN.Step) )
+        self._rdf.add((self.this, RDF.type, Nanopub.PPLAN.Step))
 
         # Specify that step is a ScriptTask
-        self._rdf.add( (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) )
+        self._rdf.add((self.this, RDF.type, Nanopub.BPMN.ScriptTask))
 
 
     @property
@@ -124,17 +126,17 @@ class FairStep:
     @property
     def is_pplan_step(self):
         """Return True if this FairStep is a pplan:Step, else False."""
-        return (self.this_step, RDF.type, Nanopub.PPLAN.Step) in self._rdf
+        return (self.this, RDF.type, Nanopub.PPLAN.Step) in self._rdf
 
     @property
     def is_manual_task(self):
         """Returns True if this FairStep is a bpmn:ManualTask, else False."""
-        return (self.this_step, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf
+        return (self.this, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf
 
     @property
     def is_script_task(self):
         """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
-        return (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
+        return (self.this, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
 
     @property
     def description(self):
@@ -143,14 +145,7 @@ class FairStep:
         Returns the dcterms:description of this step (or a list, if more than
         one matching triple is found)
         """
-        descriptions = list(self._rdf.objects(subject=self.this_step,
-                                              predicate=DCTERMS.description))
-        if len(descriptions) == 0:
-            return None
-        elif len(descriptions) == 1:
-            return descriptions[0]
-        else:
-            return descriptions
+        return self.get_attribute(DCTERMS.description)
 
     @description.setter
     def description(self, value):
@@ -158,12 +153,7 @@ class FairStep:
         Adds the given text string as a dcterms:description for this FairStep
         object.
         """
-        if self.description is not None:
-            warn('A description was already defined, overwriting description')
-            self._rdf.remove((self.this_step, DCTERMS.description, None))
-        self._rdf.add((self.this_step,
-                       DCTERMS.description,
-                       rdflib.term.Literal(value)))
+        self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
 
     def validate(self, verbose=True):
         """
