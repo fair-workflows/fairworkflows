@@ -1,7 +1,10 @@
-import matplotlib.pyplot as plt
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 import networkx as nx
 import rdflib
 from rdflib import RDF, DCTERMS
+from rdflib.tools.rdf2dot import rdf2dot
 
 from .fairstep import FairStep
 from .nanopub import Nanopub
@@ -129,32 +132,51 @@ class FairWorkflow(RdfWrapper):
 
         assert conforms, log
 
-    def draw(self, show=True):
+    @staticmethod
+    def _import_graphviz():
+        """Import graphviz.
+
+        Raises:
+             ImportError with appropriate message if import failed
         """
-            Ugly networkx implementation of graph visualization for this plex workflow.
-            If show is False, the plot will not be displayed to screen.
+        try:
+            import graphviz
+            return graphviz
+        except ImportError:
+            raise ImportError('Cannot produce visualization of RDF, you need '
+                              'to install graphviz==0.14.1 python package. '
+                              'Version 0.14.1 is known to work well.')
+
+    def display(self):
+        """Visualize workflow directly in notebook."""
+        graphviz = self._import_graphviz()
+
+        with TemporaryDirectory() as td:
+            filename = Path(td) / 'dag.dot'
+            with open(filename, 'w') as f:
+                rdf2dot(self._rdf, f)
+            return graphviz.Source.from_file(filename)
+
+    def draw(self, filepath):
+        """Visualize workflow.
+
+        Writes a .dot file and a .dot.png file of the workflow
+        visualization based on filepath argument. Use the .dot file to create
+        different renderings of the visualization using Graphviz library. The
+        .dot.png file is one of those renderings.
         """
 
-        predicate_map = {}
-        predicate_map[rdflib.term.URIRef('http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#precedes')] = 'precedes'
-        predicate_map[rdflib.term.URIRef('http://purl.org/dc/terms/description')] = 'description'
-        predicate_map[rdflib.term.URIRef('http://purl.org/spar/pwo#hasFirstStep')] = 'hasFirstStep'
-        predicate_map[RDF.type] = 'a'
+        graphviz = self._import_graphviz()
+        filepath = filepath.split('.')[0] + '.dot'
+        with open(filepath, 'w') as f:
+            rdf2dot(self._rdf, f)
 
-        G = nx.MultiDiGraph()
-        edge_labels = {}
-        for s, p, o in self._rdf:
-            if p in predicate_map:
-                edge_labels[(s,o)] = predicate_map[p]
-                G.add_edge(s, o)
-
-        pos = nx.spring_layout(G, scale=200, k = 1)
-
-        nx.draw(G, pos=pos, with_labels=True, font_size=7, node_size=100, node_color='gray')
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=7)
-
-        if show is True:
-            plt.show()
+        try:
+            graphviz.render('dot', 'png', filepath)
+        except graphviz.ExecutableNotFound:
+            raise RuntimeError(
+                'Cannot produce visualization of RDF, you need to install '
+                'graphviz dependency https://graphviz.org/')
 
     def __str__(self):
         """
