@@ -149,7 +149,6 @@ class FairWorkflow:
 
         return conforms
 
-
     @property
     def rdf(self):
         """
@@ -169,7 +168,7 @@ class FairWorkflow:
             return graphviz
         except ImportError:
             raise ImportError('Cannot produce visualization of RDF, you need '
-                              'to install graphviz python package')
+                              'to install graphviz==0.14.1 python package')
 
     def display(self):
         """Visualize workflow directly in notebook."""
