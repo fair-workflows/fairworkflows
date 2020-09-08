@@ -1,5 +1,3 @@
-from warnings import warn
-
 import matplotlib.pyplot as plt
 import networkx as nx
 import rdflib
