@@ -9,6 +9,16 @@ class RdfWrapper:
         self._uri = uri
         self.this = rdflib.URIRef(self._uri)
 
+    @property
+    def rdf(self) -> rdflib.Graph:
+        """Get the rdf graph."""
+        return self._rdf
+
+    @property
+    def uri(self) -> str:
+        """Get the URI for this RDF."""
+        return self._uri
+
     def get_attribute(self, predicate):
         """Get attribute.
 

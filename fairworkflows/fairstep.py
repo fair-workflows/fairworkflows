@@ -108,21 +108,6 @@ class FairStep(RdfWrapper):
         # Specify that step is a ScriptTask
         self._rdf.add((self.this, RDF.type, Nanopub.BPMN.ScriptTask))
 
-
-    @property
-    def rdf(self):
-        """
-            Getter for the rdf graph describing this FairStep.
-        """
-        return self._rdf
-
-    @property
-    def uri(self):
-        """
-            Getter for the URI of this FairStep.
-        """
-        return self._uri
-
     @property
     def is_pplan_step(self):
         """Return True if this FairStep is a pplan:Step, else False."""

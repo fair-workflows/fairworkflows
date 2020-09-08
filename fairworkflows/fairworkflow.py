@@ -131,13 +131,6 @@ class FairWorkflow(RdfWrapper):
 
         assert conforms, log
 
-    @property
-    def rdf(self):
-        """
-            Getter for the rdf graph describing this FairWorkflow.
-        """
-        return self._rdf
-
     def draw(self, show=True):
         """
             Ugly networkx implementation of graph visualization for this plex workflow.
