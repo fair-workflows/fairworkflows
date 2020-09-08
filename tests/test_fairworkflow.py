@@ -57,7 +57,7 @@ class TestFairWorkflow:
 
     def test_draw(self, tmp_path):
         # Check for errors when calling draw()...
-        self.workflow.draw(filepath=str(tmp_path))
+        self.workflow.draw(filepath='test')
 
     def test_display(self):
         self.workflow.display()

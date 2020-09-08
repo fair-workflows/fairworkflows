@@ -1,7 +1,7 @@
 from pathlib import Path
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import TemporaryDirectory
+from warnings import warn
 
-import graphviz
 import networkx as nx
 import rdflib
 from rdflib import RDF, DCTERMS
@@ -159,11 +159,20 @@ class FairWorkflow:
 
     def display(self):
         """Visualize workflow directly in notebook."""
+        try:
+            import graphviz
+        except ImportError as m:
+            warn('Cannot produce visualization of RDF, ' + str(m))
+            return
+
         with TemporaryDirectory() as td:
             filename = Path(td) / 'dag.dot'
             with open(filename, 'w') as f:
                 rdf2dot(self._rdf, f)
-            return graphviz.Source.from_file(filename)
+            try:
+                return graphviz.Source.from_file(filename)
+            except graphviz.ExecutableNotFound as m:
+                warn('Cannot produce visualization of RDF, ' + str(m))
 
     def draw(self, filepath):
         """Visualize workflow.
@@ -173,10 +182,19 @@ class FairWorkflow:
         different renderings of the visualization using Graphviz library. The
         .dot.png file is one of those renderings.
         """
+        try:
+            import graphviz
+        except ImportError as m:
+            warn('Cannot produce visualization of RDF, ' + str(m))
+            return
+
         filepath = filepath.split('.')[0] + '.dot'
         with open(filepath, 'w') as f:
             rdf2dot(self._rdf, f)
-        graphviz.render('dot', 'png', filepath)
+        try:
+            graphviz.render('dot', 'png', filepath)
+        except graphviz.ExecutableNotFound as m:
+            warn('Cannot produce .png visualization of RDF, ' + str(m))
 
     def __str__(self):
         """
