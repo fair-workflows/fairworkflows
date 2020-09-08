@@ -40,19 +40,6 @@ class TestFairWorkflow:
         assert len(workflow.__str__()) > 0
         assert workflow.rdf is not None
 
-    def test_overwrite_first_step(self):
-        # First step should be step 1
-        assert str(self.workflow.first_step) == self.step1.uri
-
-        # Reset first step to step 2
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            self.workflow.first_step = self.step2
-            assert len(w) == 1
-            assert issubclass(w[-1].category, UserWarning)
-
-        assert str(self.workflow.first_step) == self.step2.uri
-
     def test_iterator(self):
         """Test iterating over the workflow."""
         right_order_steps = [self.step1, self.step2, self.step3]
