@@ -42,11 +42,7 @@ class TestFairWorkflow:
 
     def test_overwrite_first_step(self):
         # First step should be step 1
-        first_step = list(self.workflow._rdf.objects(
-            subject=self.workflow.this_plan,
-            predicate=Nanopub.PWO.hasFirstStep))
-        assert len(first_step) == 1
-        assert str(first_step[0]) == self.step1.uri
+        assert str(self.workflow.first_step) == self.step1.uri
 
         # Reset first step to step 2
         with warnings.catch_warnings(record=True) as w:
@@ -55,12 +51,7 @@ class TestFairWorkflow:
             assert len(w) == 1
             assert issubclass(w[-1].category, UserWarning)
 
-        # Check if first step in rdf is replaced
-        first_step = list(self.workflow._rdf.objects(
-            subject=self.workflow.this_plan,
-            predicate=Nanopub.PWO.hasFirstStep))
-        assert len(first_step) == 1
-        assert str(first_step[0]) == self.step2.uri
+        assert str(self.workflow.first_step) == self.step2.uri
 
     def test_iterator(self):
         """Test iterating over the workflow."""

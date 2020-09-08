@@ -31,18 +31,31 @@ class FairWorkflow:
 
         self._steps = {}
         self._last_step_added = None
-        self._first_step = None
 
     @property
     def first_step(self):
-        return self._first_step
+        """First step of workflow.
+
+        Returns:
+             First step of the workflow if existing. In weird cases (when the
+             RDF has multiple first steps and is thus invalid) return a list of
+             first steps.
+        """
+        first_steps = list(self._rdf.objects(
+            subject=self.this_plan, predicate=Nanopub.PWO.hasFirstStep))
+        if len(first_steps) == 0:
+            return None
+        elif len(first_steps) == 1:
+            return first_steps[0]
+        else:
+            return first_steps
 
     @first_step.setter
     def first_step(self, step: FairStep):
         """
         Sets the first step of this plex workflow to the given FairStep
         """
-        if self._first_step is not None:
+        if self.first_step is not None:
             warn('A first step was already defined, overwriting first step')
             self._rdf.remove((None, Nanopub.PWO.hasFirstStep, None))
         self._rdf.add((self.this_plan,
@@ -50,7 +63,6 @@ class FairWorkflow:
                        rdflib.URIRef(step.uri)))
         self._steps[step.uri] = step
         self._last_step_added = step
-        self._first_step = step
 
     def add(self, step:FairStep, follows:FairStep=None):
         """
