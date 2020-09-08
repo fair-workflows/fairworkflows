@@ -157,13 +157,23 @@ class FairWorkflow:
         """
         return self._rdf
 
-    def display(self):
-        """Visualize workflow directly in notebook."""
+    @staticmethod
+    def _import_graphviz():
+        """Import graphviz.
+
+        Raises:
+             ImportError with appropriate message if import failed
+        """
         try:
             import graphviz
-        except ImportError as m:
-            warn('Cannot produce visualization of RDF, ' + str(m))
-            return
+            return graphviz
+        except ImportError:
+            raise ImportError('Cannot produce visualization of RDF, you need '
+                              'to install graphviz python package')
+
+    def display(self):
+        """Visualize workflow directly in notebook."""
+        graphviz = self._import_graphviz()
 
         with TemporaryDirectory() as td:
             filename = Path(td) / 'dag.dot'
@@ -171,8 +181,10 @@ class FairWorkflow:
                 rdf2dot(self._rdf, f)
             try:
                 return graphviz.Source.from_file(filename)
-            except graphviz.ExecutableNotFound as m:
-                warn('Cannot produce visualization of RDF, ' + str(m))
+            except graphviz.ExecutableNotFound:
+                raise RuntimeError(
+                    'Cannot produce visualization of RDF, you need to install '
+                    'graphviz dependency https://graphviz.org/')
 
     def draw(self, filepath):
         """Visualize workflow.
@@ -182,19 +194,18 @@ class FairWorkflow:
         different renderings of the visualization using Graphviz library. The
         .dot.png file is one of those renderings.
         """
-        try:
-            import graphviz
-        except ImportError as m:
-            warn('Cannot produce visualization of RDF, ' + str(m))
-            return
 
+        graphviz = self._import_graphviz()
         filepath = filepath.split('.')[0] + '.dot'
         with open(filepath, 'w') as f:
             rdf2dot(self._rdf, f)
+
         try:
             graphviz.render('dot', 'png', filepath)
-        except graphviz.ExecutableNotFound as m:
-            warn('Cannot produce .png visualization of RDF, ' + str(m))
+        except graphviz.ExecutableNotFound:
+            raise RuntimeError(
+                'Cannot produce visualization of RDF, you need to install '
+                'graphviz dependency https://graphviz.org/')
 
     def __str__(self):
         """

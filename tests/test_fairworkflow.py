@@ -1,3 +1,8 @@
+import warnings
+from unittest import mock
+
+import pytest
+
 from fairworkflows import FairWorkflow, FairStep, fairstep
 
 
@@ -55,9 +60,45 @@ class TestFairWorkflow:
 
         assert workflow.validate() is True
 
-    def test_draw(self, tmp_path):
-        # Check for errors when calling draw()...
-        self.workflow.draw(filepath='test')
+    @mock.patch.dict('sys.modules', {'graphviz': None})
+    def test_draw_without_graphviz_module(self, tmp_path):
+        with pytest.raises(ImportError):
+            self.workflow.draw(filepath=tmp_path)
 
-    def test_display(self):
-        self.workflow.display()
+    def test_draw_with_graphviz_module_without_dependency(self, tmp_path):
+        mock_graphviz = mock.MagicMock()
+        mock_graphviz.ExecutableNotFound = Exception
+        mock_graphviz.render.side_effect = mock_graphviz.ExecutableNotFound()
+
+        with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
+            with pytest.raises(RuntimeError):
+                self.workflow.draw(filepath=str(tmp_path))
+
+    def test_draw_with_graphviz_module_and_dependency(self, tmp_path):
+        mock_graphviz = mock.MagicMock()
+
+        with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
+            self.workflow.draw(filepath=str(tmp_path))
+        assert mock_graphviz.render.called
+
+    @mock.patch.dict('sys.modules', {'graphviz': None})
+    def test_display_without_graphviz_module(self):
+        with pytest.raises(ImportError):
+            self.workflow.display()
+
+    def test_display_with_graphviz_module_without_dependency(self):
+        mock_graphviz = mock.MagicMock()
+        mock_graphviz.ExecutableNotFound = Exception
+        mock_graphviz.Source.from_file.side_effect = (
+            mock_graphviz.ExecutableNotFound())
+
+        with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
+            with pytest.raises(RuntimeError):
+                self.workflow.display()
+
+    def test_display_with_graphviz_module_and_dependency(self):
+        mock_graphviz = mock.MagicMock()
+        with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
+            self.workflow.display()
+        assert mock_graphviz.Source.from_file.called
+
