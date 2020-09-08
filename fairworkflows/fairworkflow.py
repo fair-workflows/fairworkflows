@@ -27,8 +27,7 @@ class FairWorkflow:
 
         self._rdf = rdflib.Graph()
         self._rdf.add( (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) )
-        self._rdf.add( (self.this_plan, DCTERMS.description, rdflib.term.Literal(description)) )
-
+        self.description = description
         self._steps = {}
         self._last_step_added = None
 
@@ -114,13 +113,23 @@ class FairWorkflow:
         the rdf for this workflow (or a list if more than one matching triple
         found)
         """
-        descriptions = list(self._rdf.objects(subject=self.this_plan, predicate=DCTERMS.description))
+        descriptions = list(self._rdf.objects(subject=self.this_plan,
+                                              predicate=DCTERMS.description))
         if len(descriptions) == 0:
             return None
         elif len(descriptions) == 1:
             return descriptions[0]
         else:
             return descriptions
+
+    @description.setter
+    def description(self, value):
+        if self.description is not None:
+            warn('A description was already defined, overwriting description')
+            self._rdf.remove((self.this_plan, DCTERMS.description, None))
+        self._rdf.add((self.this_plan,
+                       DCTERMS.description,
+                       rdflib.term.Literal(value)) )
 
     def validate(self):
         """Validate workflow.
