@@ -1,5 +1,4 @@
 networkx
-matplotlib
 rdflib<6.0.0,>=5.0.0
 flaky
 pytest
