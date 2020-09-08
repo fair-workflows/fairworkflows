@@ -1,8 +1,6 @@
-import warnings
-
 import pytest
 
-from fairworkflows import FairWorkflow, FairStep, fairstep, Nanopub
+from fairworkflows import FairWorkflow, FairStep, fairstep
 
 
 class TestFairWorkflow:
