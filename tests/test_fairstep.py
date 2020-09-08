@@ -1,3 +1,5 @@
+import warnings
+
 import pytest
 import requests
 
@@ -89,3 +91,14 @@ def test_validation():
     assert step.validate() is False
 
 
+def test_overwrite_description():
+    step = FairStep()
+    assert step.description is None
+    step.description = 'Description 1'
+    assert str(step.description) == 'Description 1'
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        step.description = 'Description 2'
+        assert len(w) == 1
+        assert issubclass(w[-1].category, UserWarning)
+    assert str(step.description) == 'Description 2'

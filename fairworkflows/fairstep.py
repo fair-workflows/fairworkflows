@@ -1,3 +1,5 @@
+from warnings import warn
+
 from .nanopub import Nanopub
 import rdflib
 from rdflib import RDF, DCTERMS
@@ -96,20 +98,13 @@ class FairStep:
         self.this_step = rdflib.URIRef(self._uri)
 
         # Set description of step to the raw function code
-        self.add_description(code)
+        self.description  = code
 
         # Specify that step is a pplan:Step
         self._rdf.add( (self.this_step, RDF.type, Nanopub.PPLAN.Step) )
 
         # Specify that step is a ScriptTask
         self._rdf.add( (self.this_step, RDF.type, Nanopub.BPMN.ScriptTask) )
-
-
-    def add_description(self, text):
-        """
-            Adds the given text string as a dcterms:description for this FairStep object.
-        """
-        self._rdf.add( (self.this_step, DCTERMS.description, rdflib.term.Literal(text)) )
 
 
     @property
@@ -148,7 +143,6 @@ class FairStep:
         Returns the dcterms:description of this step (or a list, if more than
         one matching triple is found)
         """
-
         descriptions = list(self._rdf.objects(subject=self.this_step,
                                               predicate=DCTERMS.description))
         if len(descriptions) == 0:
@@ -157,6 +151,19 @@ class FairStep:
             return descriptions[0]
         else:
             return descriptions
+
+    @description.setter
+    def description(self, value):
+        """
+        Adds the given text string as a dcterms:description for this FairStep
+        object.
+        """
+        if self.description is not None:
+            warn('A description was already defined, overwriting description')
+            self._rdf.remove((self.this_step, DCTERMS.description, None))
+        self._rdf.add((self.this_step,
+                       DCTERMS.description,
+                       rdflib.term.Literal(value)))
 
     def validate(self, verbose=True):
         """
