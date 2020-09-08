@@ -1,11 +1,10 @@
-from warnings import warn
+import inspect
+from urllib.parse import urldefrag
 
-from .nanopub import Nanopub
 import rdflib
 from rdflib import RDF, DCTERMS
-from urllib.parse import urldefrag
-import inspect
 
+from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
 
 
