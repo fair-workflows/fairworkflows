@@ -1,4 +1,4 @@
-networkx
+networkx~=2.5
 rdflib<6.0.0,>=5.0.0
 flaky
 pytest
