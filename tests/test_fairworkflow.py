@@ -83,11 +83,7 @@ class TestFairWorkflow:
         Test draw method with graphviz python module and graphviz software
         installed
         """
-        mock_graphviz = mock.MagicMock()
-
-        with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
-            self.workflow.draw(filepath=str(tmp_path))
-        assert mock_graphviz.render.called
+        self.workflow.draw(filepath=str(tmp_path))
 
     @mock.patch.dict('sys.modules', {'graphviz': None})
     def test_display_without_graphviz_module(self):
@@ -95,27 +91,10 @@ class TestFairWorkflow:
         with pytest.raises(ImportError):
             self.workflow.display()
 
-    def test_display_with_graphviz_module_without_dependency(self):
-        """
-        Test display method with graphviz python module installed,
-        but not graphviz software
-        """
-        mock_graphviz = mock.MagicMock()
-        mock_graphviz.ExecutableNotFound = Exception
-        mock_graphviz.Source.from_file.side_effect = (
-            mock_graphviz.ExecutableNotFound())
-
-        with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
-            with pytest.raises(RuntimeError):
-                self.workflow.display()
-
     def test_display_with_graphviz_module_and_dependency(self):
         """
         Test display method with graphviz python module and graphviz software
         installed
         """
-        mock_graphviz = mock.MagicMock()
-        with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
-            self.workflow.display()
-        assert mock_graphviz.Source.from_file.called
+        self.workflow.display()
 

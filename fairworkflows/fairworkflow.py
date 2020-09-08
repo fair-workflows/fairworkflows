@@ -179,12 +179,7 @@ class FairWorkflow:
             filename = Path(td) / 'dag.dot'
             with open(filename, 'w') as f:
                 rdf2dot(self._rdf, f)
-            try:
-                return graphviz.Source.from_file(filename)
-            except graphviz.ExecutableNotFound:
-                raise RuntimeError(
-                    'Cannot produce visualization of RDF, you need to install '
-                    'graphviz dependency https://graphviz.org/')
+            return graphviz.Source.from_file(filename)
 
     def draw(self, filepath):
         """Visualize workflow.
