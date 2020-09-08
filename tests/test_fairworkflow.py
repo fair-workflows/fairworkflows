@@ -1,4 +1,6 @@
-from fairworkflows import FairWorkflow, FairStep, fairstep
+import warnings
+
+from fairworkflows import FairWorkflow, FairStep, fairstep, Nanopub
 
 
 class TestFairWorkflow:
@@ -9,9 +11,9 @@ class TestFairWorkflow:
     step2 = FairStep(uri='http://www.example.org/step2')
     step3 = FairStep(uri='http://www.example.org/step3')
 
+    workflow.first_step = step1
     workflow.add(step2, follows=step1)
     workflow.add(step3, follows=step2)
-    workflow.set_first_step(step1)
 
     def test_build(self):
         workflow = FairWorkflow(description=self.test_description)
@@ -26,13 +28,35 @@ class TestFairWorkflow:
 
         assert not workflow.validate()
 
-        workflow.set_first_step(self.step1)
+        workflow.first_step = self.step1
 
         assert workflow.validate()
 
         assert workflow.__str__() is not None
         assert len(workflow.__str__()) > 0
         assert workflow.rdf is not None
+
+    def test_overwrite_first_step(self):
+        # First step should be step 1
+        first_step = list(self.workflow._rdf.objects(
+            subject=self.workflow.this_plan,
+            predicate=Nanopub.PWO.hasFirstStep))
+        assert len(first_step) == 1
+        assert str(first_step[0]) == self.step1.uri
+
+        # Reset first step to step 2
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            self.workflow.first_step = self.step2
+            assert len(w) == 1
+            assert issubclass(w[-1].category, UserWarning)
+
+        # Check if first step in rdf is replaced
+        first_step = list(self.workflow._rdf.objects(
+            subject=self.workflow.this_plan,
+            predicate=Nanopub.PWO.hasFirstStep))
+        assert len(first_step) == 1
+        assert str(first_step[0]) == self.step2.uri
 
     def test_iterator(self):
         """Test iterating over the workflow."""

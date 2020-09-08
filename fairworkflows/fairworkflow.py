@@ -1,12 +1,12 @@
-from .fairstep import FairStep
-from .nanopub import Nanopub
+from warnings import warn
 
+import matplotlib.pyplot as plt
+import networkx as nx
 import rdflib
 from rdflib import RDF, DCTERMS
 
-from rdflib.extras.external_graph_libs import rdflib_to_networkx_multidigraph
-import matplotlib.pyplot as plt
-import networkx as nx
+from .fairstep import FairStep
+from .nanopub import Nanopub
 
 DEFAULT_PLAN_URI = 'http://purl.org/nanopub/temp/mynanopub#plan'
 
@@ -31,25 +31,37 @@ class FairWorkflow:
 
         self._steps = {}
         self._last_step_added = None
+        self._first_step = None
 
-    def set_first_step(self, step:FairStep):
+    @property
+    def first_step(self):
+        return self._first_step
+
+    @first_step.setter
+    def first_step(self, step: FairStep):
         """
-            Sets the first step of this plex workflow to the given FairStep
+        Sets the first step of this plex workflow to the given FairStep
         """
-        self._rdf.add( (self.this_plan, Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri)) )
+        if self._first_step is not None:
+            warn('A first step was already defined, overwriting first step')
+            self._rdf.remove((None, Nanopub.PWO.hasFirstStep, None))
+        self._rdf.add((self.this_plan,
+                       Nanopub.PWO.hasFirstStep,
+                       rdflib.URIRef(step.uri)))
         self._steps[step.uri] = step
         self._last_step_added = step
+        self._first_step = step
 
     def add(self, step:FairStep, follows:FairStep=None):
         """
-            Adds the specified FairStep to the workflow rdf. If 'follows' is specified,
-            then it dul:precedes the step. If 'follows' is None, the last added step (to this workflow)
-            dul:precedes the step. If no steps have yet been added to the workflow, and 'follows' is None,
-            then this step is automatically set to by the first step in the workflow.
+        Adds the specified FairStep to the workflow rdf. If 'follows' is specified,
+        then it dul:precedes the step. If 'follows' is None, the last added step (to this workflow)
+        dul:precedes the step. If no steps have yet been added to the workflow, and 'follows' is None,
+        then this step is automatically set to by the first step in the workflow.
         """
         if not follows:
-            if not self.first_step():
-                self.set_first_step(step)
+            if self.first_step is None:
+                self.first_step = step
             else:
                 self.add(step, follows=self._last_step_added)
         else:
@@ -72,27 +84,12 @@ class FairWorkflow:
 
     def is_pplan_plan(self):
         """
-            Returns True if this object's rdf specifies that it is a pplan:Plan
+        Returns True if this object's rdf specifies that it is a pplan:Plan
         """
         if (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) in self._rdf:
             return True
         else:
             return False
-
-    def first_step(self):
-        """
-            Returns the first step in this plex workflow, if currently specified, otherwise None.
-            If more than one first step is specified in the rdf (this is bad) then the list of
-            'first' steps is returned.
-        """
-        first_step = list(self._rdf.objects(subject=self.this_plan, predicate=Nanopub.PWO.hasFirstStep))
-
-        if len(first_step) == 0:
-            return None
-        elif len(first_step) == 1:
-            return first_step[0]
-        else:
-            return first_step
 
     def get_step(self, uri):
         """
@@ -135,11 +132,8 @@ class FairWorkflow:
             log += 'Plan RDF has no dcterms:description\n'
             conforms = False
 
-        if not self.first_step():
+        if self.first_step is None:
             log += 'Plan RDF does not specify a first step (pwo:hasFirstStep)\n'
-            conforms = False
-        elif len(self.first_step()) > 1 and isinstance(self.first_step(), list):
-            log += f'Plan RDF contains more than one first step (pwo:hasFirstStep): {self.first_step()}\n'
             conforms = False
 
         if verbose:
