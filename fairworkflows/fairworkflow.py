@@ -82,14 +82,12 @@ class FairWorkflow:
         for step_uri in nx.topological_sort(G):
             yield self.get_step(str(step_uri))
 
+    @property
     def is_pplan_plan(self):
         """
         Returns True if this object's rdf specifies that it is a pplan:Plan
         """
-        if (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) in self._rdf:
-            return True
-        else:
-            return False
+        return (self.this_plan, RDF.type, Nanopub.PPLAN.Plan) in self._rdf
 
     def get_step(self, uri):
         """
@@ -112,19 +110,16 @@ class FairWorkflow:
         else:
             return descriptions
 
-    def validate(self, verbose=True):
-        """
-            Checks whether this workflow's rdf has sufficient information required of
-            a workflow in the Plex ontology. If not, a message is printed explaining
-            the problem, and the function returns False.
+    def validate(self):
+        """Validate workflow.
 
-            If verbose is set to False, no explanation messages will be printed.
+        Checks whether this workflow's rdf has sufficient information required
+        of a workflow in the Plex ontology.
         """
-
         conforms = True
         log = ''
 
-        if not self.is_pplan_plan():
+        if not self.is_pplan_plan:
             log += 'Plan RDF does not say it is a pplan:Plan\n'
             conforms = False
 
@@ -136,11 +131,7 @@ class FairWorkflow:
             log += 'Plan RDF does not specify a first step (pwo:hasFirstStep)\n'
             conforms = False
 
-        if verbose:
-            print(log)
-
-        return conforms
-
+        assert conforms, log
 
     @property
     def rdf(self):
