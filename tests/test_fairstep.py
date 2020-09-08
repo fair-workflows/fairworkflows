@@ -30,7 +30,7 @@ def test_fairstep_from_nanopub():
     for uri in nanopub_uris:
         step = FairStep(uri=uri, from_nanopub=True)
         assert step is not None
-        assert step.validate()
+        step.validate()
         assert step.is_pplan_step
         assert step.description is not None
         assert step.is_manual_task
@@ -56,7 +56,7 @@ def test_fairstep_from_nanopub_without_fragment():
     for uri in nanopub_uris:
         step = FairStep(uri=uri, from_nanopub=True)
         assert step is not None
-        assert step.validate()
+        step.validate()
         assert step.is_pplan_step
         assert step.description is not None
         assert step.is_manual_task
@@ -73,7 +73,7 @@ def test_fairstep_from_function():
     step = FairStep(func=add)
 
     assert step is not None
-    assert step.validate()
+    step.validate()
     assert step.is_pplan_step
     assert step.description is not None
     assert not step.is_manual_task
@@ -86,4 +86,5 @@ def test_fairstep_from_function():
 
 def test_validation():
     step = FairStep(uri='http://www.example.org/step')
-    assert step.validate() is False
+    with pytest.raises(AssertionError):
+        step.validate()

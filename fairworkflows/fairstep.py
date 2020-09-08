@@ -140,15 +140,12 @@ class FairStep(RdfWrapper):
         """
         self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
 
-    def validate(self, verbose=True):
-        """
-            Checks whether this step rdf has sufficient information required of
-            a step in the Plex ontology. If not, a message is printed explaining
-            the problem, and the function returns False.
+    def validate(self):
+        """Validate step.
 
-            If verbose is set to False, no explanation messages will be printed.
+        Check whether this step rdf has sufficient information required of
+        a step in the Plex ontology.
         """
-
         conforms = True
         log = ''
 
@@ -164,10 +161,7 @@ class FairStep(RdfWrapper):
             log += 'Step RDF must be either a bpmn:ManualTask or a bpmn:ScriptTask\n'
             conforms = False
 
-        if verbose:
-            print(log)
-
-        return conforms
+        assert conforms, log
 
     def __str__(self):
         """
