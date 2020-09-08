@@ -62,10 +62,15 @@ class TestFairWorkflow:
 
     @mock.patch.dict('sys.modules', {'graphviz': None})
     def test_draw_without_graphviz_module(self, tmp_path):
+        """Test draw method without graphviz python module installed."""
         with pytest.raises(ImportError):
             self.workflow.draw(filepath=tmp_path)
 
     def test_draw_with_graphviz_module_without_dependency(self, tmp_path):
+        """
+        Test draw method with graphviz python module installed,
+        but not graphviz software
+        """
         mock_graphviz = mock.MagicMock()
         mock_graphviz.ExecutableNotFound = Exception
         mock_graphviz.render.side_effect = mock_graphviz.ExecutableNotFound()
@@ -75,6 +80,10 @@ class TestFairWorkflow:
                 self.workflow.draw(filepath=str(tmp_path))
 
     def test_draw_with_graphviz_module_and_dependency(self, tmp_path):
+        """
+        Test draw method with graphviz python module and graphviz software
+        installed
+        """
         mock_graphviz = mock.MagicMock()
 
         with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
@@ -83,10 +92,15 @@ class TestFairWorkflow:
 
     @mock.patch.dict('sys.modules', {'graphviz': None})
     def test_display_without_graphviz_module(self):
+        """Test display method without graphviz python module installed."""
         with pytest.raises(ImportError):
             self.workflow.display()
 
     def test_display_with_graphviz_module_without_dependency(self):
+        """
+        Test display method with graphviz python module installed,
+        but not graphviz software
+        """
         mock_graphviz = mock.MagicMock()
         mock_graphviz.ExecutableNotFound = Exception
         mock_graphviz.Source.from_file.side_effect = (
@@ -97,6 +111,10 @@ class TestFairWorkflow:
                 self.workflow.display()
 
     def test_display_with_graphviz_module_and_dependency(self):
+        """
+        Test display method with graphviz python module and graphviz software
+        installed
+        """
         mock_graphviz = mock.MagicMock()
         with mock.patch.dict('sys.modules', {'graphviz': mock_graphviz}):
             self.workflow.display()
