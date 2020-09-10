@@ -10,8 +10,6 @@ from .fairstep import FairStep
 from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
 
-DEFAULT_PLAN_URI = 'http://purl.org/nanopub/temp/mynanopub#plan'
-
 
 class FairWorkflow(RdfWrapper):
 
@@ -23,8 +21,11 @@ class FairWorkflow(RdfWrapper):
         Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
     """
 
-    def __init__(self, description, uri=DEFAULT_PLAN_URI):
-        super().__init__(uri=uri)
+    def __init__(self, description, uri=None):
+        super().__init__(uri=uri, ref_name='plan')
+
+        self._is_published = False
+
         self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Plan))
         self.description = description
         self._steps = {}
@@ -174,6 +175,34 @@ class FairWorkflow(RdfWrapper):
             raise RuntimeError(
                 'Cannot produce visualization of RDF, you need to install '
                 'graphviz dependency https://graphviz.org/')
+
+
+    def publish_as_nanopub(self):
+        """
+        Publishes the rdf for this FairWorkflow as a nanopublication.
+        Returns True if published successfully.
+        """
+
+        # If this plan has been modified from a previously published plan, include this in the derived_from PROV (if applicable)
+        derived_from = None
+        if self._is_published is True:
+            if self.is_modified is True:
+                derived_from = self._uri
+            else:
+                warnings.warn(f'Cannot publish() FairWorkflow. This plan is already published (at {self._uri}) and has not been modified.')
+                return False
+
+        # Publish the rdf of this plan as a nanopub
+        np_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+
+        # Set the new (published) URI of this fair workflow, which should be the nanopub URI plus a fragment given by the name of self.self_ref
+        self._uri = np_uri + '#' + str(self.self_ref)
+
+        self._is_published = True
+        self._is_modified = False
+
+        return True
+
 
     def __str__(self):
         """
