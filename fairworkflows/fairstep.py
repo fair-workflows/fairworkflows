@@ -103,9 +103,12 @@ class FairStep(RdfWrapper):
                 warnings.warn(f'Cannot publish() FairStep. This step is already published (at {self._uri}) and has not been modified.')
                 return
 
-        # Publish the step rdf as a nanopub
-        self._uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
-#        out = Nanopub.rdf(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+        # Publish the rdf of this step as a nanopub
+        np_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+
+        # Set the new (published) URI of this fair step, which should be the nanopub URI plus a fragment given by the name of self.self_ref
+        self._uri = np_uri + '#' + str(self.self_ref)
+        
 
         self._is_published = True
         self._is_modified = False
