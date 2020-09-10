@@ -37,7 +37,7 @@ class FairStep(RdfWrapper):
             else:
                 self._rdf = rdflib.Graph()
 
-        self.this = rdflib.URIRef(self._uri)
+        self.self_ref = rdflib.URIRef(self._uri)
 
 
     def load_from_nanopub(self, uri):
@@ -76,10 +76,10 @@ class FairStep(RdfWrapper):
             step_uri = uri
 
         self._uri = step_uri
-        self.this = rdflib.URIRef(self._uri)
+        self.self_ref = rdflib.URIRef(self._uri)
 
         # Check that the nanopub's assertion actually contains triples refering to the given step's uri
-        if (rdflib.URIRef(self.this), None, None) not in np.assertion:
+        if (rdflib.URIRef(self.self_ref), None, None) not in np.assertion:
             raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
 
         # Else extract all triples in the assertion into the rdf graph for this step
@@ -96,31 +96,31 @@ class FairStep(RdfWrapper):
         self._rdf = rdflib.Graph()
         code = inspect.getsource(func)
         self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
-        self.this = rdflib.URIRef(self._uri)
+        self.self_ref = rdflib.URIRef(self._uri)
 
         # Set description of step to the raw function code
         self.description  = code
 
         # Specify that step is a pplan:Step
-        self._rdf.add((self.this, RDF.type, Nanopub.PPLAN.Step))
+        self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Step))
 
         # Specify that step is a ScriptTask
-        self._rdf.add((self.this, RDF.type, Nanopub.BPMN.ScriptTask))
+        self._rdf.add((self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask))
 
     @property
     def is_pplan_step(self):
         """Return True if this FairStep is a pplan:Step, else False."""
-        return (self.this, RDF.type, Nanopub.PPLAN.Step) in self._rdf
+        return (self.self_ref, RDF.type, Nanopub.PPLAN.Step) in self._rdf
 
     @property
     def is_manual_task(self):
         """Returns True if this FairStep is a bpmn:ManualTask, else False."""
-        return (self.this, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf
+        return (self.self_ref, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf
 
     @property
     def is_script_task(self):
         """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
-        return (self.this, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
+        return (self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
 
     @property
     def description(self):

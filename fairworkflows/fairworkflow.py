@@ -25,10 +25,10 @@ class FairWorkflow(RdfWrapper):
 
     def __init__(self, description, uri=DEFAULT_PLAN_URI):
         self._uri = uri
-        self.this = rdflib.URIRef(self._uri)
+        self.self_ref = rdflib.URIRef(self._uri)
 
         self._rdf = rdflib.Graph()
-        self._rdf.add((self.this, RDF.type, Nanopub.PPLAN.Plan))
+        self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Plan))
         self.description = description
         self._steps = {}
         self._last_step_added = None
@@ -88,7 +88,7 @@ class FairWorkflow(RdfWrapper):
         """
         Returns True if this object's rdf specifies that it is a pplan:Plan
         """
-        return (self.this, RDF.type, Nanopub.PPLAN.Plan) in self._rdf
+        return (self.self_ref, RDF.type, Nanopub.PPLAN.Plan) in self._rdf
 
     def get_step(self, uri):
         """

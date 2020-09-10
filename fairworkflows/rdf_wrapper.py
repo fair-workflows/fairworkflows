@@ -7,7 +7,7 @@ class RdfWrapper:
     def __init__(self, uri):
         self._rdf = rdflib.Graph()
         self._uri = uri
-        self.this = rdflib.URIRef(self._uri)
+        self.self_ref = rdflib.URIRef(self._uri)
 
     @property
     def rdf(self) -> rdflib.Graph:
@@ -30,7 +30,7 @@ class RdfWrapper:
             if no attributes are found, or a list of attributes if multiple
             matching objects are found.
         """
-        objects = list(self._rdf.objects(subject=self.this,
+        objects = list(self._rdf.objects(subject=self.self_ref,
                                          predicate=predicate))
         if len(objects) == 0:
             return None
@@ -49,6 +49,6 @@ class RdfWrapper:
         """
         if self.get_attribute(predicate) is not None:
             warnings.warn(f'A predicate {predicate} was already defined'
-                          f'overwriting {predicate} for {self.this}')
-            self._rdf.remove((self.this, predicate, None))
-        self._rdf.add((self.this, predicate, value))
+                          f'overwriting {predicate} for {self.self_ref}')
+            self._rdf.remove((self.self_ref, predicate, None))
+        self._rdf.add((self.self_ref, predicate, value))
