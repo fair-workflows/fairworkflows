@@ -7,7 +7,7 @@ class RdfWrapper:
     def __init__(self, uri):
         self._rdf = rdflib.Graph()
         self._uri = uri
-        self.self_ref = rdflib.URIRef(self._uri)
+        self.self_ref = rdflib.term.BNode('FairObject')
         self._is_modified = False
 
     @property
@@ -59,3 +59,15 @@ class RdfWrapper:
             self._rdf.remove((self.self_ref, predicate, None))
         self._rdf.add((self.self_ref, predicate, value))
         self._is_modified = True
+
+    def anonymise_rdf(self):
+        """
+        Replace any subjects or objects referring directly to the rdf uri, with a blank node
+        """
+        for s, p, o in self._rdf:
+            if self._uri == str(s):
+                self._rdf.remove((s, p, o))
+                self._rdf.add((self.self_ref, p, o))
+            if self._uri == str(o):
+                self._rdf.remove((s, p, o))
+                self._rdf.add((s, p, self.self_ref))
