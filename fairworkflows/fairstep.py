@@ -18,9 +18,7 @@ class FairStep(RdfWrapper):
         Fair Steps may be fetched from Nanopublications, or created from rdflib graphs or python functions.
     """
 
-    DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
-
-    def __init__(self, step_rdf: rdflib.Graph = None, uri=DEFAULT_STEP_URI,
+    def __init__(self, step_rdf: rdflib.Graph = None, uri=None,
                  from_nanopub=False, func=None):
         super().__init__(uri=uri)
 
@@ -31,15 +29,17 @@ class FairStep(RdfWrapper):
         elif from_nanopub:
             self.load_from_nanopub(uri)
         else:
-            self._uri = uri
-
             if step_rdf:
                 self._rdf = step_rdf
 
                 if self._uri not in step_rdf.subjects():
-                    print(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
+                    warnings.warn(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
+
             else:
                 self._rdf = rdflib.Graph()
+
+        # Replace explicit references to the step URI with a blank node 
+        self.anonymise_rdf()
 
     def load_from_nanopub(self, uri):
         """
@@ -77,10 +77,9 @@ class FairStep(RdfWrapper):
             step_uri = uri
 
         self._uri = step_uri
-        self.self_ref = rdflib.URIRef(self._uri)
 
         # Check that the nanopub's assertion actually contains triples refering to the given step's uri
-        if (rdflib.URIRef(self.self_ref), None, None) not in np.assertion:
+        if (rdflib.URIRef(self._uri), None, None) not in np.assertion:
             raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
 
         # Else extract all triples in the assertion into the rdf graph for this step
@@ -108,7 +107,6 @@ class FairStep(RdfWrapper):
         # Publish the step rdf as a nanopub
         self._uri = Nanopub.publish(self._rdf, introduces_concept=self._uri, derived_from=derived_from)
 
-
     def from_function(self, func):
         """
             Generates a plex rdf decription for the given python function, and makes this FairStep object a bpmn:ScriptTask.
@@ -118,7 +116,6 @@ class FairStep(RdfWrapper):
         self._rdf = rdflib.Graph()
         code = inspect.getsource(func)
         self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
-        self.self_ref = rdflib.URIRef(self._uri)
 
         # Set description of step to the raw function code
         self.description  = code
