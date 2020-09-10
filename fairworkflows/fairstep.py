@@ -68,7 +68,7 @@ class FairStep(RdfWrapper):
             if len(concepts_introduced) == 0:
                 raise ValueError('This nanopub does not introduce any concepts. Please provide URI to the step itself (not just the nanopub).')
             elif len(concepts_introduced) > 0:
-                step_uri = concepts_introduced[0]
+                step_uri = str(concepts_introduced[0])
 
             print('Assuming step URI is', step_uri)
 
@@ -92,6 +92,7 @@ class FairStep(RdfWrapper):
     def publish_as_nanopub(self):
         """
         Publishes the rdf for this FairStep as a nanopublication.
+        Returns True if published successfully.
         """
 
         # If this step has been modified from a previously publised step, include this in the derived_from PROV (if applicable)
@@ -101,7 +102,7 @@ class FairStep(RdfWrapper):
                 derived_from = self._uri
             else:
                 warnings.warn(f'Cannot publish() FairStep. This step is already published (at {self._uri}) and has not been modified.')
-                return
+                return False
 
         # Publish the rdf of this step as a nanopub
         np_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
@@ -109,9 +110,10 @@ class FairStep(RdfWrapper):
         # Set the new (published) URI of this fair step, which should be the nanopub URI plus a fragment given by the name of self.self_ref
         self._uri = np_uri + '#' + str(self.self_ref)
         
-
         self._is_published = True
         self._is_modified = False
+
+        return True
 
     def from_function(self, func):
         """
