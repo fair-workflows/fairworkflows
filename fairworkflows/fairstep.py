@@ -1,6 +1,6 @@
 import inspect
 from urllib.parse import urldefrag
-
+import warnings
 import rdflib
 from rdflib import RDF, DCTERMS
 
@@ -102,7 +102,7 @@ class FairStep(RdfWrapper):
             if self.is_modified is True:
                 derived_from = self._uri
             else:
-                print(f'Cannot publish() FairStep. This step is already published (at {self._uri}) and has not been modified.')
+                warnings.warn(f'Cannot publish() FairStep. This step is already published (at {self._uri}) and has not been modified.')
                 return
 
         # Publish the step rdf as a nanopub
