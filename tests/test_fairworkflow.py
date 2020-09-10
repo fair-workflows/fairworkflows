@@ -48,6 +48,13 @@ class TestFairWorkflow:
         for i, step in enumerate(workflow_steps):
             assert step == right_order_steps[i]
 
+    @mock.patch('fairworkflows.nanopub_wrapper.publish')
+    def test_publish(self, nanopub_wrapper_publish_mock):
+        """
+        Test (mock) publishing of workflow
+        """
+        self.workflow.publish_as_nanopub()
+
     def test_decorator(self):
         workflow = FairWorkflow(description='This is a test workflow.')
 
