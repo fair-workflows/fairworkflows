@@ -8,6 +8,7 @@ from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
 
 
+
 class FairStep(RdfWrapper):
     """
         Class for building, validating and publishing Fair Steps, as described by the plex ontology in the publication:
@@ -22,6 +23,9 @@ class FairStep(RdfWrapper):
     def __init__(self, step_rdf: rdflib.Graph = None, uri=DEFAULT_STEP_URI,
                  from_nanopub=False, func=None):
         super().__init__(uri=uri)
+
+        self._is_published = False
+        self._is_modified = False
 
         if func:
             self.from_function(func)
@@ -83,6 +87,27 @@ class FairStep(RdfWrapper):
         # Else extract all triples in the assertion into the rdf graph for this step
         self._rdf = rdflib.Graph()
         self._rdf += np.assertion
+
+        # Record that this RDF originates from a published source
+        self._is_published = True
+
+
+    def publish_as_nanopub(self):
+        """
+        Publishes the rdf for this FairStep as a nanopublication.
+        """
+
+        # If this step has been modified from a previously publised step, include this in the derived_from PROV (if applicable)
+        derived_from = None
+        if self._is_published is True:
+            if self._is_modified is True:
+                derived_from = self._uri
+            else:
+                print(f'Cannot publish() FairStep. This step is already published (at {self._uri}) and has not been modified.')
+                return
+
+        # Publish the step rdf as a nanopub
+        self._uri = Nanopub.publish(self._rdf, introduces_concept=self._uri, derived_from=derived_from)
 
 
     def from_function(self, func):
