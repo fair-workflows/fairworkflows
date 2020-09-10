@@ -47,7 +47,7 @@ melt_butter = FairStep(uri='http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BB
 arrange_chicken = FairStep(uri='http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M#step', from_nanopub=True)
 
 # Specify ordering of steps
-workflow.set_first_step(preheat_oven)
+workflow.first_step = preheat_oven
 workflow.add(melt_butter, follows=preheat_oven)
 workflow.add(arrange_chicken, follows=melt_butter)
 

@@ -13,9 +13,9 @@ class TestFairWorkflow:
     step2 = FairStep(uri='http://www.example.org/step2')
     step3 = FairStep(uri='http://www.example.org/step3')
 
+    workflow.first_step = step1
     workflow.add(step2, follows=step1)
     workflow.add(step3, follows=step2)
-    workflow.set_first_step(step1)
 
     def test_build(self):
         workflow = FairWorkflow(description=self.test_description)
@@ -23,16 +23,18 @@ class TestFairWorkflow:
         assert workflow is not None
         assert str(workflow.description) == self.test_description
 
-        assert not workflow.validate()
+        with pytest.raises(AssertionError):
+            workflow.validate()
 
         workflow.add(self.step2, follows=self.step1)
         workflow.add(self.step3, follows=self.step2)
 
-        assert not workflow.validate()
+        with pytest.raises(AssertionError):
+            workflow.validate()
 
-        workflow.set_first_step(self.step1)
+        workflow.first_step = self.step1
 
-        assert workflow.validate()
+        workflow.validate()
 
         assert workflow.__str__() is not None
         assert len(workflow.__str__()) > 0
@@ -53,11 +55,12 @@ class TestFairWorkflow:
         def test_fn(x, y):
             return x * y
 
-        assert workflow.validate() is False
+        with pytest.raises(AssertionError):
+            workflow.validate()
 
         test_fn(1, 2)
 
-        assert workflow.validate() is True
+        workflow.validate()
 
     @mock.patch.dict('sys.modules', {'graphviz': None})
     def test_draw_without_graphviz_module(self, tmp_path):
