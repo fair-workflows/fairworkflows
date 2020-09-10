@@ -220,13 +220,24 @@ class Nanopub:
     def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None):
         """
         Return the nanopub rdf, with given assertion and (defrag'd) URI, but does not sign or publish.
+        Any blank nodes in the rdf graph are replaced with the nanopub's uri, with the blank node name
+        as a fragment.
         """
 
         # Make sure passed URI is defrag'd        
+        uri = str(uri)
         uri, _ = urldefrag(uri)
-
         this_np = rdflib.Namespace(uri+'#')
 
+        # Replace blank nodes with the nanopub's uri + a fragment derived from the blank node's name
+        for s, p, o in assertionrdf:
+            assertionrdf.remove((s, p, o))
+            if isinstance(s, rdflib.term.BNode):
+                s = this_np[str(s)]
+            if isinstance(o, rdflib.term.BNode):
+                o = this_np[str(o)]
+            assertionrdf.add((s, p, o))
+        
         # Set up different contexts
         np_rdf = rdflib.ConjunctiveGraph()
         head = rdflib.Graph(np_rdf.store, this_np.Head)
@@ -268,7 +279,10 @@ class Nanopub:
 
         if introduces_concept:
             # Convert introduces_concept URI to an rdflib term first (if necessary)
-            introduces_concept = rdflib.URIRef(introduces_concept)
+            if isinstance(introduces_concept, rdflib.term.BNode):
+                introduces_concept = this_np[str(introduces_concept)]
+            else:
+                introduces_concept = rdflib.URIRef(introduces_concept)
 
             pubInfo.add((this_np[''], Nanopub.NPX.introduces, introduces_concept))
 
