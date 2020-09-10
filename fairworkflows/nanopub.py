@@ -217,7 +217,7 @@ class Nanopub:
 
 
     @staticmethod
-    def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None):
+    def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None, attributed_to=None, nanopub_author=None):
         """
         Return the nanopub rdf, with given assertion and (defrag'd) URI, but does not sign or publish.
         Any blank nodes in the rdf graph are replaced with the nanopub's uri, with the blank node name
@@ -266,7 +266,11 @@ class Nanopub:
 
         creationtime = rdflib.Literal(datetime.now(),datatype=XSD.dateTime)
         provenance.add((this_np.assertion, Nanopub.PROV.generatedAtTime, creationtime))
-        provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, this_np.experimentScientist))
+
+        pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
+
+        if attributed_to:
+            provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, attributed_to))
 
         if derived_from:
             # Convert derived_from URI to an rdflib term first (if necessary)
@@ -274,8 +278,8 @@ class Nanopub:
 
             provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, derived_from))
 
-        pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, Nanopub.AUTHOR.DrBob))
-        pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
+        if nanopub_author:
+            pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, nanopub_author))
 
         if introduces_concept:
             # Convert introduces_concept URI to an rdflib term first (if necessary)
