@@ -2,12 +2,11 @@ import warnings
 
 import rdflib
 
-
 class RdfWrapper:
-    def __init__(self, uri):
+    def __init__(self, uri, ref_name='fairobject'):
         self._rdf = rdflib.Graph()
         self._uri = uri
-        self.self_ref = rdflib.term.BNode('FairObject')
+        self.self_ref = rdflib.term.BNode(ref_name)
         self._is_modified = False
 
     @property
