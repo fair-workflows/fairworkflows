@@ -267,6 +267,9 @@ class Nanopub:
         pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
 
         if introduces_concept:
+            # Convert introduces_concept URI to an rdflib term first (if necessary)
+            introduces_concept = rdflib.URIRef(introduces_concept)
+
             pubInfo.add((this_np[''], Nanopub.NPX.introduces, introduces_concept))
 
         return np_rdf
