@@ -8,6 +8,7 @@ class RdfWrapper:
         self._rdf = rdflib.Graph()
         self._uri = uri
         self.self_ref = rdflib.URIRef(self._uri)
+        self._is_modified = False
 
     @property
     def rdf(self) -> rdflib.Graph:
@@ -18,6 +19,11 @@ class RdfWrapper:
     def uri(self) -> str:
         """Get the URI for this RDF."""
         return self._uri
+
+    @property
+    def is_modified(self) -> bool:
+        """Returns true if the RDF has been modified since initialisation"""
+        return self._is_modified
 
     def get_attribute(self, predicate):
         """Get attribute.
@@ -48,7 +54,8 @@ class RdfWrapper:
         it (but throw a warning).
         """
         if self.get_attribute(predicate) is not None:
-            warnings.warn(f'A predicate {predicate} was already defined'
-                          f'overwriting {predicate} for {self.self_ref}')
+            warnings.warn(f'A predicate {predicate} was already defined\n'
+                          f'Overwriting {predicate} for {self.self_ref}')
             self._rdf.remove((self.self_ref, predicate, None))
         self._rdf.add((self.self_ref, predicate, value))
+        self._is_modified = True

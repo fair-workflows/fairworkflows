@@ -25,7 +25,6 @@ class FairStep(RdfWrapper):
         super().__init__(uri=uri)
 
         self._is_published = False
-        self._is_modified = False
 
         if func:
             self.from_function(func)
@@ -100,7 +99,7 @@ class FairStep(RdfWrapper):
         # If this step has been modified from a previously publised step, include this in the derived_from PROV (if applicable)
         derived_from = None
         if self._is_published is True:
-            if self._is_modified is True:
+            if self.is_modified is True:
                 derived_from = self._uri
             else:
                 print(f'Cannot publish() FairStep. This step is already published (at {self._uri}) and has not been modified.')
