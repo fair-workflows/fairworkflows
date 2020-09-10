@@ -8,7 +8,6 @@ from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
 
 
-
 class FairStep(RdfWrapper):
     """
         Class for building, validating and publishing Fair Steps, as described by the plex ontology in the publication:
@@ -20,7 +19,7 @@ class FairStep(RdfWrapper):
 
     def __init__(self, step_rdf: rdflib.Graph = None, uri=None,
                  from_nanopub=False, func=None):
-        super().__init__(uri=uri)
+        super().__init__(uri=uri, ref_name='step')
 
         self._is_published = False
 
@@ -105,7 +104,11 @@ class FairStep(RdfWrapper):
                 return
 
         # Publish the step rdf as a nanopub
-        self._uri = Nanopub.publish(self._rdf, introduces_concept=self._uri, derived_from=derived_from)
+        self._uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+#        out = Nanopub.rdf(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+
+        self._is_published = True
+        self._is_modified = False
 
     def from_function(self, func):
         """
@@ -118,7 +121,7 @@ class FairStep(RdfWrapper):
         self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
 
         # Set description of step to the raw function code
-        self.description  = code
+        self.description = code
 
         # Specify that step is a pplan:Step
         self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Step))
