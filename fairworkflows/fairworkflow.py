@@ -24,10 +24,7 @@ class FairWorkflow(RdfWrapper):
     """
 
     def __init__(self, description, uri=DEFAULT_PLAN_URI):
-        self._uri = uri
-        self.self_ref = rdflib.URIRef(self._uri)
-
-        self._rdf = rdflib.Graph()
+        super().__init__(uri=uri)
         self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Plan))
         self.description = description
         self._steps = {}

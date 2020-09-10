@@ -21,6 +21,7 @@ class FairStep(RdfWrapper):
 
     def __init__(self, step_rdf: rdflib.Graph = None, uri=DEFAULT_STEP_URI,
                  from_nanopub=False, func=None):
+        super().__init__(uri=uri)
 
         if func:
             self.from_function(func)
@@ -36,9 +37,6 @@ class FairStep(RdfWrapper):
                     print(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
             else:
                 self._rdf = rdflib.Graph()
-
-        self.self_ref = rdflib.URIRef(self._uri)
-
 
     def load_from_nanopub(self, uri):
         """
