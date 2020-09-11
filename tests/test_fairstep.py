@@ -99,11 +99,11 @@ def test_modification_and_republishing(nanopub_wrapper_publish_mock):
 
     preheat_oven = FairStep(uri='http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step', from_nanopub=True)
     assert preheat_oven is not None
-    assert preheat_oven.is_modified is False
+    assert not preheat_oven.is_modified
     assert preheat_oven.publish_as_nanopub() is False
 
     # Now modify the step description
-    preheat_oven.set_attribute(rdflib.DCTERMS.description, rdflib.term.Literal('Preheat an oven to 200 degrees C.'))
+    preheat_oven.description =  'Preheat an oven to 200 degrees C.'
     assert preheat_oven.is_modified is True
     assert preheat_oven.publish_as_nanopub() is True
     assert nanopub_wrapper_publish_mock.called
