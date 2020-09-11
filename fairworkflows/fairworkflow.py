@@ -186,8 +186,8 @@ class FairWorkflow(RdfWrapper):
 
         # If this plan has been modified from a previously published plan, include this in the derived_from PROV (if applicable)
         derived_from = None
-        if self._is_published is True:
-            if self.is_modified is True:
+        if self._is_published:
+            if self.is_modified:
                 derived_from = self._uri
             else:
                 warnings.warn(f'Cannot publish() FairWorkflow. This plan is already published (at {self._uri}) and has not been modified.')
