@@ -97,7 +97,7 @@ class FairStep(RdfWrapper):
 
         # If this step has been modified from a previously publised step, include this in the derived_from PROV (if applicable)
         derived_from = None
-        if self._is_published is True:
+        if self._is_published:
             if self.is_modified is True:
                 derived_from = self._uri
             else:
@@ -196,5 +196,4 @@ class FairStep(RdfWrapper):
         s = f'Step URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
-
 
