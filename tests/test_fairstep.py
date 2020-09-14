@@ -120,3 +120,22 @@ def test_modification_and_republishing(nanopub_fetch_mock, nanopub_wrapper_publi
     assert preheat_oven.uri != original_uri
     assert preheat_oven.is_modified is False
 
+
+def test_anonymise_rdf():
+    """
+    Test that the anonymize_rdf() function is correctly replacing nodes
+    that contain the concept URI with the self_ref blank node.
+    """
+
+    test_uri = rdflib.URIRef('http://purl.org/sometest#step')
+
+    # Set up some basic rdf graph to intialise a FairStep with
+    rdf = rdflib.ConjunctiveGraph()
+    rdf.add( (test_uri, rdflib.DCTERMS.description, rdflib.term.Literal('Some step description')) )
+    step = FairStep(step_rdf=rdf, uri=test_uri)
+
+    # Check that the FairStep initialisation has anonymised this rdf
+    for s, p, o in step.rdf:
+        assert s is not test_uri
+        assert isinstance(s, rdflib.term.BNode)
+        assert s is step.self_ref
