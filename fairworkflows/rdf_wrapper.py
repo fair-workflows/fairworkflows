@@ -6,7 +6,7 @@ from .nanopub import Nanopub
 class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject'):
         self._rdf = rdflib.Graph()
-        self._uri = uri
+        self._uri = str(uri)
         self.self_ref = rdflib.term.BNode(ref_name)
         self._is_modified = False
         self._is_published = False

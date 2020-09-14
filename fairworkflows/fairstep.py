@@ -29,7 +29,7 @@ class FairStep(RdfWrapper):
             if step_rdf:
                 self._rdf = step_rdf
 
-                if self._uri not in step_rdf.subjects():
+                if rdflib.URIRef(self._uri) not in step_rdf.subjects():
                     warnings.warn(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
 
             else:
