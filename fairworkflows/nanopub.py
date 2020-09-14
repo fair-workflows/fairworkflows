@@ -217,7 +217,7 @@ class Nanopub:
 
 
     @staticmethod
-    def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None, attributed_to=None, nanopub_author=None):
+    def to_rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None, attributed_to=None, nanopub_author=None):
         """
         Return the nanopub rdf, with given assertion and (defrag'd) URI, but does not sign or publish.
         Any blank nodes in the rdf graph are replaced with the nanopub's uri, with the blank node name
@@ -314,9 +314,9 @@ class Nanopub:
         """
 
         if uri is None:
-            np_rdf = Nanopub.rdf(assertionrdf, introduces_concept=introduces_concept, derived_from=derived_from)
+            np_rdf = Nanopub.to_rdf(assertionrdf, introduces_concept=introduces_concept, derived_from=derived_from)
         else:
-            np_rdf = Nanopub.rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept, derived_from=derived_from)
+            np_rdf = Nanopub.to_rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept, derived_from=derived_from)
 
         # Create a temporary dir for files created during serializing and signing
         tempdir = tempfile.mkdtemp()
