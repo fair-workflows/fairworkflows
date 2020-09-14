@@ -3,7 +3,7 @@ import requests
 from unittest.mock import patch
 import rdflib
 
-from fairworkflows import FairStep
+from fairworkflows import FairStep, Nanopub
 
 BAD_GATEWAY = 502
 NANOPUB_SERVER = 'http://purl.org/np/'
@@ -92,12 +92,20 @@ def test_validation():
         step.validate()
 
 
-@pytest.mark.flaky(max_runs=10)
-@pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
 @patch('fairworkflows.nanopub_wrapper.publish')
-def test_modification_and_republishing(nanopub_wrapper_publish_mock):
+@patch('fairworkflows.nanopub.Nanopub.fetch')
+def test_modification_and_republishing(nanopub_fetch_mock, nanopub_wrapper_publish_mock):
 
-    preheat_oven = FairStep(uri='http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step', from_nanopub=True)
+    test_uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+
+    # Mock the Nanopub.fetch() method to return a locally sourced nanopub
+    nanopub_rdf = rdflib.ConjunctiveGraph()
+    nanopub_rdf.parse('tests/resources/sample_fairstep_nanopub.trig', format='trig')
+    returned_nanopubobj = Nanopub.NanopubObj(rdf=nanopub_rdf, source_uri=test_uri)
+    nanopub_fetch_mock.return_value = returned_nanopubobj 
+
+    # 'Fetch' the nanopub as a fairstep, and attempt to publish it without modification
+    preheat_oven = FairStep(uri=test_uri, from_nanopub=True)
     assert preheat_oven is not None
     assert not preheat_oven.is_modified
     original_uri = preheat_oven.uri
@@ -111,5 +119,4 @@ def test_modification_and_republishing(nanopub_wrapper_publish_mock):
     assert nanopub_wrapper_publish_mock.called
     assert preheat_oven.uri != original_uri
     assert preheat_oven.is_modified is False
-
 
