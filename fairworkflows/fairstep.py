@@ -53,10 +53,10 @@ class FairStep(RdfWrapper):
 
 
         # Work out the nanopub URI by defragging the step URI
-        np_uri, frag = urldefrag(uri)
+        nanopub_uri, frag = urldefrag(uri)
 
         # Fetch the nanopub
-        np = Nanopub.fetch(np_uri)
+        np = Nanopub.fetch(nanopub_uri)
 
         # If there was no fragment in the original uri, then the uri was already the nanopub one.
         # Try to work out what the step's URI is, by looking at what the np is introducing.
@@ -79,7 +79,7 @@ class FairStep(RdfWrapper):
 
         # Check that the nanopub's assertion actually contains triples refering to the given step's uri
         if (rdflib.URIRef(self._uri), None, None) not in np.assertion:
-            raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
+            raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={nanopub_uri})')
 
         # Else extract all triples in the assertion into the rdf graph for this step
         self._rdf = rdflib.Graph()
@@ -105,10 +105,10 @@ class FairStep(RdfWrapper):
                 return
 
         # Publish the rdf of this step as a nanopub
-        np_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+        nanopub_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
 
         # Set the new (published) URI of this fair step, which should be the nanopub URI plus a fragment given by the name of self.self_ref
-        self._uri = np_uri + '#' + str(self.self_ref)
+        self._uri = nanopub_uri + '#' + str(self.self_ref)
         
         self._is_published = True
         self._is_modified = False

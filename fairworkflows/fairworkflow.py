@@ -194,10 +194,10 @@ class FairWorkflow(RdfWrapper):
                 return False
 
         # Publish the rdf of this plan as a nanopub
-        np_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+        nanopub_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
 
         # Set the new (published) URI of this fair workflow, which should be the nanopub URI plus a fragment given by the name of self.self_ref
-        self._uri = np_uri + '#' + str(self.self_ref)
+        self._uri = nanopub_uri + '#' + str(self.self_ref)
 
         self._is_published = True
         self._is_modified = False
