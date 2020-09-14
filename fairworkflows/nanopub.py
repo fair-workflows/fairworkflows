@@ -220,8 +220,20 @@ class Nanopub:
     def to_rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None, attributed_to=None, nanopub_author=None):
         """
         Return the nanopub rdf, with given assertion and (defrag'd) URI, but does not sign or publish.
-        Any blank nodes in the rdf graph are replaced with the nanopub's uri, with the blank node name
-        as a fragment.
+        Any blank nodes in the rdf graph are replaced with the nanopub's URI, with the blank node name
+        as a fragment. For example, if the blank node is called 'step', that would result in a URI composed of the
+        nanopub's (base) URI, followed by #step.
+
+        If introduces_concept is given (string, or rdflib.URIRef), the pubinfo graph will note that this nanopub npx:introduces the given URI.
+        If a blank node (rdflib.term.BNode) is given instead of a URI, the blank node will be converted to a URI
+        derived from the nanopub's URI with a fragment (#) made from the blank node's name.
+
+        If derived_from is given (string or rdflib.URIRef), the provenance graph will note that this nanopub prov:wasDerivedFrom the given URI.
+
+        If attributed_to is given (string or rdflib.URIRef), the provenance graph will note that this nanopub prov:wasAttributedTo the given URI.
+
+        if nanopub_author is given (string or rdflib.URIRef), the pubinfo graph will note that this nanopub prov:wasAttributedTo the given URI.
+
         """
 
         # Make sure passed URI is defrag'd        
@@ -283,6 +295,7 @@ class Nanopub:
         pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
 
         if attributed_to:
+            attributed_to = rdflib.URIRef(attributed_to)
             provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, attributed_to))
 
         if derived_from:
@@ -292,6 +305,7 @@ class Nanopub:
             provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, derived_from))
 
         if nanopub_author:
+            nanopub_author = rdflib.URIRef(nanopub_author)
             pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, nanopub_author))
 
         if introduces_concept:
