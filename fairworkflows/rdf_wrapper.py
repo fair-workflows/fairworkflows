@@ -1,6 +1,7 @@
 import warnings
-
 import rdflib
+
+from .nanopub import Nanopub
 
 class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject'):
@@ -8,6 +9,7 @@ class RdfWrapper:
         self._uri = uri
         self.self_ref = rdflib.term.BNode(ref_name)
         self._is_modified = False
+        self._is_published = False
 
     @property
     def rdf(self) -> rdflib.Graph:
@@ -70,3 +72,30 @@ class RdfWrapper:
             if self._uri == str(o):
                 self._rdf.remove((s, p, o))
                 self._rdf.add((s, p, self.self_ref))
+
+
+    def publish_as_nanopub(self):
+        """
+        Publishes this rdf as a nanopublication.
+        Returns True if published successfully.
+        """
+
+        # If this RDF has been modified from something that was previously published, include the original URI in the derived_from PROV (if applicable)
+        derived_from = None
+        if self._is_published:
+            if self.is_modified:
+                derived_from = self._uri
+            else:
+                warnings.warn(f'Cannot publish() this Fair object. This rdf is already published (at {self._uri}) and has not been modified locally.')
+                return
+
+        # Publish the rdf of this step as a nanopub
+        publication_info  = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+
+        # Set the new, published, URI, which should be whatever the (published) URI of the concept that was introduced is.
+        # Note that this is NOT the nanopub's URI, since the nanopub is not the step/workflow. The rdf object describing the step/workflow
+        # is contained in the assertion graph of the nanopub, and has its own URI.
+        self._uri = publication_info['concept_uri']
+
+        self._is_published = True
+        self._is_modified = False

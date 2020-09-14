@@ -177,34 +177,6 @@ class FairWorkflow(RdfWrapper):
                 'Cannot produce visualization of RDF, you need to install '
                 'graphviz dependency https://graphviz.org/')
 
-
-    def publish_as_nanopub(self):
-        """
-        Publishes the rdf for this FairWorkflow as a nanopublication.
-        Returns True if published successfully.
-        """
-
-        # If this plan has been modified from a previously published plan, include this in the derived_from PROV (if applicable)
-        derived_from = None
-        if self._is_published:
-            if self.is_modified:
-                derived_from = self._uri
-            else:
-                warnings.warn(f'Cannot publish() FairWorkflow. This plan is already published (at {self._uri}) and has not been modified.')
-                return False
-
-        # Publish the rdf of this plan as a nanopub
-        nanopub_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
-
-        # Set the new (published) URI of this fair workflow, which should be the nanopub URI plus a fragment given by the name of self.self_ref
-        self._uri = nanopub_uri + '#' + str(self.self_ref)
-
-        self._is_published = True
-        self._is_modified = False
-
-        return True
-
-
     def __str__(self):
         """
             Returns string representation of this FairWorkflow object.

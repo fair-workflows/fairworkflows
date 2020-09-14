@@ -21,8 +21,6 @@ class FairStep(RdfWrapper):
                  from_nanopub=False, func=None):
         super().__init__(uri=uri, ref_name='step')
 
-        self._is_published = False
-
         if func:
             self.from_function(func)
         elif from_nanopub:
@@ -87,32 +85,6 @@ class FairStep(RdfWrapper):
         # Record that this RDF originates from a published source
         self._is_published = True
 
-
-    def publish_as_nanopub(self):
-        """
-        Publishes the rdf for this FairStep as a nanopublication.
-        Returns True if published successfully.
-        """
-
-        # If this step has been modified from a previously publised step, include this in the derived_from PROV (if applicable)
-        derived_from = None
-        if self._is_published:
-            if self.is_modified:
-                derived_from = self._uri
-            else:
-                warnings.warn(f'Cannot publish() FairStep. This step is already published (at {self._uri}) and has not been modified.')
-                return
-
-        # Publish the rdf of this step as a nanopub
-        publication_info  = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
-
-        # Set the new, published, URI of this fair step, which should be whatever the (published) URI of the concept that was introduced is.
-        # Note that this is NOT the nanopub's URI, since the nanopub is not the step/workflow. The rdf object describing the step/workflow
-        # is contained in the assertion graph of the nanopub, and has its own URI.
-        self._uri = publication_info['concept_uri']
-        
-        self._is_published = True
-        self._is_modified = False
 
     def from_function(self, func):
         """
