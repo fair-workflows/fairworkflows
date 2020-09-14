@@ -321,16 +321,19 @@ class Nanopub:
 
 
     @staticmethod
-    def publish(assertionrdf, uri=None, introduces_concept=None, derived_from=None):
+    def publish(assertionrdf, uri=None, introduces_concept=None, derived_from=None, attributed_to=None, nanopub_author=None):
         """
         Publish the given assertion as a nanopublication with the given URI.
         Uses np commandline tool to sign and publish.
+
+        The meanings and usage of uri, introduces_concept, derived_from, attributed_to, and nanopub_author are the same as described for the to_rdf()
+        method in this module.
         """
 
         if uri is None:
-            np_rdf = Nanopub.to_rdf(assertionrdf, introduces_concept=introduces_concept, derived_from=derived_from)
+            np_rdf = Nanopub.to_rdf(assertionrdf, introduces_concept=introduces_concept, derived_from=derived_from, attributed_to=attributed_to, nanopub_author=nanopub_author)
         else:
-            np_rdf = Nanopub.to_rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept, derived_from=derived_from)
+            np_rdf = Nanopub.to_rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept, derived_from=derived_from, attributed_to=attributed_to, nanopub_author=nanopub_author)
 
         # Create a temporary dir for files created during serializing and signing
         tempdir = tempfile.mkdtemp()
