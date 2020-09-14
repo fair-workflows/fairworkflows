@@ -51,7 +51,6 @@ class FairStep(RdfWrapper):
             are found, then ALL triples in the assertion are added to the rdf graph for this FairStep.
         """
 
-
         # Work out the nanopub URI by defragging the step URI
         nanopub_uri, frag = urldefrag(uri)
 
@@ -105,14 +104,15 @@ class FairStep(RdfWrapper):
                 return
 
         # Publish the rdf of this step as a nanopub
-        nanopub_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+        publication_info  = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
 
-        # Set the new (published) URI of this fair step, which should be the nanopub URI plus a fragment given by the name of self.self_ref
-        self._uri = nanopub_uri + '#' + str(self.self_ref)
+        # Set the new, published, URI of this fair step, which should be whatever the (published) URI of the concept that was introduced is.
+        # Note that this is NOT the nanopub's URI, since the nanopub is not the step/workflow. The rdf object describing the step/workflow
+        # is contained in the assertion graph of the nanopub, and has its own URI.
+        self._uri = publication_info['concept_uri']
         
         self._is_published = True
         self._is_modified = False
-
 
     def from_function(self, func):
         """

@@ -315,11 +315,24 @@ class Nanopub:
 
         # Sign the nanopub and publish it
         signed_file = nanopub_wrapper.sign(unsigned_fname)
-        nanopuburi = nanopub_wrapper.publish(signed_file)
+        nanopub_uri = nanopub_wrapper.publish(signed_file)
+        publication_info = {'nanopub_uri': nanopub_uri}
+        print(f'Published to {nanopub_uri}')
 
-        print(f'Published to {nanopuburi}')
-        return nanopuburi
+        if introduces_concept:
+            # Construct the (actually published) URI of the concept being introduced by this nanopub.
+            # This is only necessary if a blank node was passed as introduces_concept. In that case
+            # this module's to_rdf() function replaces the blank node with the base nanopub's URI
+            # and appends a fragment, given by the 'name' of the blank node. For example, if a blank node
+            # with name 'step' was passed as introduces_concept, the concept will be published with a URI
+            # that looks like [published nanopub URI]#step.
+            
+            concept_uri = nanopub_uri + '#' + str(introduces_concept)
+            publication_info['concept_uri'] = concept_uri
+            print(f'Published concept to {concept_uri}')
 
+        return publication_info
+    
 
     @staticmethod
     def claim(text, rdftriple=None):
