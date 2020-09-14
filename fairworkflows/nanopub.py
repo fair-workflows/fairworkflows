@@ -229,7 +229,20 @@ class Nanopub:
         uri, _ = urldefrag(uri)
         this_np = rdflib.Namespace(uri+'#')
 
-        # Replace blank nodes with the nanopub's uri + a fragment derived from the blank node's name
+        # Replace any blank nodes in the supplied RDF, with a URI derived from the nanopub's uri.
+        # 'Blank nodes' here refers specifically to rdflib.term.BNode objects.
+        # For example, if the nanopub's URI is www.purl.org/ABC123 then the blank node will be replaced with a
+        # concrete URIRef of the form www.purl.org/ABC123#blanknodename where 'blanknodename' is the name of the
+        # the rdflib.term.BNode object. If blanknodename is 'step', then the URI will have a fragment '#step' after it.
+        # 
+        # The problem that this is designed to solve is that a user may wish to use the nanopublication to introduce
+        # a new concept. This new concept needs its own URI (it cannot simply be given the nanopublication's URI),
+        # but it should still lie within the space of the nanopub. Furthermore, the URI the nanopub is published
+        # is not known ahead of time. The variable 'this_np', for example, is holding a dummy URI that is swapped
+        # with the true, published URI of the nanopub by the 'np' tool at the moment of publication.
+        #
+        # We wish to replace any blank nodes in the rdf with URIs that are based on this same dummy URI, so that
+        # they too are transformed to the correct URI upon publishing.
         for s, p, o in assertionrdf:
             assertionrdf.remove((s, p, o))
             if isinstance(s, rdflib.term.BNode):
