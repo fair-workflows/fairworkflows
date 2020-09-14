@@ -102,7 +102,7 @@ class FairStep(RdfWrapper):
                 derived_from = self._uri
             else:
                 warnings.warn(f'Cannot publish() FairStep. This step is already published (at {self._uri}) and has not been modified.')
-                return False
+                return
 
         # Publish the rdf of this step as a nanopub
         np_uri = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
@@ -113,7 +113,6 @@ class FairStep(RdfWrapper):
         self._is_published = True
         self._is_modified = False
 
-        return True
 
     def from_function(self, func):
         """

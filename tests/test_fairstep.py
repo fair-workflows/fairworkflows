@@ -100,12 +100,16 @@ def test_modification_and_republishing(nanopub_wrapper_publish_mock):
     preheat_oven = FairStep(uri='http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step', from_nanopub=True)
     assert preheat_oven is not None
     assert not preheat_oven.is_modified
-    assert preheat_oven.publish_as_nanopub() is False
+    original_uri = preheat_oven.uri
+    preheat_oven.publish_as_nanopub()
+    assert preheat_oven.uri == original_uri
 
     # Now modify the step description
     preheat_oven.description =  'Preheat an oven to 200 degrees C.'
     assert preheat_oven.is_modified is True
-    assert preheat_oven.publish_as_nanopub() is True
+    preheat_oven.publish_as_nanopub()
     assert nanopub_wrapper_publish_mock.called
+    assert preheat_oven.uri != original_uri
     assert preheat_oven.is_modified is False
+
 
