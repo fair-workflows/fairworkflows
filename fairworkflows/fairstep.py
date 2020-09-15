@@ -1,4 +1,5 @@
 import inspect
+from typing import List
 from urllib.parse import urldefrag
 
 import rdflib
@@ -97,7 +98,7 @@ class FairStep(RdfWrapper):
         self.self_ref = rdflib.URIRef(self._uri)
 
         # Set description of step to the raw function code
-        self.description  = code
+        self.description = code
 
         # Specify that step is a pplan:Step
         self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Step))
@@ -119,6 +120,24 @@ class FairStep(RdfWrapper):
     def is_script_task(self):
         """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
         return (self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
+
+    @property
+    def inputs(self) -> List[rdflib.URIRef]:
+        return self.get_attribute(Nanopub.PPLAN.hasInputVar)
+
+    @inputs.setter
+    def inputs(self, uris: List[str]):
+        for uri in uris:
+            self.set_attribute(Nanopub.PPLAN.hasInputVar, rdflib.URIRef(uri))
+
+    @property
+    def outputs(self) -> List[rdflib.URIRef]:
+        return self.get_attribute(Nanopub.PPLAN.hasOutputVar)
+
+    @outputs.setter
+    def outputs(self, uris: List[str]):
+        for uri in uris:
+            self.set_attribute(Nanopub.PPLAN.hasOutputVar, rdflib.URIRef(uri))
 
     @property
     def description(self):

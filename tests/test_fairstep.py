@@ -7,10 +7,17 @@ BAD_GATEWAY = 502
 NANOPUB_SERVER = 'http://purl.org/np/'
 SERVER_UNAVAILABLE = 'Nanopub server is unavailable'
 
+
 def nanopub_server_unavailable():
     response = requests.get(NANOPUB_SERVER)
 
     return response.status_code == BAD_GATEWAY
+
+
+def test_fairstep_construction():
+    step = FairStep()
+    step.inputs = ['http://test.org#input1']
+    step.outputs = ['http://test.org#output1']
 
 
 @pytest.mark.flaky(max_runs=10)

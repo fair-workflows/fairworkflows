@@ -19,7 +19,7 @@ class RdfWrapper:
         """Get the URI for this RDF."""
         return self._uri
 
-    def get_attribute(self, predicate):
+    def get_attribute(self, predicate, always_return_list=False):
         """Get attribute.
 
         Get attribute of this RDF.
@@ -32,6 +32,9 @@ class RdfWrapper:
         """
         objects = list(self._rdf.objects(subject=self.self_ref,
                                          predicate=predicate))
+        if always_return_list:
+            return objects
+
         if len(objects) == 0:
             return None
         elif len(objects) == 1:
