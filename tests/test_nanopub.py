@@ -108,14 +108,14 @@ def test_nanopub_fetch():
 
 def test_nanopub_rdf():
     """
-    Test that Nanopub.rdf() is creating an rdf graph with the right features (contexts)
+    Test that Nanopub.to_rdf() is creating an rdf graph with the right features (contexts)
     for a nanopub.
     """
 
     assertionrdf = rdflib.Graph()
     assertionrdf.add((Nanopub.AUTHOR.DrBob, Nanopub.HYCL.claims, rdflib.Literal('This is a test')))
 
-    generated_rdf = Nanopub.rdf(assertionrdf)
+    generated_rdf = Nanopub.to_rdf(assertionrdf)
 
     assert generated_rdf is not None
     assert (None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf
@@ -124,7 +124,7 @@ def test_nanopub_rdf():
     assert (None, Nanopub.NP.hasPublicationInfo, None) in generated_rdf
 
     new_concept = rdflib.term.URIRef('www.purl.org/new/concept/test')
-    generated_rdf = Nanopub.rdf(assertionrdf, introduces_concept=new_concept)
+    generated_rdf = Nanopub.to_rdf(assertionrdf, introduces_concept=new_concept)
 
     assert generated_rdf is not None
     assert (None, RDF.type, Nanopub.NP.Nanopublication) in generated_rdf
