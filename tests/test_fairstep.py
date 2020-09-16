@@ -109,7 +109,8 @@ def test_modification_and_republishing(nanopub_fetch_mock, nanopub_wrapper_publi
     assert preheat_oven is not None
     assert not preheat_oven.is_modified
     original_uri = preheat_oven.uri
-    preheat_oven.publish_as_nanopub()
+    with pytest.warns(Warning):
+        preheat_oven.publish_as_nanopub()
     assert preheat_oven.uri == original_uri
 
     # Now modify the step description
