@@ -91,7 +91,7 @@ class TestFairStep:
             """
             return a + b
 
-        step = FairStep.from_function(func=add)
+        step = FairStep.from_function(function=add)
 
         assert step is not None
         step.validate()

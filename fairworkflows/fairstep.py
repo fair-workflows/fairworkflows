@@ -84,14 +84,14 @@ class FairStep(RdfWrapper):
         return self
 
     @classmethod
-    def from_function(cls, func):
+    def from_function(cls, function):
         """
             Generates a plex rdf decription for the given python function, and makes this FairStep object a bpmn:ScriptTask.
         """
-        name = func.__name__ + str(time.time())
+        name = function.__name__ + str(time.time())
         uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
         self = cls(uri=uri)
-        code = inspect.getsource(func)
+        code = inspect.getsource(function)
 
         # Set description of step to the raw function code
         self.description = code
