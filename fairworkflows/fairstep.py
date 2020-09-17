@@ -12,12 +12,16 @@ from .rdf_wrapper import RdfWrapper
 
 
 class FairStep(RdfWrapper):
-    """
-        Class for building, validating and publishing Fair Steps, as described by the plex ontology in the publication:
+    """Represent a step in a fair workflow.
 
-        Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study. arXiv preprint arXiv:1911.09531.
+    Class for building, validating and publishing Fair Steps,
+    as described by the plex ontology in the publication:
+    Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T.,
+    & Dumontier, M. (2019). Towards FAIR protocols and workflows: T
+    he OpenPREDICT case study. arXiv preprint arXiv:1911.09531.
 
-        Fair Steps may be fetched from Nanopublications, or created from rdflib graphs or python functions.
+    Fair Steps may be fetched from Nanopublications, created from rdflib
+    graphs or python functions.
     """
 
     DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
