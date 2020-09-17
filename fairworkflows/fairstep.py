@@ -1,4 +1,6 @@
 import inspect
+import time
+import warnings
 from typing import List
 from urllib.parse import urldefrag
 
@@ -20,26 +22,21 @@ class FairStep(RdfWrapper):
 
     DEFAULT_STEP_URI = 'http://purl.org/nanopub/temp/mynanopub#step'
 
-    def __init__(self, step_rdf: rdflib.Graph = None, uri=DEFAULT_STEP_URI,
-                 from_nanopub=False, func=None):
+    def __init__(self, uri=DEFAULT_STEP_URI):
         super().__init__(uri=uri)
 
-        if func:
-            self.from_function(func)
-        elif from_nanopub:
-            self.load_from_nanopub(uri)
-        else:
-            self._uri = uri
+    @classmethod
+    def from_rdf(cls, rdf):
+        """Construct Fair Step from existing RDF."""
+        self = cls()
+        self._rdf = rdf
+        if self._uri not in rdf.subjects():
+            warnings.warn(f"Warning: Provided URI '{self._uri}' does not "
+                          f"match any subject in provided rdf graph.")
+        return self
 
-            if step_rdf:
-                self._rdf = step_rdf
-
-                if self._uri not in step_rdf.subjects():
-                    print(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
-            else:
-                self._rdf = rdflib.Graph()
-
-    def load_from_nanopub(self, uri):
+    @classmethod
+    def from_nanopub(cls, uri):
         """
             Fetches the nanopublication corresponding to the specified URI, and attempts to extract the rdf describing a fairstep from
             its assertion graph. If the URI passed to this function is the uri of the nanopublication (and not the step itself) then
@@ -49,8 +46,6 @@ class FairStep(RdfWrapper):
             If the assertion graph does not contain any triples with the step URI as subject, an exception is raised. If such triples
             are found, then ALL triples in the assertion are added to the rdf graph for this FairStep.
         """
-
-
         # Work out the nanopub URI by defragging the step URI
         np_uri, frag = urldefrag(uri)
 
@@ -73,38 +68,37 @@ class FairStep(RdfWrapper):
 
         else:
             step_uri = uri
-
-        self._uri = step_uri
-        self.self_ref = rdflib.URIRef(self._uri)
+        self = cls(uri=step_uri)
 
         # Check that the nanopub's assertion actually contains triples refering to the given step's uri
         if (rdflib.URIRef(self.self_ref), None, None) not in np.assertion:
             raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={np_uri})')
 
         # Else extract all triples in the assertion into the rdf graph for this step
-        self._rdf = rdflib.Graph()
         self._rdf += np.assertion
 
+        return self
 
-    def from_function(self, func):
+    @classmethod
+    def from_function(cls, func):
         """
             Generates a plex rdf decription for the given python function, and makes this FairStep object a bpmn:ScriptTask.
         """
-        import time
         name = func.__name__ + str(time.time())
-        self._rdf = rdflib.Graph()
+        uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
+        self = cls(uri=uri)
         code = inspect.getsource(func)
-        self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
-        self.self_ref = rdflib.URIRef(self._uri)
 
         # Set description of step to the raw function code
         self.description = code
 
         # Specify that step is a pplan:Step
-        self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Step))
+        self.set_attribute(RDF.type, Nanopub.PPLAN.Step, overwrite=False)
 
         # Specify that step is a ScriptTask
-        self._rdf.add((self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask))
+        self.set_attribute(RDF.type, Nanopub.BPMN.ScriptTask, overwrite=False)
+
+        return self
 
     @property
     def is_pplan_step(self):

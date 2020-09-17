@@ -35,7 +35,7 @@ def test_fairstep_from_nanopub():
     ]
 
     for uri in nanopub_uris:
-        step = FairStep(uri=uri, from_nanopub=True)
+        step = FairStep.from_nanopub(uri=uri)
         assert step is not None
         step.validate()
         assert step.is_pplan_step
@@ -61,7 +61,7 @@ def test_fairstep_from_nanopub_without_fragment():
     ]
 
     for uri in nanopub_uris:
-        step = FairStep(uri=uri, from_nanopub=True)
+        step = FairStep.from_nanopub(uri=uri)
         assert step is not None
         step.validate()
         assert step.is_pplan_step
@@ -77,7 +77,7 @@ def test_fairstep_from_function():
         """
         return a + b
 
-    step = FairStep(func=add)
+    step = FairStep.from_function(func=add)
 
     assert step is not None
     step.validate()

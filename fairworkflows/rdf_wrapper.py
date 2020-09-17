@@ -42,15 +42,15 @@ class RdfWrapper:
         else:
             return objects
 
-    def set_attribute(self, predicate, value):
+    def set_attribute(self, predicate, value, overwrite=True):
         """Set attribute.
 
         Set attribute of this RDF. I.e. for the given `predicate` argument, set
         the object to the given `value` argument for the subject
-        corresponding to this RDF. If the attribute already exists overwrite
-        it (but throw a warning).
+        corresponding to this RDF. Optionally overwrite the attribute if it
+        already exists (but throw a warning).
         """
-        if self.get_attribute(predicate) is not None:
+        if overwrite and self.get_attribute(predicate) is not None:
             warnings.warn(f'A predicate {predicate} was already defined'
                           f'overwriting {predicate} for {self.self_ref}')
             self._rdf.remove((self.self_ref, predicate, None))
