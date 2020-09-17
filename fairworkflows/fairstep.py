@@ -117,21 +117,27 @@ class FairStep(RdfWrapper):
 
     @property
     def inputs(self) -> List[rdflib.URIRef]:
-        return self.get_attribute(Nanopub.PPLAN.hasInputVar)
+        return self.get_attribute(Nanopub.PPLAN.hasInputVar,
+                                  always_return_list=True)
 
     @inputs.setter
     def inputs(self, uris: List[str]):
+        self.delete_attribute(Nanopub.PPLAN.hasInputVar)
         for uri in uris:
-            self.set_attribute(Nanopub.PPLAN.hasInputVar, rdflib.URIRef(uri))
+            self.set_attribute(Nanopub.PPLAN.hasInputVar, rdflib.URIRef(uri),
+                               overwrite=False)
 
     @property
     def outputs(self) -> List[rdflib.URIRef]:
-        return self.get_attribute(Nanopub.PPLAN.hasOutputVar)
+        return self.get_attribute(Nanopub.PPLAN.hasOutputVar,
+                                  always_return_list=True)
 
     @outputs.setter
     def outputs(self, uris: List[str]):
+        self.delete_attribute(Nanopub.PPLAN.hasOutputVar)
         for uri in uris:
-            self.set_attribute(Nanopub.PPLAN.hasOutputVar, rdflib.URIRef(uri))
+            self.set_attribute(Nanopub.PPLAN.hasOutputVar, rdflib.URIRef(uri),
+                               overwrite=False)
 
     @property
     def description(self):

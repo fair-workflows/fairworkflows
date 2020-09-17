@@ -53,5 +53,13 @@ class RdfWrapper:
         if overwrite and self.get_attribute(predicate) is not None:
             warnings.warn(f'A predicate {predicate} was already defined'
                           f'overwriting {predicate} for {self.self_ref}')
-            self._rdf.remove((self.self_ref, predicate, None))
+            self.delete_attribute(predicate)
         self._rdf.add((self.self_ref, predicate, value))
+
+    def delete_attribute(self, predicate):
+        """Delete attribute.
+
+        Delete attribute of this RDF. I.e. remove all triples from the RDF for
+        the given `predicate` argument that have the self-reference subject.
+        """
+        self._rdf.remove((self.self_ref, predicate, None))

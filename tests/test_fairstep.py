@@ -16,8 +16,26 @@ def nanopub_server_unavailable():
 
 def test_fairstep_construction():
     step = FairStep()
-    step.inputs = ['http://test.org#input1']
-    step.outputs = ['http://test.org#output1']
+    step.inputs = ['test.org#input1', 'test.org#input2']
+    step.outputs = ['test.org#output1', 'test.org#output2']
+    assert len(step.inputs) == 2
+    assert len(step.outputs) == 2
+
+
+def test_fairstep_overwrite_inputs():
+    step = FairStep()
+    step.inputs = ['test.org#input1', 'test.org#input2']
+    assert len(step.inputs) == 2
+    step.inputs = ['test.org#input3']
+    assert len(step.inputs) == 1
+
+
+def test_fairstep_overwrite_outputs():
+    step = FairStep()
+    step.outputs = ['test.org#output1', 'test.org#output2']
+    assert len(step.outputs) == 2
+    step.outputs = ['test.org#output3']
+    assert len(step.outputs) == 1
 
 
 @pytest.mark.flaky(max_runs=10)
