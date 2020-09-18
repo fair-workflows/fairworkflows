@@ -35,8 +35,14 @@ class FairWorkflow(RdfWrapper):
         self._last_step_added = None
 
     @classmethod
-    def from_rdf(cls, rdf, uri=None):
-        """Construct Fair Workflow from existing RDF."""
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None):
+        """Construct Fair Workflow from existing RDF.
+
+        Args:
+            rdf: RDF graph containing information about the workflow AND it's
+                associated steps. Should use pplan ontology.
+            uri: URI of the workflow
+        """
         self = cls(uri)
         self._rdf = copy(rdf)  # Make sure we don't mutate user RDF
         if rdflib.URIRef(self._uri) not in rdf.subjects():
