@@ -1,4 +1,5 @@
 import warnings
+from copy import copy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Tuple, List
@@ -23,7 +24,7 @@ class FairWorkflow(RdfWrapper):
         Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
     """
 
-    def __init__(self, description, uri=None):
+    def __init__(self, description=None, uri=None):
         super().__init__(uri=uri, ref_name='plan')
 
         self._is_published = False
@@ -32,6 +33,33 @@ class FairWorkflow(RdfWrapper):
         self.description = description
         self._steps = {}
         self._last_step_added = None
+
+    @classmethod
+    def from_rdf(cls, rdf, uri=None):
+        """Construct Fair Workflow from existing RDF."""
+        self = cls(uri)
+        self._rdf = copy(rdf)  # Make sure we don't mutate user RDF
+        if rdflib.URIRef(self._uri) not in rdf.subjects():
+            warnings.warn(f"Warning: Provided URI '{self._uri}' does not "
+                          f"match any subject in provided rdf graph.")
+        self._extract_steps_from_rdf()
+        self.anonymise_rdf()
+        return self
+
+    def _extract_steps_from_rdf(self):
+        """Extract FairStep objects from self.rdf.
+
+        Extract steps from RDF. Removes triples describing steps from self.rdf.
+        """
+        step_refs = self.rdf.subjects(predicate=Nanopub.PPLAN.isStepOfPlan,
+                                      object=self.self_ref)
+        for step_ref in step_refs:
+            step_rdf = rdflib.Graph()
+            for triple in step_rdf.triples((step_ref, None, None)):
+                step_rdf.add(triple)
+                self.rdf.remove(triple)
+            step = FairStep.from_rdf(self.rdf, uri=str(step_ref))
+            self._steps[step.uri] = step
 
     @property
     def first_step(self):
@@ -103,6 +131,8 @@ class FairWorkflow(RdfWrapper):
             self._steps[step.uri] = step
             self._steps[follows.uri] = follows
             self._last_step_added = step
+        step.set_attribute(Nanopub.PPLAN.isStepOfPlan, self.self_ref,
+                           overwrite=False)
 
     def __iter__(self) -> Iterator[FairStep]:
         """
