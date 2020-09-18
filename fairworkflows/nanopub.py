@@ -217,16 +217,52 @@ class Nanopub:
 
 
     @staticmethod
-    def rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None):
+    def to_rdf(assertionrdf, uri=DEFAULT_URI, introduces_concept=None, derived_from=None, attributed_to=None, nanopub_author=None):
         """
         Return the nanopub rdf, with given assertion and (defrag'd) URI, but does not sign or publish.
+        Any blank nodes in the rdf graph are replaced with the nanopub's URI, with the blank node name
+        as a fragment. For example, if the blank node is called 'step', that would result in a URI composed of the
+        nanopub's (base) URI, followed by #step.
+
+        If introduces_concept is given (string, or rdflib.URIRef), the pubinfo graph will note that this nanopub npx:introduces the given URI.
+        If a blank node (rdflib.term.BNode) is given instead of a URI, the blank node will be converted to a URI
+        derived from the nanopub's URI with a fragment (#) made from the blank node's name.
+
+        If derived_from is given (string or rdflib.URIRef), the provenance graph will note that this nanopub prov:wasDerivedFrom the given URI.
+
+        If attributed_to is given (string or rdflib.URIRef), the provenance graph will note that this nanopub prov:wasAttributedTo the given URI.
+
+        if nanopub_author is given (string or rdflib.URIRef), the pubinfo graph will note that this nanopub prov:wasAttributedTo the given URI.
+
         """
 
         # Make sure passed URI is defrag'd        
+        uri = str(uri)
         uri, _ = urldefrag(uri)
-
         this_np = rdflib.Namespace(uri+'#')
 
+        # Replace any blank nodes in the supplied RDF, with a URI derived from the nanopub's uri.
+        # 'Blank nodes' here refers specifically to rdflib.term.BNode objects.
+        # For example, if the nanopub's URI is www.purl.org/ABC123 then the blank node will be replaced with a
+        # concrete URIRef of the form www.purl.org/ABC123#blanknodename where 'blanknodename' is the name of the
+        # the rdflib.term.BNode object. If blanknodename is 'step', then the URI will have a fragment '#step' after it.
+        # 
+        # The problem that this is designed to solve is that a user may wish to use the nanopublication to introduce
+        # a new concept. This new concept needs its own URI (it cannot simply be given the nanopublication's URI),
+        # but it should still lie within the space of the nanopub. Furthermore, the URI the nanopub is published
+        # is not known ahead of time. The variable 'this_np', for example, is holding a dummy URI that is swapped
+        # with the true, published URI of the nanopub by the 'np' tool at the moment of publication.
+        #
+        # We wish to replace any blank nodes in the rdf with URIs that are based on this same dummy URI, so that
+        # they too are transformed to the correct URI upon publishing.
+        for s, p, o in assertionrdf:
+            assertionrdf.remove((s, p, o))
+            if isinstance(s, rdflib.term.BNode):
+                s = this_np[str(s)]
+            if isinstance(o, rdflib.term.BNode):
+                o = this_np[str(o)]
+            assertionrdf.add((s, p, o))
+        
         # Set up different contexts
         np_rdf = rdflib.ConjunctiveGraph()
         head = rdflib.Graph(np_rdf.store, this_np.Head)
@@ -255,7 +291,12 @@ class Nanopub:
 
         creationtime = rdflib.Literal(datetime.now(),datatype=XSD.dateTime)
         provenance.add((this_np.assertion, Nanopub.PROV.generatedAtTime, creationtime))
-        provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, this_np.experimentScientist))
+
+        pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
+
+        if attributed_to:
+            attributed_to = rdflib.URIRef(attributed_to)
+            provenance.add((this_np.assertion, Nanopub.PROV.wasAttributedTo, attributed_to))
 
         if derived_from:
             # Convert derived_from URI to an rdflib term first (if necessary)
@@ -263,26 +304,36 @@ class Nanopub:
 
             provenance.add((this_np.assertion, Nanopub.PROV.wasDerivedFrom, derived_from))
 
-        pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, Nanopub.AUTHOR.DrBob))
-        pubInfo.add((this_np[''], Nanopub.PROV.generatedAtTime, creationtime))
+        if nanopub_author:
+            nanopub_author = rdflib.URIRef(nanopub_author)
+            pubInfo.add((this_np[''], Nanopub.PROV.wasAttributedTo, nanopub_author))
 
         if introduces_concept:
+            # Convert introduces_concept URI to an rdflib term first (if necessary)
+            if isinstance(introduces_concept, rdflib.term.BNode):
+                introduces_concept = this_np[str(introduces_concept)]
+            else:
+                introduces_concept = rdflib.URIRef(introduces_concept)
+
             pubInfo.add((this_np[''], Nanopub.NPX.introduces, introduces_concept))
 
         return np_rdf
 
 
     @staticmethod
-    def publish(assertionrdf, uri=None, introduces_concept=None, derived_from=None):
+    def publish(assertionrdf, uri=None, introduces_concept=None, derived_from=None, attributed_to=None, nanopub_author=None):
         """
         Publish the given assertion as a nanopublication with the given URI.
         Uses np commandline tool to sign and publish.
+
+        The meanings and usage of uri, introduces_concept, derived_from, attributed_to, and nanopub_author are the same as described for the to_rdf()
+        method in this module.
         """
 
         if uri is None:
-            np_rdf = Nanopub.rdf(assertionrdf, introduces_concept=introduces_concept, derived_from=derived_from)
+            np_rdf = Nanopub.to_rdf(assertionrdf, introduces_concept=introduces_concept, derived_from=derived_from, attributed_to=attributed_to, nanopub_author=nanopub_author)
         else:
-            np_rdf = Nanopub.rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept, derived_from=derived_from)
+            np_rdf = Nanopub.to_rdf(assertionrdf, uri=uri, introduces_concept=introduces_concept, derived_from=derived_from, attributed_to=attributed_to, nanopub_author=nanopub_author)
 
         # Create a temporary dir for files created during serializing and signing
         tempdir = tempfile.mkdtemp()
@@ -294,11 +345,24 @@ class Nanopub:
 
         # Sign the nanopub and publish it
         signed_file = nanopub_wrapper.sign(unsigned_fname)
-        nanopuburi = nanopub_wrapper.publish(signed_file)
+        nanopub_uri = nanopub_wrapper.publish(signed_file)
+        publication_info = {'nanopub_uri': nanopub_uri}
+        print(f'Published to {nanopub_uri}')
 
-        print(f'Published to {nanopuburi}')
-        return nanopuburi
+        if introduces_concept:
+            # Construct the (actually published) URI of the concept being introduced by this nanopub.
+            # This is only necessary if a blank node was passed as introduces_concept. In that case
+            # this module's to_rdf() function replaces the blank node with the base nanopub's URI
+            # and appends a fragment, given by the 'name' of the blank node. For example, if a blank node
+            # with name 'step' was passed as introduces_concept, the concept will be published with a URI
+            # that looks like [published nanopub URI]#step.
+            
+            concept_uri = nanopub_uri + '#' + str(introduces_concept)
+            publication_info['concept_uri'] = concept_uri
+            print(f'Published concept to {concept_uri}')
 
+        return publication_info
+    
 
     @staticmethod
     def claim(text, rdftriple=None):
