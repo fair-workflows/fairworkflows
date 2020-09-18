@@ -1,6 +1,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator
+from typing import Iterator, Tuple, List
 
 import networkx as nx
 import rdflib
@@ -50,6 +50,39 @@ class FairWorkflow(RdfWrapper):
         self.set_attribute(Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri))
         self._steps[step.uri] = step
         self._last_step_added = step
+
+    @property
+    def unbound_inputs(self) -> List[Tuple[rdflib.URIRef, FairStep]]:
+        """Get unbound inputs for workflow.
+
+        Unbound inputs are inputs that are not outputs of any preceding step.
+        You could consider them inputs for the workflow.
+        """
+        outputs = list()
+        unbound_inputs = list()
+        for step in self:
+            for input in step.inputs:
+                if input not in outputs:
+                    unbound_inputs.append((input, step))
+            outputs += step.outputs
+        return unbound_inputs
+
+    @property
+    def unbound_outputs(self) -> List[Tuple[rdflib.URIRef, FairStep]]:
+        """Get unbound outputs for workflow.
+
+        Unbound outputs are outputs that are not inputs of any following
+        step. You could consider them outputs of the workflow.
+        """
+        self._validate_inputs_and_outputs()
+        inputs = list()
+        unbound_outputs = list()
+        for step in reversed(list(self)):
+            for output in step.outputs:
+                if output not in inputs:
+                    unbound_outputs.append((output, step))
+            inputs += step.inputs
+        return unbound_outputs
 
     def add(self, step:FairStep, follows:FairStep=None):
         """
@@ -160,8 +193,9 @@ class FairWorkflow(RdfWrapper):
                           if input in outputs]
 
         if len(invalid_inputs) > 0:
-            m = ''.join([f'{str(step)} has input {input} that is the output of '
-                         f'a later step\n' for input, step in invalid_inputs])
+            m = ''.join([f'{step.self_ref} has input {input} that is the '
+                         f'output of a later step\n'
+                         for input, step in invalid_inputs])
             raise AssertionError(m)
 
     @staticmethod

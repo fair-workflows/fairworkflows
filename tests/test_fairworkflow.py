@@ -60,6 +60,22 @@ class TestFairWorkflow:
         with pytest.raises(AssertionError):
             self.workflow.validate()
 
+    def test_unbound_inputs(self):
+        self.step1.inputs = ['var1']
+        self.step1.outputs = ['var2']
+        self.step2.inputs = ['var2', 'var3']
+        unbound_input_uris = [str(input) for input, step in
+                              self.workflow.unbound_inputs]
+        assert sorted(unbound_input_uris) == sorted(['var1', 'var3'])
+
+    def test_unbound_outputs(self):
+        self.step1.outputs = ['var1', 'var2']
+        self.step2.inputs = ['var2']
+        self.step2.outputs = ['var3']
+        unbound_output_uris = [str(output) for output, step in
+                               self.workflow.unbound_outputs]
+        assert sorted(unbound_output_uris) == sorted(['var1', 'var3'])
+
     def test_decorator(self):
         workflow = FairWorkflow(description='This is a test workflow.')
 
