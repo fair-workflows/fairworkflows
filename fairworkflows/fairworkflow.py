@@ -99,6 +99,7 @@ class FairWorkflow(RdfWrapper):
         else:
             self._rdf.add( (rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(step.uri)) )
             self._steps[step.uri] = step
+            self._steps[follows.uri] = follows
             self._last_step_added = step
 
     def __iter__(self) -> Iterator[FairStep]:

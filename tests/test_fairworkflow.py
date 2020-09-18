@@ -64,11 +64,13 @@ class TestFairWorkflow:
         self.step1.inputs = ['var1']
         self.step1.outputs = ['var2']
         self.step2.inputs = ['var2', 'var3']
+        self.step2.outputs = []
         unbound_input_uris = [str(input) for input, step in
                               self.workflow.unbound_inputs]
         assert sorted(unbound_input_uris) == sorted(['var1', 'var3'])
 
     def test_unbound_outputs(self):
+        self.step1.inputs = []
         self.step1.outputs = ['var1', 'var2']
         self.step2.inputs = ['var2']
         self.step2.outputs = ['var3']
