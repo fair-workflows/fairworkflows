@@ -1,5 +1,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Iterator
 
 import networkx as nx
 import rdflib
@@ -67,7 +68,7 @@ class FairWorkflow(RdfWrapper):
             self._steps[step.uri] = step
             self._last_step_added = step
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[FairStep]:
         """
         Iterate over this FairWorkflow, return one step at a
         time in the order specified by the precedes relations (
@@ -109,8 +110,11 @@ class FairWorkflow(RdfWrapper):
     def validate(self):
         """Validate workflow.
 
-        Checks whether this workflow's rdf has sufficient information required
-        of a workflow in the Plex ontology.
+        Checks whether this workflow's rdf:
+         * Has sufficient information required of a workflow in the Plex
+            ontology.
+         * Step 'hasInputVar' and 'hasOutputVar' match with workflows 'precedes'
+            predicate
         """
         conforms = True
         log = ''
@@ -127,7 +131,38 @@ class FairWorkflow(RdfWrapper):
             log += 'Plan RDF does not specify a first step (pwo:hasFirstStep)\n'
             conforms = False
 
+        try:
+            self._validate_inputs_and_outputs()
+        except AssertionError as e:
+            log += str(e)
+            conforms = False
+
         assert conforms, log
+
+    def _validate_inputs_and_outputs(self):
+        """Validate that inputs and outputs match step order.
+
+        Assert that for all steps the input of a step is *not* the output of a
+        step later in the workflow (order based on the 'precedes' predicate).
+
+        NB: Step inputs can be unbound (and thus inputs for the workflow
+        itself). Only if a later step outputs the input variable of a
+        preceding step this is invalid.
+        """
+        outputs = list()
+        unbound_inputs = list()
+        for step in self:
+            for input in step.inputs:
+                if input not in outputs:
+                    unbound_inputs.append((input, step))
+            outputs += step.outputs
+        invalid_inputs = [(input, step) for input, step in unbound_inputs
+                          if input in outputs]
+
+        if len(invalid_inputs) > 0:
+            m = ''.join([f'{str(step)} has input {input} that is the output of '
+                         f'a later step\n' for input, step in invalid_inputs])
+            raise AssertionError(m)
 
     @staticmethod
     def _import_graphviz():

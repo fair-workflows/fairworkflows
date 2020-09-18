@@ -48,6 +48,16 @@ class TestFairWorkflow:
         for i, step in enumerate(workflow_steps):
             assert step == right_order_steps[i]
 
+    def test_validate_inputs_outputs(self):
+        #
+        self.step1.outputs = ['var1']
+        self.step2.inputs = ['var1']
+        self.workflow.validate()
+        self.step1.inputs = ['var1']
+        self.step2.outputs = ['var1']
+        with pytest.raises(AssertionError):
+            self.workflow.validate()
+
     def test_decorator(self):
         workflow = FairWorkflow(description='This is a test workflow.')
 
