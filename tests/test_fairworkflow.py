@@ -49,10 +49,12 @@ class TestFairWorkflow:
             assert step == right_order_steps[i]
 
     def test_validate_inputs_outputs(self):
-        #
+        # Step 1 precedes step 2, so valid if input of 2 is output of 1
         self.step1.outputs = ['var1']
         self.step2.inputs = ['var1']
         self.workflow.validate()
+
+        # Step 1 precedes step 2, so invalid if input of 1 is output of 2
         self.step1.inputs = ['var1']
         self.step2.outputs = ['var1']
         with pytest.raises(AssertionError):
