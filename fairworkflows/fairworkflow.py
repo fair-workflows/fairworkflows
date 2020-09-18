@@ -176,7 +176,7 @@ class FairWorkflow(RdfWrapper):
             return graphviz
         except ImportError:
             raise ImportError('Cannot produce visualization of RDF, you need '
-                              'to install graphviz==0.14.1 python package. '
+                              'to install graphviz python package. '
                               'Version 0.14.1 is known to work well.')
 
     def display(self):
