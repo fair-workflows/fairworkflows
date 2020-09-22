@@ -26,7 +26,7 @@ class RdfWrapper:
         """Returns true if the RDF has been modified since initialisation"""
         return self._is_modified
 
-    def get_attribute(self, predicate):
+    def get_attribute(self, predicate, always_return_list=False):
         """Get attribute.
 
         Get attribute of this RDF.
@@ -39,6 +39,9 @@ class RdfWrapper:
         """
         objects = list(self._rdf.objects(subject=self.self_ref,
                                          predicate=predicate))
+        if always_return_list:
+            return objects
+
         if len(objects) == 0:
             return None
         elif len(objects) == 1:
@@ -46,20 +49,28 @@ class RdfWrapper:
         else:
             return objects
 
-    def set_attribute(self, predicate, value):
+    def set_attribute(self, predicate, value, overwrite=True):
         """Set attribute.
 
         Set attribute of this RDF. I.e. for the given `predicate` argument, set
         the object to the given `value` argument for the subject
-        corresponding to this RDF. If the attribute already exists overwrite
-        it (but throw a warning).
+        corresponding to this RDF. Optionally overwrite the attribute if it
+        already exists (but throw a warning).
         """
-        if self.get_attribute(predicate) is not None:
-            warnings.warn(f'A predicate {predicate} was already defined\n'
-                          f'Overwriting {predicate} for {self.self_ref}')
-            self._rdf.remove((self.self_ref, predicate, None))
+        if overwrite and self.get_attribute(predicate) is not None:
+            warnings.warn(f'A predicate {predicate} was already defined'
+                          f'overwriting {predicate} for {self.self_ref}')
+            self.delete_attribute(predicate)
         self._rdf.add((self.self_ref, predicate, value))
         self._is_modified = True
+
+    def delete_attribute(self, predicate):
+        """Delete attribute.
+
+        Delete attribute of this RDF. I.e. remove all triples from the RDF for
+        the given `predicate` argument that have the self-reference subject.
+        """
+        self._rdf.remove((self.self_ref, predicate, None))
 
     def anonymise_rdf(self):
         """
@@ -72,7 +83,6 @@ class RdfWrapper:
             if self._uri == str(o):
                 self._rdf.remove((s, p, o))
                 self._rdf.add((s, p, self.self_ref))
-
 
     def publish_as_nanopub(self):
         """

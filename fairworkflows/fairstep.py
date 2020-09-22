@@ -1,4 +1,7 @@
 import inspect
+import time
+import warnings
+from typing import List
 from urllib.parse import urldefrag
 import warnings
 import rdflib
@@ -9,36 +12,34 @@ from .rdf_wrapper import RdfWrapper
 
 
 class FairStep(RdfWrapper):
+    """Represent a step in a fair workflow.
+
+    Class for building, validating and publishing Fair Steps,
+    as described by the plex ontology in the publication:
+    Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T.,
+    & Dumontier, M. (2019). Towards FAIR protocols and workflows: T
+    he OpenPREDICT case study. arXiv preprint arXiv:1911.09531.
+
+    Fair Steps may be fetched from Nanopublications, created from rdflib
+    graphs or python functions.
     """
-        Class for building, validating and publishing Fair Steps, as described by the plex ontology in the publication:
 
-        Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study. arXiv preprint arXiv:1911.09531.
-
-        Fair Steps may be fetched from Nanopublications, or created from rdflib graphs or python functions.
-    """
-
-    def __init__(self, step_rdf: rdflib.Graph = None, uri=None,
-                 from_nanopub=False, func=None):
+    def __init__(self, uri=None):
         super().__init__(uri=uri, ref_name='step')
 
-        if func:
-            self.from_function(func)
-        elif from_nanopub:
-            self.load_from_nanopub(uri)
-        else:
-            if step_rdf:
-                self._rdf = step_rdf
-
-                if rdflib.URIRef(self._uri) not in step_rdf.subjects():
-                    warnings.warn(f"Warning: Provided URI '{self._uri}' does not match any subject in provided rdf graph.")
-
-            else:
-                self._rdf = rdflib.Graph()
-
-        # Replace explicit references to the step URI with a blank node 
+    @classmethod
+    def from_rdf(cls, rdf, uri=None):
+        """Construct Fair Step from existing RDF."""
+        self = cls(uri)
+        self._rdf = rdf
+        if rdflib.URIRef(self._uri) not in rdf.subjects():
+            warnings.warn(f"Warning: Provided URI '{self._uri}' does not "
+                          f"match any subject in provided rdf graph.")
         self.anonymise_rdf()
+        return self
 
-    def load_from_nanopub(self, uri):
+    @classmethod
+    def from_nanopub(cls, uri):
         """
             Fetches the nanopublication corresponding to the specified URI, and attempts to extract the rdf describing a fairstep from
             its assertion graph. If the URI passed to this function is the uri of the nanopublication (and not the step itself) then
@@ -48,7 +49,6 @@ class FairStep(RdfWrapper):
             If the assertion graph does not contain any triples with the step URI as subject, an exception is raised. If such triples
             are found, then ALL triples in the assertion are added to the rdf graph for this FairStep.
         """
-
         # Work out the nanopub URI by defragging the step URI
         nanopub_uri, frag = urldefrag(uri)
 
@@ -71,39 +71,41 @@ class FairStep(RdfWrapper):
 
         else:
             step_uri = uri
-
-        self._uri = step_uri
+        self = cls(uri=step_uri)
 
         # Check that the nanopub's assertion actually contains triples refering to the given step's uri
         if (rdflib.URIRef(self._uri), None, None) not in np.assertion:
             raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={nanopub_uri})')
 
         # Else extract all triples in the assertion into the rdf graph for this step
-        self._rdf = rdflib.Graph()
         self._rdf += np.assertion
 
         # Record that this RDF originates from a published source
         self._is_published = True
 
+        self.anonymise_rdf()
+        return self
 
-    def from_function(self, func):
+    @classmethod
+    def from_function(cls, function):
         """
             Generates a plex rdf decription for the given python function, and makes this FairStep object a bpmn:ScriptTask.
         """
-        import time
-        name = func.__name__ + str(time.time())
-        self._rdf = rdflib.Graph()
-        code = inspect.getsource(func)
-        self._uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
+        name = function.__name__ + str(time.time())
+        uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
+        self = cls(uri=uri)
+        code = inspect.getsource(function)
 
         # Set description of step to the raw function code
         self.description = code
 
         # Specify that step is a pplan:Step
-        self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Step))
+        self.set_attribute(RDF.type, Nanopub.PPLAN.Step, overwrite=False)
 
         # Specify that step is a ScriptTask
-        self._rdf.add((self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask))
+        self.set_attribute(RDF.type, Nanopub.BPMN.ScriptTask, overwrite=False)
+
+        return self
 
     @property
     def is_pplan_step(self):
@@ -119,6 +121,44 @@ class FairStep(RdfWrapper):
     def is_script_task(self):
         """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
         return (self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
+
+    @property
+    def inputs(self) -> List[rdflib.URIRef]:
+        """Inputs for this step.
+
+        Inputs are a list of URIRef's. The URIs should point to
+        a pplan.Variable, for example: www.purl.org/stepuri#inputvarname.
+        Set inputs by passing a list of strings depicting URIs. This
+        overwrites old inputs.
+        """
+        return self.get_attribute(Nanopub.PPLAN.hasInputVar,
+                                  always_return_list=True)
+
+    @inputs.setter
+    def inputs(self, uris: List[str]):
+        self.delete_attribute(Nanopub.PPLAN.hasInputVar)
+        for uri in uris:
+            self.set_attribute(Nanopub.PPLAN.hasInputVar, rdflib.URIRef(uri),
+                               overwrite=False)
+
+    @property
+    def outputs(self) -> List[rdflib.URIRef]:
+        """Get inputs for this step.
+
+        Outputs are a list of URIRef's. The URIs should point to
+        a pplan.Variable, for example: www.purl.org/stepuri#outputvarname.
+        Set outputs by passing a list of strings depicting URIs. This
+        overwrites old outputs.
+        """
+        return self.get_attribute(Nanopub.PPLAN.hasOutputVar,
+                                  always_return_list=True)
+
+    @outputs.setter
+    def outputs(self, uris: List[str]):
+        self.delete_attribute(Nanopub.PPLAN.hasOutputVar)
+        for uri in uris:
+            self.set_attribute(Nanopub.PPLAN.hasOutputVar, rdflib.URIRef(uri),
+                               overwrite=False)
 
     @property
     def description(self):
@@ -167,4 +207,3 @@ class FairStep(RdfWrapper):
         s = f'Step URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
-
