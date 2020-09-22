@@ -124,13 +124,18 @@ class FairStep(RdfWrapper):
 
     @property
     def inputs(self) -> List[rdflib.URIRef]:
-        """Get inputs for this step."""
+        """Inputs for this step.
+
+        Inputs are a list of URIRef's. The URIs should point to
+        a pplan.Variable, for example: www.purl.org/stepuri#inputvarname.
+        Set inputs by passing a list of strings depicting URIs. This
+        overwrites old inputs.
+        """
         return self.get_attribute(Nanopub.PPLAN.hasInputVar,
                                   always_return_list=True)
 
     @inputs.setter
     def inputs(self, uris: List[str]):
-        """Set inputs for this step. Overwrite old inputs."""
         self.delete_attribute(Nanopub.PPLAN.hasInputVar)
         for uri in uris:
             self.set_attribute(Nanopub.PPLAN.hasInputVar, rdflib.URIRef(uri),
@@ -138,13 +143,18 @@ class FairStep(RdfWrapper):
 
     @property
     def outputs(self) -> List[rdflib.URIRef]:
-        """Get inputs for this step."""
+        """Get inputs for this step.
+
+        Outputs are a list of URIRef's. The URIs should point to
+        a pplan.Variable, for example: www.purl.org/stepuri#outputvarname.
+        Set outputs by passing a list of strings depicting URIs. This
+        overwrites old outputs.
+        """
         return self.get_attribute(Nanopub.PPLAN.hasOutputVar,
                                   always_return_list=True)
 
     @outputs.setter
     def outputs(self, uris: List[str]):
-        """Set outputs for this step. Overwrite old inputs."""
         self.delete_attribute(Nanopub.PPLAN.hasOutputVar)
         for uri in uris:
             self.set_attribute(Nanopub.PPLAN.hasOutputVar, rdflib.URIRef(uri),
