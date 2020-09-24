@@ -1,0 +1,29 @@
+# YAML 1.2
+---
+abstract: "This repository contains some core software components for building the 'FAIR Workbench', as part of the FAIR is FAIR project. The focus is on description of workflows consisting of manual and computational steps using semantic technology, such as the ontology described in the publication: Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study. arXiv:1911.09531. The goals of the project are: 1. To facilitate the construction of RDF descriptions of a variety of scientific 'workflows', in the most general sense. This includes experimental procedures, ipython notebooks, computational analysis of results, etc.  2. To allow validation and publication of the resultant RDF (for example, by means of nanopublications).  3. Re-use of previously published steps, in new workflows.  4. FAIR data flow from end-to-end.. The fairworkflows library seeks to provide an easy-to-use python interface for achieving these goals."
+
+
+authors:
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Richardson
+    given-names: Robin
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Burg
+    given-names: Sven
+    name-particle: "van der"
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Smits
+    given-names: Djura
+cff-version: "1.0.3"
+keywords:
+  - "machine learning"
+  - "deep learning"
+  - "time series"
+  - "automated machine learning"
+license: "Apache-2.0"
+message: "If you use this software, please cite it using these metadata."
+title: "fairworkflows: A python library for handling semantically described scientific workflows"
+version: "0.1"
