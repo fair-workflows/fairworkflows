@@ -27,7 +27,7 @@ setup(name='fairworkflows',
       description='FAIRWorkflows python library',
       author='Robin Richardson, Djura Smits, Sven van den Burg',
       author_email='r.richardson@esciencecenter.nl',
-      url='https://example.org',
+      url='https://github.com/fair-workflows/FAIRWorkbench/',
       install_requires=open("requirements.txt", "r").readlines(),
       packages=['fairworkflows'],
       package_data={
@@ -38,5 +38,11 @@ setup(name='fairworkflows',
       include_package_data=True,
       extras_require={
           'dev': open('requirements_dev.txt', 'r').readlines()
-      }
+      },
+      classifiers=[
+          "Programming Language :: Python :: 3",
+          "License :: Apache 2 License",
+          "Operating System :: OS Independent"
+      ],
+      python_requires='>=3.6'
       )
