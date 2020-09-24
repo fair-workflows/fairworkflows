@@ -41,7 +41,7 @@ setup(name='fairworkflows',
       },
       classifiers=[
           "Programming Language :: Python :: 3",
-          "License :: Apache 2 License",
+          "License :: OSI Approved :: Apache Software License",
           "Operating System :: OS Independent"
       ],
       python_requires='>=3.6'
