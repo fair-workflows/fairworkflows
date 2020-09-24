@@ -19,10 +19,11 @@ authors:
     given-names: Djura
 cff-version: "1.0.3"
 keywords:
-  - "machine learning"
-  - "deep learning"
-  - "time series"
-  - "automated machine learning"
+  - "semantic"
+  - "RDF"
+  - "FAIR"
+  - "workflows"
+  - "nanopublications"
 license: "Apache-2.0"
 message: "If you use this software, please cite it using these metadata."
 title: "fairworkflows: A python library for handling semantically described scientific workflows"
