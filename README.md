@@ -17,10 +17,10 @@ We seek to provide an easy-to-use python interface for achieving the above.
 
 ### Installation
 
-From the root of the repo (directory containing ```setup.py```), run:
+The most recent release can be installed from the python package index using ```pip```:
 
-```shell script
-pip install .
+```
+pip install fairworkflows
 ```
 
 ### Description
