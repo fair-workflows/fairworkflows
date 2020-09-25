@@ -1,8 +1,10 @@
 from unittest import mock
 
 import pytest
+import rdflib
 
 from fairworkflows import FairWorkflow, FairStep, fairstep
+from fairworkflows.config import TESTS_RESOURCES
 
 
 class TestFairWorkflow:
@@ -39,6 +41,20 @@ class TestFairWorkflow:
         assert workflow.__str__() is not None
         assert len(workflow.__str__()) > 0
         assert workflow.rdf is not None
+
+    def test_construct_from_rdf(self):
+        rdf = rdflib.Graph()
+        rdf.parse(str(TESTS_RESOURCES / 'test_workflow_including_steps.trig'),
+                  format='trig')
+        uri = 'http://www.example.org/workflow1'
+        workflow = FairWorkflow.from_rdf(rdf, uri)
+        valid_step_uris = [uri + '#step1', uri + '#step2', uri + '#step3']
+        steps = list(workflow)
+        assert len(steps) == 3
+        for step in steps:
+            step.validate()
+            assert step.uri in valid_step_uris
+        workflow.validate()
 
     def test_iterator(self):
         """Test iterating over the workflow."""

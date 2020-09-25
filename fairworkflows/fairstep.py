@@ -3,12 +3,16 @@ import time
 import warnings
 from typing import List
 from urllib.parse import urldefrag
-import warnings
+
 import rdflib
 from rdflib import RDF, DCTERMS
 
 from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
+
+FAIRSTEP_PREDICATES = [RDF.type, Nanopub.PPLAN.hasInputVar,
+                       Nanopub.PPLAN.hasOutputVar, DCTERMS.description,
+                       Nanopub.PPLAN.isStepOfPlan]
 
 
 class FairStep(RdfWrapper):

@@ -9,7 +9,7 @@ import rdflib
 from rdflib import RDF, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 
-from .fairstep import FairStep
+from .fairstep import FairStep, FAIRSTEP_PREDICATES
 from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
 
@@ -43,28 +43,32 @@ class FairWorkflow(RdfWrapper):
                 associated steps. Should use pplan ontology.
             uri: URI of the workflow
         """
-        self = cls(uri)
-        self._rdf = copy(rdf)  # Make sure we don't mutate user RDF
-        if rdflib.URIRef(self._uri) not in rdf.subjects():
-            warnings.warn(f"Warning: Provided URI '{self._uri}' does not "
+        rdf = copy(rdf)  # Make sure we don't mutate user RDF
+        if rdflib.URIRef(uri) not in rdf.subjects():
+            warnings.warn(f"Warning: Provided URI '{uri}' does not "
                           f"match any subject in provided rdf graph.")
-        self._extract_steps_from_rdf()
+        self = cls(uri=uri)
+        self._extract_steps_from_rdf(rdf, uri)
+        self._rdf = rdf
         self.anonymise_rdf()
         return self
 
-    def _extract_steps_from_rdf(self):
-        """Extract FairStep objects from self.rdf.
+    def _extract_steps_from_rdf(self, rdf, uri):
+        """Extract FairStep objects from rdf.
 
-        Extract steps from RDF. Removes triples describing steps from self.rdf.
+        Create FairStep objects for all steps in the passed RDF. Removes
+        triples describing steps from rdf, those will be represented in
+        the separate step RDF.
         """
-        step_refs = self.rdf.subjects(predicate=Nanopub.PPLAN.isStepOfPlan,
-                                      object=self.self_ref)
+        step_refs = rdf.subjects(predicate=Nanopub.PPLAN.isStepOfPlan,
+                                 object=rdflib.URIRef(uri))
         for step_ref in step_refs:
             step_rdf = rdflib.Graph()
-            for triple in step_rdf.triples((step_ref, None, None)):
-                step_rdf.add(triple)
-                self.rdf.remove(triple)
-            step = FairStep.from_rdf(self.rdf, uri=str(step_ref))
+            for s, p, o in rdf.triples((step_ref, None, None)):
+                if p in FAIRSTEP_PREDICATES:
+                    step_rdf.add((s, p, o))
+                    rdf.remove((s, p, o))
+            step = FairStep.from_rdf(step_rdf, uri=str(step_ref))
             self._steps[step.uri] = step
 
     @property
