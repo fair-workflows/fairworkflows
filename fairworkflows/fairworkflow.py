@@ -53,39 +53,45 @@ class FairWorkflow(RdfWrapper):
             warnings.warn(f"Warning: Provided URI '{uri}' does not "
                           f"match any subject in provided rdf graph.")
         self = cls(uri=uri)
-        self._extract_steps_from_rdf(rdf, uri, fetch_steps)
+        self._extract_steps(rdf, uri, fetch_steps)
         self._rdf = rdf
         self.anonymise_rdf()
         return self
 
-    def _extract_steps_from_rdf(self, rdf, uri, fetch_steps=False):
+    def _extract_steps(self, rdf, uri, fetch_steps=False):
         """Extract FairStep objects from rdf.
 
         Create FairStep objects for all steps in the passed RDF. Removes
         triples describing steps from rdf, those will be represented in
-        the separate step RDF.
+        the separate step RDF. Optionally try to fetch steps from nanopub.
         """
         step_refs = rdf.subjects(predicate=Nanopub.PPLAN.isStepOfPlan,
                                  object=rdflib.URIRef(uri))
         for step_ref in step_refs:
-            step_rdf = rdflib.Graph()
-            for s, p, o in rdf.triples((step_ref, None, None)):
-                if p in FAIRSTEP_PREDICATES:
-                    step_rdf.add((s, p, o))
-                    rdf.remove((s, p, o))
-            step = None
-            if len(step_rdf) > 0:
-                step = FairStep.from_rdf(step_rdf, uri=str(step_ref))
-            elif fetch_steps:
-                step = self._fetch_step(uri=str(step_ref))
-
+            step_uri = str(step_ref)
+            step = self._extract_step_from_rdf(step_uri, rdf)
+            if step is None and fetch_steps:
+                step = self._fetch_step(uri=step_uri)
             if step is None:
-                warnings.warn(f'Could not get more detailed information for '
-                              f'step {str(step_ref)}, adding a FairStep '
+                warnings.warn(f'Could not get detailed information for '
+                              f'step {step_uri}, adding a FairStep '
                               f'without attributes. This will limit '
                               f'functionality of the FairWorkflow object.')
-                step = FairStep(uri=str(step_ref))
+                step = FairStep(uri=step_uri)
             self._add_step(step)
+
+    @staticmethod
+    def _extract_step_from_rdf(uri, rdf: rdflib.Graph()) -> Optional[FairStep]:
+        step_rdf = rdflib.Graph()
+        for s, p, o in rdf.triples((rdflib.URIRef(uri), None, None)):
+            if p in FAIRSTEP_PREDICATES:
+                step_rdf.add((s, p, o))
+                rdf.remove((s, p, o))
+
+        if len(step_rdf) > 0:
+            return FairStep.from_rdf(step_rdf, uri=uri)
+        else:
+            return None
 
     @staticmethod
     def _fetch_step(uri: str) -> Optional[FairStep]:
