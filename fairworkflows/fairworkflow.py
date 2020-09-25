@@ -141,8 +141,7 @@ class FairWorkflow(RdfWrapper):
             self._steps[step.uri] = step
             self._steps[follows.uri] = follows
             self._last_step_added = step
-        step.set_attribute(Nanopub.PPLAN.isStepOfPlan, self.self_ref,
-                           overwrite=False)
+        step.add_plan(str(self.self_ref))
 
     def __iter__(self) -> Iterator[FairStep]:
         """

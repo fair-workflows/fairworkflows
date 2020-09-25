@@ -26,7 +26,7 @@ class RdfWrapper:
         """Returns true if the RDF has been modified since initialisation"""
         return self._is_modified
 
-    def get_attribute(self, predicate, always_return_list=False):
+    def get_attribute(self, predicate, return_list=False):
         """Get attribute.
 
         Get attribute of this RDF.
@@ -39,7 +39,7 @@ class RdfWrapper:
         """
         objects = list(self._rdf.objects(subject=self.self_ref,
                                          predicate=predicate))
-        if always_return_list:
+        if return_list:
             return objects
 
         if len(objects) == 0:
@@ -60,17 +60,19 @@ class RdfWrapper:
         if overwrite and self.get_attribute(predicate) is not None:
             warnings.warn(f'A predicate {predicate} was already defined'
                           f'overwriting {predicate} for {self.self_ref}')
-            self.delete_attribute(predicate)
+            self.remove_attribute(predicate)
         self._rdf.add((self.self_ref, predicate, value))
         self._is_modified = True
 
-    def delete_attribute(self, predicate):
-        """Delete attribute.
+    def remove_attribute(self, predicate, object=None):
+        """Remove attribute.
 
-        Delete attribute of this RDF. I.e. remove all triples from the RDF for
-        the given `predicate` argument that have the self-reference subject.
+        If `object` arg is None: remove attribute of this RDF. I.e. remove all
+        triples from the RDF for the given `predicate` argument that have the
+        self-reference subject. Else remove only attributes with the object
+        matching the `object` arg.
         """
-        self._rdf.remove((self.self_ref, predicate, None))
+        self._rdf.remove((self.self_ref, predicate, object))
 
     def anonymise_rdf(self):
         """

@@ -127,6 +127,22 @@ class FairStep(RdfWrapper):
         return (self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
 
     @property
+    def plans(self) -> List[rdflib.URIRef]:
+        """Plans that this step is part of.
+
+        URIs should point to a pplan.step.
+        """
+        return self.get_attribute(Nanopub.PPLAN.isStepOfPlan,
+                                  return_list=True)
+
+    def add_plan(self, uri: str):
+        self.set_attribute(Nanopub.PPLAN.isStepOfPlan, rdflib.URIRef(uri),
+                           overwrite=False)
+
+    def delete_plan(self, uri: str):
+        self.remove_attribute(Nanopub.PPLAN.isStepOfPlan, rdflib.URIRef(uri))
+
+    @property
     def inputs(self) -> List[rdflib.URIRef]:
         """Inputs for this step.
 
@@ -136,11 +152,11 @@ class FairStep(RdfWrapper):
         overwrites old inputs.
         """
         return self.get_attribute(Nanopub.PPLAN.hasInputVar,
-                                  always_return_list=True)
+                                  return_list=True)
 
     @inputs.setter
     def inputs(self, uris: List[str]):
-        self.delete_attribute(Nanopub.PPLAN.hasInputVar)
+        self.remove_attribute(Nanopub.PPLAN.hasInputVar)
         for uri in uris:
             self.set_attribute(Nanopub.PPLAN.hasInputVar, rdflib.URIRef(uri),
                                overwrite=False)
@@ -155,11 +171,11 @@ class FairStep(RdfWrapper):
         overwrites old outputs.
         """
         return self.get_attribute(Nanopub.PPLAN.hasOutputVar,
-                                  always_return_list=True)
+                                  return_list=True)
 
     @outputs.setter
     def outputs(self, uris: List[str]):
-        self.delete_attribute(Nanopub.PPLAN.hasOutputVar)
+        self.remove_attribute(Nanopub.PPLAN.hasOutputVar)
         for uri in uris:
             self.set_attribute(Nanopub.PPLAN.hasOutputVar, rdflib.URIRef(uri),
                                overwrite=False)
