@@ -1,0 +1,13 @@
+@prefix this: <http://www.example.org/workflow1> .
+@prefix sub: <http://www.example.org/workflow1#> .
+@prefix pplan: <http://purl.org/net/p-plan#> .
+@prefix terms: <http://purl.org/dc/terms/> .
+@prefix pwo: <http://purl.org/spar/pwo/> .
+
+{
+    this: a pplan:Plan ;
+       terms:description "This is a test workflow." ;
+       pwo:hasFirstStep sub:step1 .
+
+    sub:step1 pplan:isStepOfPlan this: .
+}

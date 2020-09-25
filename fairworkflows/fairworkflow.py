@@ -35,25 +35,27 @@ class FairWorkflow(RdfWrapper):
         self._last_step_added = None
 
     @classmethod
-    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None):
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None,
+                 fetch_steps: bool = False):
         """Construct Fair Workflow from existing RDF.
 
         Args:
             rdf: RDF graph containing information about the workflow AND it's
                 associated steps. Should use pplan ontology.
             uri: URI of the workflow
+            fetch_steps: toggles fetching steps
         """
         rdf = copy(rdf)  # Make sure we don't mutate user RDF
         if rdflib.URIRef(uri) not in rdf.subjects():
             warnings.warn(f"Warning: Provided URI '{uri}' does not "
                           f"match any subject in provided rdf graph.")
         self = cls(uri=uri)
-        self._extract_steps_from_rdf(rdf, uri)
+        self._extract_steps_from_rdf(rdf, uri, fetch_steps)
         self._rdf = rdf
         self.anonymise_rdf()
         return self
 
-    def _extract_steps_from_rdf(self, rdf, uri):
+    def _extract_steps_from_rdf(self, rdf, uri, fetch_steps=False):
         """Extract FairStep objects from rdf.
 
         Create FairStep objects for all steps in the passed RDF. Removes
@@ -64,12 +66,18 @@ class FairWorkflow(RdfWrapper):
                                  object=rdflib.URIRef(uri))
         for step_ref in step_refs:
             step_rdf = rdflib.Graph()
+            step_attributes_in_rdf = False
             for s, p, o in rdf.triples((step_ref, None, None)):
                 if p in FAIRSTEP_PREDICATES:
+                    step_attributes_in_rdf = True
                     step_rdf.add((s, p, o))
                     rdf.remove((s, p, o))
-            step = FairStep.from_rdf(step_rdf, uri=str(step_ref))
-            self._steps[step.uri] = step
+            if step_attributes_in_rdf:
+                step = FairStep.from_rdf(step_rdf, uri=str(step_ref))
+                self._add_step(step)
+            elif fetch_steps:
+                step = FairStep.from_nanopub(uri=str(step_ref))
+                self._add_step(step)
 
     @property
     def first_step(self):

@@ -47,7 +47,7 @@ class TestFairWorkflow:
         rdf.parse(str(TESTS_RESOURCES / 'test_workflow_including_steps.trig'),
                   format='trig')
         uri = 'http://www.example.org/workflow1'
-        workflow = FairWorkflow.from_rdf(rdf, uri)
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
         valid_step_uris = [uri + '#step1', uri + '#step2', uri + '#step3']
         steps = list(workflow)
         assert len(steps) == 3
@@ -55,6 +55,16 @@ class TestFairWorkflow:
             step.validate()
             assert step.uri in valid_step_uris
         workflow.validate()
+
+    @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
+    def test_construct_from_rdf_fetch_steps(self, mock_step_from_nanopub):
+        rdf = rdflib.Graph()
+        rdf.parse(str(TESTS_RESOURCES / 'test_workflow_excluding_steps.trig'),
+                  format='trig')
+        uri = 'http://www.example.org/workflow1'
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
+        assert len(workflow._steps) == 1
+        assert mock_step_from_nanopub.call_count == 1
 
     def test_iterator(self):
         """Test iterating over the workflow."""
