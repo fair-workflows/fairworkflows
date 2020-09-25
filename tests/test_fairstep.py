@@ -4,6 +4,7 @@ from unittest.mock import patch
 import rdflib
 
 from fairworkflows import FairStep, Nanopub
+from fairworkflows.config import TESTS_RESOURCES
 
 BAD_GATEWAY = 502
 NANOPUB_SERVER = 'http://purl.org/np/'
@@ -118,7 +119,8 @@ class TestFairStep:
 
         # Mock the Nanopub.fetch() method to return a locally sourced nanopub
         nanopub_rdf = rdflib.ConjunctiveGraph()
-        nanopub_rdf.parse('tests/resources/sample_fairstep_nanopub.trig', format='trig')
+        nanopub_rdf.parse(str(TESTS_RESOURCES / 'sample_fairstep_nanopub.trig'),
+                          format='trig')
         returned_nanopubobj = Nanopub.NanopubObj(rdf=nanopub_rdf, source_uri=test_uri)
         nanopub_fetch_mock.return_value = returned_nanopubobj
 
