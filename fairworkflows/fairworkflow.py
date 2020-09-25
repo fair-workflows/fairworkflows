@@ -2,7 +2,7 @@ import warnings
 from copy import copy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator, Tuple, List
+from typing import Iterator, Tuple, List, Optional
 
 import networkx as nx
 import rdflib
@@ -67,27 +67,16 @@ class FairWorkflow(RdfWrapper):
                                  object=rdflib.URIRef(uri))
         for step_ref in step_refs:
             step_rdf = rdflib.Graph()
-            step_attributes_in_rdf = False
             for s, p, o in rdf.triples((step_ref, None, None)):
                 if p in FAIRSTEP_PREDICATES:
-                    step_attributes_in_rdf = True
                     step_rdf.add((s, p, o))
                     rdf.remove((s, p, o))
             step = None
-            if step_attributes_in_rdf:
+            if len(step_rdf) > 0:
                 step = FairStep.from_rdf(step_rdf, uri=str(step_ref))
             elif fetch_steps:
-                try:
-                    step = FairStep.from_nanopub(uri=str(step_ref))
-                except HTTPError as e:
-                    if e.response.status_code == 404:
-                        warnings.warn(
-                            f'Failed fetching {str(step_ref)} from nanopub'
-                            f'server, probably it is not published '
-                            f'there. Fairworkflows does currently not support'
-                            f'other sources')
-                    else:
-                        raise
+                step = self._fetch_step(uri=str(step_ref))
+
             if step is None:
                 warnings.warn(f'Could not get more detailed information for '
                               f'step {str(step_ref)}, adding a FairStep '
@@ -95,6 +84,20 @@ class FairWorkflow(RdfWrapper):
                               f'functionality of the FairWorkflow object.')
                 step = FairStep(uri=str(step_ref))
             self._add_step(step)
+
+    @staticmethod
+    def _fetch_step(uri: str) -> Optional[FairStep]:
+        try:
+            return FairStep.from_nanopub(uri=uri)
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                warnings.warn(
+                    f'Failed fetching {uri} from nanopub server, probably it '
+                    f'is not published there. Fairworkflows does currently not'
+                    f'support other sources than nanopub')
+                return None
+            else:
+                raise
 
     @property
     def first_step(self):

@@ -21,6 +21,11 @@ class TestFairWorkflow:
     workflow.add(step2, follows=step1)
     workflow.add(step3, follows=step2)
 
+    def _get_rdf_test_resource(self, filename: str):
+        rdf = rdflib.Graph()
+        rdf.parse(str(TESTS_RESOURCES / filename), format='trig')
+        return rdf
+
     def test_build(self):
         workflow = FairWorkflow(description=self.test_description)
 
@@ -44,10 +49,12 @@ class TestFairWorkflow:
         assert len(workflow.__str__()) > 0
         assert workflow.rdf is not None
 
-    def test_construct_from_rdf(self):
-        rdf = rdflib.Graph()
-        rdf.parse(str(TESTS_RESOURCES / 'test_workflow_including_steps.trig'),
-                  format='trig')
+    def test_construct_from_rdf_including_steps(self):
+        """
+        Construct FairWorkflow from RDF that includes detailed information
+        about steps.
+        """
+        rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
         uri = 'http://www.example.org/workflow1'
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
         valid_step_uris = [uri + '#step1', uri + '#step2', uri + '#step3']
@@ -58,22 +65,27 @@ class TestFairWorkflow:
             assert step.uri in valid_step_uris
         workflow.validate()
 
-    @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
-    def test_construct_from_rdf_fetch_steps(self, mock_step_from_nanopub):
-        mock_step_from_nanopub.return_value = self.step1
-        rdf = rdflib.Graph()
-        rdf.parse(str(TESTS_RESOURCES / 'test_workflow_excluding_steps.trig'),
-                  format='trig')
+    @mock.patch('fairworkflows.fairworkflow.FairWorkflow._fetch_step')
+    def test_construct_from_rdf_fetch_steps(self, mock_fetch_step):
+        """
+        Construct FairWorkflow from RDF that only includes URIs that point to
+        steps which we should fetch.
+        """
+        mock_fetch_step.return_value = self.step1
+        rdf = self._get_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
         assert len(workflow._steps) == 1
-        assert mock_step_from_nanopub.call_count == 1
+        assert mock_fetch_step.call_count == 1
         assert list(workflow._steps.values())[0] == self.step1
 
     def test_construct_from_rdf_do_not_fetch_steps(self):
-        rdf = rdflib.Graph()
-        rdf.parse(str(TESTS_RESOURCES / 'test_workflow_excluding_steps.trig'),
-                  format='trig')
+        """
+        Construct FairWorkflow from RDF that only includes URIs that point to
+        steps. We choose not to fetch these steps and have empty fair steps
+        pointing to the uri.
+        """
+        rdf = self._get_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -82,27 +94,39 @@ class TestFairWorkflow:
             assert 'Could not get more detailed information' in str(w[0])
         assert len(workflow._steps) == 1
 
-    @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
-    def test_construct_from_rdf_fetch_steps_not_nanopub(self,
-                                                        mock_step_from_nanopub):
+    @mock.patch('fairworkflows.fairworkflow.FairWorkflow._fetch_step')
+    def test_construct_from_rdf_fetch_steps_fails(self, mock_fetch_step):
         """
-        Test case were step uri that is part of workflow cannot be fetched
-        from nanopub
+        Construct FairWorkflow from RDF that only includes URIs that point to
+        steps. Fetching the step fails in this scenario.
         """
-        response = mock.MagicMock(status_code=404)
-        mock_step_from_nanopub.side_effect = HTTPError(response=response)
-        rdf = rdflib.Graph()
-        rdf.parse(str(TESTS_RESOURCES / 'test_workflow_excluding_steps.trig'),
-                  format='trig')
+        mock_fetch_step.return_value = None
+        rdf = self._get_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
-            assert len(w) == 2
-            assert 'Failed fetching' in str(w[0])
-            assert 'Could not get more detailed information' in str(w[1])
-
+            assert len(w) == 1
+            assert 'Could not get more detailed information' in str(w[0])
         assert len(workflow._steps) == 1
+
+    @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
+    def test_fetch_step_404(self, mock_from_nanopub):
+        response = mock.MagicMock(status_code=404)
+        mock_from_nanopub.side_effect = HTTPError(response=response)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            result = self.workflow._fetch_step(uri='test_uri')
+            assert len(w) == 1
+            assert 'Failed fetching' in str(w[0])
+        assert result is None
+
+    @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
+    def test_fetch_step_500(self, mock_from_nanopub):
+        response = mock.MagicMock(status_code=500)
+        mock_from_nanopub.side_effect = HTTPError(response=response)
+        with pytest.raises(HTTPError):
+            self.workflow._fetch_step(uri='test_uri')
 
     def test_iterator(self):
         """Test iterating over the workflow."""
