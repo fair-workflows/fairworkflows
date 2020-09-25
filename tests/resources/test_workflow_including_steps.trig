@@ -3,7 +3,7 @@
 @prefix dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
 @prefix pplan: <http://purl.org/net/p-plan#> .
 @prefix terms: <http://purl.org/dc/terms/> .
-@prefix pwo: <http://purl.org/spar/pwo#> .
+@prefix pwo: <http://purl.org/spar/pwo/> .
 @prefix bpmn: <http://dkm.fbk.eu/index.php/BPMN2_Ontology#> .
 
 {
