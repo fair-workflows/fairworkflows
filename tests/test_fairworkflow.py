@@ -91,7 +91,7 @@ class TestFairWorkflow:
             warnings.simplefilter("always")
             workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
             assert len(w) == 1
-            assert 'Could not get more detailed information' in str(w[0])
+            assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
 
     @mock.patch('fairworkflows.fairworkflow.FairWorkflow._fetch_step')
@@ -107,7 +107,7 @@ class TestFairWorkflow:
             warnings.simplefilter("always")
             workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
             assert len(w) == 1
-            assert 'Could not get more detailed information' in str(w[0])
+            assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
 
     @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
@@ -118,7 +118,7 @@ class TestFairWorkflow:
             warnings.simplefilter("always")
             result = self.workflow._fetch_step(uri='test_uri')
             assert len(w) == 1
-            assert 'Failed fetching' in str(w[0])
+            assert 'Failed fetching' in str(w[0].message)
         assert result is None
 
     @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
