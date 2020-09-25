@@ -88,8 +88,7 @@ class FairWorkflow(RdfWrapper):
         Sets the first step of this plex workflow to the given FairStep
         """
         self.set_attribute(Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri))
-        self._steps[step.uri] = step
-        self._last_step_added = step
+        self._add_step(step)
 
     @property
     def unbound_inputs(self) -> List[Tuple[rdflib.URIRef, FairStep]]:
@@ -124,8 +123,16 @@ class FairWorkflow(RdfWrapper):
             inputs += step.inputs
         return unbound_outputs
 
-    def add(self, step:FairStep, follows:FairStep=None):
-        """
+    def _add_step(self, step: FairStep):
+        """Add a step to workflow (low-level method)."""
+        self._steps[step.uri] = step
+        self._rdf.add((rdflib.URIRef(step.uri), Nanopub.PPLAN.isStepOfPlan,
+                       self.self_ref))
+        self._last_step_added = step
+
+    def add(self, step: FairStep, follows: FairStep = None):
+        """Add a step.
+
         Adds the specified FairStep to the workflow rdf. If 'follows' is specified,
         then it dul:precedes the step. If 'follows' is None, the last added step (to this workflow)
         dul:precedes the step. If no steps have yet been added to the workflow, and 'follows' is None,
@@ -137,11 +144,9 @@ class FairWorkflow(RdfWrapper):
             else:
                 self.add(step, follows=self._last_step_added)
         else:
-            self._rdf.add( (rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(step.uri)) )
-            self._steps[step.uri] = step
-            self._steps[follows.uri] = follows
-            self._last_step_added = step
-        step.add_plan(str(self.self_ref))
+            self._rdf.add((rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(step.uri)))
+            self._add_step(follows)
+            self._add_step(step)
 
     def __iter__(self) -> Iterator[FairStep]:
         """

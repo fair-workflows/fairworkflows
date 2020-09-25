@@ -11,8 +11,7 @@ from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
 
 FAIRSTEP_PREDICATES = [RDF.type, Nanopub.PPLAN.hasInputVar,
-                       Nanopub.PPLAN.hasOutputVar, DCTERMS.description,
-                       Nanopub.PPLAN.isStepOfPlan]
+                       Nanopub.PPLAN.hasOutputVar, DCTERMS.description]
 
 
 class FairStep(RdfWrapper):
@@ -125,22 +124,6 @@ class FairStep(RdfWrapper):
     def is_script_task(self):
         """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
         return (self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
-
-    @property
-    def plans(self) -> List[rdflib.URIRef]:
-        """Plans that this step is part of.
-
-        URIs should point to a pplan.step.
-        """
-        return self.get_attribute(Nanopub.PPLAN.isStepOfPlan,
-                                  return_list=True)
-
-    def add_plan(self, uri: str):
-        self.set_attribute(Nanopub.PPLAN.isStepOfPlan, rdflib.URIRef(uri),
-                           overwrite=False)
-
-    def delete_plan(self, uri: str):
-        self.remove_attribute(Nanopub.PPLAN.isStepOfPlan, rdflib.URIRef(uri))
 
     @property
     def inputs(self) -> List[rdflib.URIRef]:
