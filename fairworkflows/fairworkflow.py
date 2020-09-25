@@ -41,10 +41,12 @@ class FairWorkflow(RdfWrapper):
         """Construct Fair Workflow from existing RDF.
 
         Args:
-            rdf: RDF graph containing information about the workflow AND it's
-                associated steps. Should use pplan ontology.
+            rdf: RDF graph containing information about the workflow and
+                possibly it's associated steps. Should use plex ontology.
             uri: URI of the workflow
-            fetch_steps: toggles fetching steps
+            fetch_steps: toggles fetching steps. I.e. if we encounter steps
+                that are part of the workflow, but are not specified in the
+                RDF we try fetching them from nanopub
         """
         rdf = copy(rdf)  # Make sure we don't mutate user RDF
         if rdflib.URIRef(uri) not in rdf.subjects():
