@@ -8,6 +8,7 @@ import networkx as nx
 import rdflib
 from rdflib import RDF, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
+from requests import HTTPError
 
 from .fairstep import FairStep, FAIRSTEP_PREDICATES
 from .nanopub import Nanopub
@@ -72,12 +73,28 @@ class FairWorkflow(RdfWrapper):
                     step_attributes_in_rdf = True
                     step_rdf.add((s, p, o))
                     rdf.remove((s, p, o))
+            step = None
             if step_attributes_in_rdf:
                 step = FairStep.from_rdf(step_rdf, uri=str(step_ref))
-                self._add_step(step)
             elif fetch_steps:
-                step = FairStep.from_nanopub(uri=str(step_ref))
-                self._add_step(step)
+                try:
+                    step = FairStep.from_nanopub(uri=str(step_ref))
+                except HTTPError as e:
+                    if e.response.status_code == 404:
+                        warnings.warn(
+                            f'Failed fetching {str(step_ref)} from nanopub'
+                            f'server, probably it is not published '
+                            f'there. Fairworkflows does currently not support'
+                            f'other sources')
+                    else:
+                        raise
+            if step is None:
+                warnings.warn(f'Could not get more detailed information for '
+                              f'step {str(step_ref)}, adding a FairStep '
+                              f'without attributes. This will limit '
+                              f'functionality of the FairWorkflow object.')
+                step = FairStep(uri=str(step_ref))
+            self._add_step(step)
 
     @property
     def first_step(self):

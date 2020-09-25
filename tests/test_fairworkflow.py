@@ -1,7 +1,9 @@
+import warnings
 from unittest import mock
 
 import pytest
 import rdflib
+from requests import HTTPError
 
 from fairworkflows import FairWorkflow, FairStep, fairstep
 from fairworkflows.config import TESTS_RESOURCES
@@ -58,6 +60,7 @@ class TestFairWorkflow:
 
     @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
     def test_construct_from_rdf_fetch_steps(self, mock_step_from_nanopub):
+        mock_step_from_nanopub.return_value = self.step1
         rdf = rdflib.Graph()
         rdf.parse(str(TESTS_RESOURCES / 'test_workflow_excluding_steps.trig'),
                   format='trig')
@@ -65,6 +68,41 @@ class TestFairWorkflow:
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
         assert len(workflow._steps) == 1
         assert mock_step_from_nanopub.call_count == 1
+        assert list(workflow._steps.values())[0] == self.step1
+
+    def test_construct_from_rdf_do_not_fetch_steps(self):
+        rdf = rdflib.Graph()
+        rdf.parse(str(TESTS_RESOURCES / 'test_workflow_excluding_steps.trig'),
+                  format='trig')
+        uri = 'http://www.example.org/workflow1'
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
+            assert len(w) == 1
+            assert 'Could not get more detailed information' in str(w[0])
+        assert len(workflow._steps) == 1
+
+    @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
+    def test_construct_from_rdf_fetch_steps_not_nanopub(self,
+                                                        mock_step_from_nanopub):
+        """
+        Test case were step uri that is part of workflow cannot be fetched
+        from nanopub
+        """
+        response = mock.MagicMock(status_code=404)
+        mock_step_from_nanopub.side_effect = HTTPError(response=response)
+        rdf = rdflib.Graph()
+        rdf.parse(str(TESTS_RESOURCES / 'test_workflow_excluding_steps.trig'),
+                  format='trig')
+        uri = 'http://www.example.org/workflow1'
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
+            assert len(w) == 2
+            assert 'Failed fetching' in str(w[0])
+            assert 'Could not get more detailed information' in str(w[1])
+
+        assert len(workflow._steps) == 1
 
     def test_iterator(self):
         """Test iterating over the workflow."""
