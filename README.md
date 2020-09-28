@@ -1,9 +1,9 @@
 ![Build Status](https://github.com/fair-workflows/FAIRWorkbench/workflows/Python%20application/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/fair-workflows/FAIRWorkbench/badge.svg?branch=master)](https://coveralls.io/github/fair-workflows/FAIRWorkbench?branch=master)
 
-# FAIR Workbench
+# ```fairworkflows``` python library
 
-This repository contains some core software components for building the 'FAIR Workbench', as part of the FAIR is FAIR project. The focus is on description of workflows consisting of manual and computational steps using semantic technology, such as the ontology described in the publication:
+The goal of the fairworkflows python library is to support the construction, manipulation and publishing of FAIR scientific workflows using semantic technologies. It is developed as a component of the FAIR Workbench, as part of the FAIR is FAIR project. The focus is on description of workflows consisting of manual and computational steps using semantic technology, such as the ontology described in the publication:
 
 _Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study._ [_arXiv:1911.09531._](https://arxiv.org/abs/1911.09531)
 
@@ -15,16 +15,12 @@ The goals of the project are:
 
 We seek to provide an easy-to-use python interface for achieving the above.
 
-
-
-
-## ```fairworkflows``` python library
 ### Installation
 
-From the root of the repo (directory containing ```setup.py```), run:
+The most recent release can be installed from the python package index using ```pip```:
 
-```shell script
-pip install .
+```
+pip install fairworkflows
 ```
 
 ### Description
