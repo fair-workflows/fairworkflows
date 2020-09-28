@@ -38,13 +38,15 @@ The ```fairworkflows``` library has a number of modules to help with FAIRifying 
 ## Quick Start
 
 ```python
+from fairworkflows import FairWorkflow, FairStep
+
 # Create a workflow
 workflow = FairWorkflow(description='This is a test workflow.')
 
 # Load some steps from nanopublications
-preheat_oven = FairStep(uri='http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step', from_nanopub=True)
-melt_butter = FairStep(uri='http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BBy92bDlt991X4#step', from_nanopub=True)
-arrange_chicken = FairStep(uri='http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M#step', from_nanopub=True)
+preheat_oven = FairStep.from_nanopub(uri='http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step')
+melt_butter = FairStep.from_nanopub(uri='http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BBy92bDlt991X4#step')
+arrange_chicken = FairStep.from_nanopub(uri='http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M#step')
 
 # Specify ordering of steps
 workflow.first_step = preheat_oven
@@ -54,12 +56,12 @@ workflow.add(arrange_chicken, follows=melt_butter)
 # Validates?
 workflow.validate()
 
-# Visualize the workflow
-workflow.draw()
-
 # Iterate through all steps in the workflow 
 for step in workflow:
     print(step)
+    
+# Visualize the workflow directly in a jupyter notebook
+workflow.display()
 
 ```
 
