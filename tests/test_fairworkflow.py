@@ -90,7 +90,7 @@ class TestFairWorkflow:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
-            assert len(w) == 1, 'Unexpected number of warnings'
+            assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
 
@@ -106,7 +106,7 @@ class TestFairWorkflow:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
-            assert len(w) == 1, 'Unexpected number of warnings'
+            assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
 
@@ -117,7 +117,7 @@ class TestFairWorkflow:
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             result = self.workflow._fetch_step(uri='test_uri')
-            assert len(w) == 1, 'Unexpected number of warnings'
+            assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Failed fetching' in str(w[0].message)
         assert result is None
 
