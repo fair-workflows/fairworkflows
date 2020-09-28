@@ -1,5 +1,5 @@
 import warnings
-from copy import copy
+from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Tuple, List, Optional
@@ -48,7 +48,7 @@ class FairWorkflow(RdfWrapper):
                 that are part of the workflow, but are not specified in the
                 RDF we try fetching them from nanopub
         """
-        rdf = copy(rdf)  # Make sure we don't mutate user RDF
+        rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         if rdflib.URIRef(uri) not in rdf.subjects():
             warnings.warn(f"Warning: Provided URI '{uri}' does not "
                           f"match any subject in provided rdf graph.")

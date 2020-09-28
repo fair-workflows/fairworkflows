@@ -3,6 +3,7 @@ from unittest import mock
 
 import pytest
 import rdflib
+from rdflib.compare import isomorphic
 from requests import HTTPError
 
 from fairworkflows import FairWorkflow, FairStep, fairstep
@@ -57,6 +58,11 @@ class TestFairWorkflow:
         rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
         uri = 'http://www.example.org/workflow1'
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
+        new_rdf = self._get_rdf_test_resource(
+            'test_workflow_including_steps.trig')
+        assert rdflib.compare.isomorphic(rdf, new_rdf),\
+            'The user RDF was altered after constructing a Fairworkflow ' \
+            'object from it'
         valid_step_uris = [uri + '#step1', uri + '#step2', uri + '#step3']
         steps = list(workflow)
         assert len(steps) == 3
