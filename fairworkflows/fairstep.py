@@ -3,12 +3,15 @@ import time
 import warnings
 from typing import List
 from urllib.parse import urldefrag
-import warnings
+
 import rdflib
 from rdflib import RDF, DCTERMS
 
 from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
+
+FAIRSTEP_PREDICATES = [RDF.type, Nanopub.PPLAN.hasInputVar,
+                       Nanopub.PPLAN.hasOutputVar, DCTERMS.description]
 
 
 class FairStep(RdfWrapper):
@@ -132,11 +135,11 @@ class FairStep(RdfWrapper):
         overwrites old inputs.
         """
         return self.get_attribute(Nanopub.PPLAN.hasInputVar,
-                                  always_return_list=True)
+                                  return_list=True)
 
     @inputs.setter
     def inputs(self, uris: List[str]):
-        self.delete_attribute(Nanopub.PPLAN.hasInputVar)
+        self.remove_attribute(Nanopub.PPLAN.hasInputVar)
         for uri in uris:
             self.set_attribute(Nanopub.PPLAN.hasInputVar, rdflib.URIRef(uri),
                                overwrite=False)
@@ -151,11 +154,11 @@ class FairStep(RdfWrapper):
         overwrites old outputs.
         """
         return self.get_attribute(Nanopub.PPLAN.hasOutputVar,
-                                  always_return_list=True)
+                                  return_list=True)
 
     @outputs.setter
     def outputs(self, uris: List[str]):
-        self.delete_attribute(Nanopub.PPLAN.hasOutputVar)
+        self.remove_attribute(Nanopub.PPLAN.hasOutputVar)
         for uri in uris:
             self.set_attribute(Nanopub.PPLAN.hasOutputVar, rdflib.URIRef(uri),
                                overwrite=False)

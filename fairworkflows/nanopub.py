@@ -23,7 +23,7 @@ class Nanopub:
     PROV = rdflib.Namespace("http://www.w3.org/ns/prov#")
     DUL = rdflib.Namespace("http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#")
     BPMN = rdflib.Namespace("http://dkm.fbk.eu/index.php/BPMN2_Ontology#")
-    PWO = rdflib.Namespace("http://purl.org/spar/pwo#")
+    PWO = rdflib.Namespace("http://purl.org/spar/pwo/")
     HYCL = rdflib.Namespace("http://purl.org/petapico/o/hycl#")
 
     AUTHOR = rdflib.Namespace("http://purl.org/person#")
@@ -33,7 +33,7 @@ class Nanopub:
     @unique
     class Format(Enum):
         """
-        Enums to specify the format of nanopub desired   
+        Enums to specify the format of nanopub desired
         """
         TRIG = 1
 
@@ -157,7 +157,7 @@ class Nanopub:
         r = requests.get(apiurl, params=searchparams, headers=headers)
 
         if r.ok:
- 
+
             # Make sure that results are provided
             try:
                 results_json = r.json()
@@ -179,7 +179,7 @@ class Nanopub:
                     nanopub['description'] = result['description']['value']
                 else:
                     nanopub['v'] = ''
-                    
+
                 nanopub['date'] = result['date']['value']
 
                 nanopubs.append(nanopub)
@@ -236,7 +236,7 @@ class Nanopub:
 
         """
 
-        # Make sure passed URI is defrag'd        
+        # Make sure passed URI is defrag'd
         uri = str(uri)
         uri, _ = urldefrag(uri)
         this_np = rdflib.Namespace(uri+'#')
@@ -246,7 +246,7 @@ class Nanopub:
         # For example, if the nanopub's URI is www.purl.org/ABC123 then the blank node will be replaced with a
         # concrete URIRef of the form www.purl.org/ABC123#blanknodename where 'blanknodename' is the name of the
         # the rdflib.term.BNode object. If blanknodename is 'step', then the URI will have a fragment '#step' after it.
-        # 
+        #
         # The problem that this is designed to solve is that a user may wish to use the nanopublication to introduce
         # a new concept. This new concept needs its own URI (it cannot simply be given the nanopublication's URI),
         # but it should still lie within the space of the nanopub. Furthermore, the URI the nanopub is published
@@ -262,7 +262,7 @@ class Nanopub:
             if isinstance(o, rdflib.term.BNode):
                 o = this_np[str(o)]
             assertionrdf.add((s, p, o))
-        
+
         # Set up different contexts
         np_rdf = rdflib.ConjunctiveGraph()
         head = rdflib.Graph(np_rdf.store, this_np.Head)
@@ -356,18 +356,18 @@ class Nanopub:
             # and appends a fragment, given by the 'name' of the blank node. For example, if a blank node
             # with name 'step' was passed as introduces_concept, the concept will be published with a URI
             # that looks like [published nanopub URI]#step.
-            
+
             concept_uri = nanopub_uri + '#' + str(introduces_concept)
             publication_info['concept_uri'] = concept_uri
             print(f'Published concept to {concept_uri}')
 
         return publication_info
-    
+
 
     @staticmethod
     def claim(text, rdftriple=None):
         """
-        Publishes a claim, either as a plain text statement, or as an rdf triple (or both) 
+        Publishes a claim, either as a plain text statement, or as an rdf triple (or both)
         """
         assertionrdf = rdflib.Graph()
 

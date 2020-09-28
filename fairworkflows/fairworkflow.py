@@ -1,14 +1,16 @@
 import warnings
+from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator, Tuple, List
+from typing import Iterator, Tuple, List, Optional
 
 import networkx as nx
 import rdflib
 from rdflib import RDF, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
+from requests import HTTPError
 
-from .fairstep import FairStep
+from .fairstep import FairStep, FAIRSTEP_PREDICATES
 from .nanopub import Nanopub
 from .rdf_wrapper import RdfWrapper
 
@@ -23,7 +25,7 @@ class FairWorkflow(RdfWrapper):
         Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
     """
 
-    def __init__(self, description, uri=None):
+    def __init__(self, description=None, uri=None):
         super().__init__(uri=uri, ref_name='plan')
 
         self._is_published = False
@@ -32,6 +34,78 @@ class FairWorkflow(RdfWrapper):
         self.description = description
         self._steps = {}
         self._last_step_added = None
+
+    @classmethod
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None,
+                 fetch_steps: bool = False):
+        """Construct Fair Workflow from existing RDF.
+
+        Args:
+            rdf: RDF graph containing information about the workflow and
+                possibly it's associated steps. Should use plex ontology.
+            uri: URI of the workflow
+            fetch_steps: toggles fetching steps. I.e. if we encounter steps
+                that are part of the workflow, but are not specified in the
+                RDF we try fetching them from nanopub
+        """
+        rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
+        if rdflib.URIRef(uri) not in rdf.subjects():
+            warnings.warn(f"Warning: Provided URI '{uri}' does not "
+                          f"match any subject in provided rdf graph.")
+        self = cls(uri=uri)
+        self._extract_steps(rdf, uri, fetch_steps)
+        self._rdf = rdf
+        self.anonymise_rdf()
+        return self
+
+    def _extract_steps(self, rdf, uri, fetch_steps=False):
+        """Extract FairStep objects from rdf.
+
+        Create FairStep objects for all steps in the passed RDF. Removes
+        triples describing steps from rdf, those will be represented in
+        the separate step RDF. Optionally try to fetch steps from nanopub.
+        """
+        step_refs = rdf.subjects(predicate=Nanopub.PPLAN.isStepOfPlan,
+                                 object=rdflib.URIRef(uri))
+        for step_ref in step_refs:
+            step_uri = str(step_ref)
+            step = self._extract_step_from_rdf(step_uri, rdf)
+            if step is None and fetch_steps:
+                step = self._fetch_step(uri=step_uri)
+            if step is None:
+                warnings.warn(f'Could not get detailed information for '
+                              f'step {step_uri}, adding a FairStep '
+                              f'without attributes. This will limit '
+                              f'functionality of the FairWorkflow object.')
+                step = FairStep(uri=step_uri)
+            self._add_step(step)
+
+    @staticmethod
+    def _extract_step_from_rdf(uri, rdf: rdflib.Graph()) -> Optional[FairStep]:
+        step_rdf = rdflib.Graph()
+        for s, p, o in rdf.triples((rdflib.URIRef(uri), None, None)):
+            if p in FAIRSTEP_PREDICATES:
+                step_rdf.add((s, p, o))
+                rdf.remove((s, p, o))
+
+        if len(step_rdf) > 0:
+            return FairStep.from_rdf(step_rdf, uri=uri)
+        else:
+            return None
+
+    @staticmethod
+    def _fetch_step(uri: str) -> Optional[FairStep]:
+        try:
+            return FairStep.from_nanopub(uri=uri)
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                warnings.warn(
+                    f'Failed fetching {uri} from nanopub server, probably it '
+                    f'is not published there. Fairworkflows does currently not'
+                    f'support other sources than nanopub')
+                return None
+            else:
+                raise
 
     @property
     def first_step(self):
@@ -50,8 +124,7 @@ class FairWorkflow(RdfWrapper):
         Sets the first step of this plex workflow to the given FairStep
         """
         self.set_attribute(Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri))
-        self._steps[step.uri] = step
-        self._last_step_added = step
+        self._add_step(step)
 
     @property
     def unbound_inputs(self) -> List[Tuple[rdflib.URIRef, FairStep]]:
@@ -86,8 +159,16 @@ class FairWorkflow(RdfWrapper):
             inputs += step.inputs
         return unbound_outputs
 
-    def add(self, step:FairStep, follows:FairStep=None):
-        """
+    def _add_step(self, step: FairStep):
+        """Add a step to workflow (low-level method)."""
+        self._steps[step.uri] = step
+        self._rdf.add((rdflib.URIRef(step.uri), Nanopub.PPLAN.isStepOfPlan,
+                       self.self_ref))
+        self._last_step_added = step
+
+    def add(self, step: FairStep, follows: FairStep = None):
+        """Add a step.
+
         Adds the specified FairStep to the workflow rdf. If 'follows' is specified,
         then it dul:precedes the step. If 'follows' is None, the last added step (to this workflow)
         dul:precedes the step. If no steps have yet been added to the workflow, and 'follows' is None,
@@ -99,10 +180,9 @@ class FairWorkflow(RdfWrapper):
             else:
                 self.add(step, follows=self._last_step_added)
         else:
-            self._rdf.add( (rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(step.uri)) )
-            self._steps[step.uri] = step
-            self._steps[follows.uri] = follows
-            self._last_step_added = step
+            self._rdf.add((rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(step.uri)))
+            self._add_step(follows)
+            self._add_step(step)
 
     def __iter__(self) -> Iterator[FairStep]:
         """
