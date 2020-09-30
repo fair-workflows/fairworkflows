@@ -24,7 +24,7 @@ def get_version(rel_path):
 setup(name='fairworkflows',
     version=get_version('fairworkflows/_version.py'),
     description='FAIRWorkflows python library',
-    long_description=open("README.md", "r").readlines(),
+    long_description=open("README.md", "r").read(),
     long_description_content_type='text/markdown',
     author='Robin Richardson, Djura Smits, Sven van den Burg',
     author_email='r.richardson@esciencecenter.nl',
