@@ -142,6 +142,12 @@ class TestFairWorkflow:
         for i, step in enumerate(workflow_steps):
             assert step == right_order_steps[i]
 
+    def test_iterator_one_step(self):
+        workflow = FairWorkflow()
+        workflow.add(FairStep('test'))
+        workflow_steps = list(workflow)
+        assert len(workflow_steps) == 1
+
     def test_validate_inputs_outputs(self):
         # Step 1 precedes step 2, so valid if input of 2 is output of 1
         self.step1.outputs = ['var1']
