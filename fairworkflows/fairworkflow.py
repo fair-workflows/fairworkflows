@@ -189,12 +189,27 @@ class FairWorkflow(RdfWrapper):
         Iterate over this FairWorkflow, return one step at a
         time in the order specified by the precedes relations (
         i.e. topologically sorted).
+
+        Raises:
+             RuntimeError: if we cannot sort steps based on precedes
+             predicate, for example if there are 2 steps that are not
+             connected to each other by the precedes predicate. We do not
+             know how to sort in that case.
         """
-        G = nx.MultiDiGraph()
-        for s, p, o in self._rdf:
-            if p == Nanopub.DUL.precedes:
-                G.add_edge(s, o)
-        for step_uri in nx.topological_sort(G):
+        if len(self._steps) == 1:
+            # In case of only one step we do not need to sort
+            ordered_steps = [step.uri for step in self._steps.values()]
+        else:
+            G = nx.MultiDiGraph()
+            for s, p, o in self._rdf:
+                if p == Nanopub.DUL.precedes:
+                    G.add_edge(s, o)
+            if len(G) == len(self._steps):
+                ordered_steps = nx.topological_sort(G)
+            else:
+                raise RuntimeError('Cannot sort steps based on precedes'
+                                   'predicate')
+        for step_uri in ordered_steps:
             yield self.get_step(str(step_uri))
 
     @property

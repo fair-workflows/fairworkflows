@@ -144,9 +144,20 @@ class TestFairWorkflow:
 
     def test_iterator_one_step(self):
         workflow = FairWorkflow()
-        workflow.add(FairStep('test'))
+        workflow.add(self.step1)
         workflow_steps = list(workflow)
         assert len(workflow_steps) == 1
+
+    def test_iterator_sorting_failed(self):
+        workflow = FairWorkflow()
+        workflow.add(self.step1)
+
+        # Add a step that follows a step not in the workflow. There are now 2
+        # steps in the workflow that are not connected by a precedes
+        # predicate. This should lead to a RuntimeError.
+        workflow.add(self.step2, follows=FairStep('not in workflow'))
+        with pytest.raises(RuntimeError):
+            list(workflow)
 
     def test_validate_inputs_outputs(self):
         # Step 1 precedes step 2, so valid if input of 2 is output of 1
