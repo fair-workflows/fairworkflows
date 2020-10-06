@@ -99,10 +99,10 @@ class RdfWrapper:
                 derived_from = self._uri
             else:
                 warnings.warn(f'Cannot publish() this Fair object. This rdf is already published (at {self._uri}) and has not been modified locally.')
-                return
+                return {'nanopub_uri': None, 'concept_uri': None}
 
         # Publish the rdf of this step as a nanopub
-        publication_info  = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+        publication_info = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
 
         # Set the new, published, URI, which should be whatever the (published) URI of the concept that was introduced is.
         # Note that this is NOT the nanopub's URI, since the nanopub is not the step/workflow. The rdf object describing the step/workflow
@@ -111,3 +111,5 @@ class RdfWrapper:
 
         self._is_published = True
         self._is_modified = False
+
+        return publication_info
