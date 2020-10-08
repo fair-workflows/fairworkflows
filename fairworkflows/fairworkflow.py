@@ -6,13 +6,13 @@ from typing import Iterator, Tuple, List, Optional
 
 import networkx as nx
 import rdflib
+from nanopub import Nanopub
 from rdflib import RDF, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
-from .fairstep import FairStep, FAIRSTEP_PREDICATES
-from .nanopub import Nanopub
-from .rdf_wrapper import RdfWrapper
+from fairworkflows.fairstep import FairStep, FAIRSTEP_PREDICATES
+from fairworkflows.rdf_wrapper import RdfWrapper
 
 
 class FairWorkflow(RdfWrapper):
@@ -349,3 +349,20 @@ class FairWorkflow(RdfWrapper):
         s = f'Workflow URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
+
+
+def add_step(fw: FairWorkflow):
+    """
+    Decorator that, upon execution, will convert a function to a FairStep, and add it to the
+    given FairWorkflow, 'fw'
+    """
+
+    def decorated_step(function):
+
+        def wrapped_step(*args, **kwargs):
+            fw.add(FairStep.from_function(function=function))
+            function(*args, **kwargs)
+
+        return wrapped_step
+
+    return decorated_step

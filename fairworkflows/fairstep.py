@@ -5,10 +5,10 @@ from typing import List
 from urllib.parse import urldefrag
 
 import rdflib
+from nanopub import Nanopub
 from rdflib import RDF, DCTERMS
 
-from .nanopub import Nanopub
-from .rdf_wrapper import RdfWrapper
+from fairworkflows.rdf_wrapper import RdfWrapper
 
 FAIRSTEP_PREDICATES = [RDF.type, Nanopub.PPLAN.hasInputVar,
                        Nanopub.PPLAN.hasOutputVar, DCTERMS.description]

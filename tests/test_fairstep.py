@@ -1,9 +1,11 @@
-import pytest
-import requests
 from unittest.mock import patch
-import rdflib
 
-from fairworkflows import FairStep, Nanopub
+import pytest
+import rdflib
+import requests
+from nanopub import Nanopub
+
+from fairworkflows import FairStep
 from fairworkflows.config import TESTS_RESOURCES
 
 BAD_GATEWAY = 502
@@ -110,10 +112,10 @@ class TestFairStep:
         with pytest.raises(AssertionError):
             step.validate()
 
-    @patch('fairworkflows.nanopub_wrapper.publish')
-    @patch('fairworkflows.nanopub.Nanopub.fetch')
+    @patch('fairworkflows.fairstep.Nanopub.publish')
+    @patch('fairworkflows.fairstep.Nanopub.fetch')
     def test_modification_and_republishing(self, nanopub_fetch_mock,
-                                           nanopub_wrapper_publish_mock):
+                                           nanopub_publish_mock):
 
         test_uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
 
@@ -137,7 +139,7 @@ class TestFairStep:
         preheat_oven.description =  'Preheat an oven to 200 degrees C.'
         assert preheat_oven.is_modified is True
         preheat_oven.publish_as_nanopub()
-        assert nanopub_wrapper_publish_mock.called
+        assert nanopub_publish_mock.called
         assert preheat_oven.uri != original_uri
         assert preheat_oven.is_modified is False
 
