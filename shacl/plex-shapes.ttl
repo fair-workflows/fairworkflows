@@ -1,0 +1,433 @@
+@prefix schema: <http://schema.org/> .
+@prefix :      <https://w3id.org/fair/plex/v0.1.2#> .
+@prefix bpmn:  <http://dkm.fbk.eu/index.php/BPMN2_Ontology#> .
+@prefix edam:  <http://edamontology.org/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix reprod: <https://w3id.org/reproduceme#> .
+@prefix fabio: <http://purl.org/spar/fabio/> .
+@prefix afn:   <http://jena.apache.org/ARQ/function#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix pwo:   <http://purl.org/spar/pwo#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix p-plan: <http://purl.org/net/p-plan#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix mls:   <http://www.w3.org/ns/mls#> .
+@prefix xml:   <http://www.w3.org/XML/1998/namespace> .
+@prefix dul:   <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#> .
+@prefix dcat:  <http://www.w3.org/ns/dcat#> .
+@prefix prov:  <http://www.w3.org/ns/prov#> .
+@prefix opmw:  <http://www.opmw.org/ontology/> .
+@prefix dc:    <http://purl.org/dc/terms/> .
+
+<https://astrea.linkeddata.es/shapes#ff95cae48951c90a8e6e22cd8c162be3>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/prov#SoftwareAgent" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:SoftwareAgent .
+
+<https://astrea.linkeddata.es/shapes#30355cabeb51e18e91907ebf1eaa8053>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "https://w3id.org/reproduceme#Cell" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    reprod:Cell .
+
+<https://astrea.linkeddata.es/shapes#3eb1053bfb8d8e3227c72df7638cd75d>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/dcat#Distribution" ;
+        sh:nodeKind       sh:IRI ;
+        sh:property       <https://astrea.linkeddata.es/shapes#fa92e9b0e6e2805da4179a8fbab7ff8e> ;
+        sh:targetClass    dcat:Distribution .
+
+<https://astrea.linkeddata.es/shapes#b12426c28e40c8065a8d4036243dfb17>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://edamontology.org/format_2330" ;
+        rdfs:label        "Plain text format" ;
+        sh:name           "Plain text format" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    edam:format_2330 .
+
+<https://astrea.linkeddata.es/shapes#718a7d9333c9c7ccab7a6dfcfa2d5038>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/prov#Usage" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:Usage .
+
+<https://astrea.linkeddata.es/shapes#8039c5b998ce5507fef3f197592cfe07>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "https://www.w3.org/TR/prov-o/#Association" ;
+        sh:nodeKind       sh:IRI ;
+        sh:property       <https://astrea.linkeddata.es/shapes#50ee12d03373a78308e5484bd860ad98> , <https://astrea.linkeddata.es/shapes#23f29c3c88729cbbfdca4f8d496ac5c5> ;
+        sh:targetClass    prov:Association .
+
+<https://astrea.linkeddata.es/shapes#b9f303f3ae53bd2b1577c950f1778a36>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/mls#EvaluationMeasure" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    mls:EvaluationMeasure .
+
+<https://astrea.linkeddata.es/shapes#3604ff5cd1f2b727bc77c99c5ce2280c>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://purl.org/dc/terms/LinguisticSystem" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    dc:LinguisticSystem .
+
+<https://astrea.linkeddata.es/shapes#3e2f60daa912b4bbfdda79d75fe2752b>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "http://purl.org/dc/terms/modified" ;
+        sh:datatype   rdfs:Literal ;
+        sh:nodeKind   sh:Literal ;
+        sh:path       dc:modified .
+
+<https://astrea.linkeddata.es/shapes#91bdb733f5c5f8b68ed72a7c77d5360b>
+        a            sh:PropertyShape ;
+        sh:class     prov:Agent ;
+        sh:nodeKind  sh:BlankNodeOrIRI ;
+        sh:path      prov:wasAttributedTo .
+
+<https://astrea.linkeddata.es/shapes#8f99343de5298d9519fffde0241fec54>
+        a                 sh:PropertyShape ;
+        rdfs:isDefinedBy  "http://purl.org/net/p-plan#hasInputVar" ;
+        sh:class          p-plan:Variable ;
+        sh:nodeKind       sh:BlankNodeOrIRI ;
+        sh:path           p-plan:hasInputVar .
+
+<https://astrea.linkeddata.es/shapes#ad37c34a735811937bada118cc65cc69>
+        a               sh:PropertyShape ;
+        rdfs:label      "The PROV data model is implicitly based on a notion of instantaneous events (or just events), that mark transitions in the world. Events include generation, usage, or invalidation of entities, as well as starting or ending of activities. This notion of event is not first-class in the data model, but it is useful for explaining its other concepts and its semantics." ;
+        rdfs:seeAlso    "http://www.w3.org/ns/prov#atTime" ;
+        sh:datatype     xsd:dateTime ;
+        sh:description  "The PROV data model is implicitly based on a notion of instantaneous events (or just events), that mark transitions in the world. Events include generation, usage, or invalidation of entities, as well as starting or ending of activities. This notion of event is not first-class in the data model, but it is useful for explaining its other concepts and its semantics." ;
+        sh:nodeKind     sh:Literal ;
+        sh:path         prov:atTime ;
+        sh:pattern      "-?([1-9][0-9]{3,}|0[0-9]{3})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?|(24:00:00(\\.0+)?))(Z|(\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?" .
+
+<https://astrea.linkeddata.es/shapes#d86d39fe22d383728eb67f8caebf5274>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "http://www.w3.org/ns/prov#wasRevisionOf" ;
+        sh:class      prov:Entity ;
+        sh:nodeKind   sh:BlankNodeOrIRI ;
+        sh:path       prov:wasRevisionOf .
+
+<https://astrea.linkeddata.es/shapes#dfcd5fc30011d551739f9877c244fb84>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "https://www.w3.org/TR/prov-o/#Entity" ;
+        sh:nodeKind       sh:IRI ;
+        sh:property       <https://astrea.linkeddata.es/shapes#d86d39fe22d383728eb67f8caebf5274> , <https://astrea.linkeddata.es/shapes#91bdb733f5c5f8b68ed72a7c77d5360b> , <https://astrea.linkeddata.es/shapes#fadac7ceeeb747176ed685af535ebc3f> ;
+        sh:targetClass    prov:Entity .
+
+<https://astrea.linkeddata.es/shapes#cf764ba53e5778f128f3f671affe9594>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/mls#Run" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    mls:Run .
+
+<https://astrea.linkeddata.es/shapes#50ee12d03373a78308e5484bd860ad98>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "https://www.w3.org/TR/prov-o/#hadRole" ;
+        sh:class      prov:Role ;
+        sh:nodeKind   sh:BlankNodeOrIRI ;
+        sh:path       prov:hadRole .
+
+<https://astrea.linkeddata.es/shapes#0dd70f767dd5bf9d27b283022f5fdad4>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://edamontology.org/format_3256" ;
+        rdfs:label        "N-Triples" ;
+        sh:name           "N-Triples" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    edam:format_3256 .
+
+<https://astrea.linkeddata.es/shapes#ad89e8dc7487648b0158a2f47b7303e3>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/prov#Bundle" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:Bundle .
+
+<https://astrea.linkeddata.es/shapes#0c7a6782b7789e420087704ad89674ef>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "https://www.w3.org/TR/prov-o/#Agent" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:Agent .
+
+<https://astrea.linkeddata.es/report/0620946147>
+        a       <https://w3id.org/def/astrea#ReportEntry> ;
+        <https://w3id.org/def/astrea#message>
+                "Shapes generated with no errors" ;
+        <https://w3id.org/def/astrea#statusCode>
+                "200"^^xsd:int .
+
+<https://astrea.linkeddata.es/shapes#51c255e4401df48eae3352c0109f80ab>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Workflow" ;
+        sh:description    "A Plan that defines Role(s), Task(s), and a specific structure for tasks to be executed, usually supporting the work of an Organization" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    dul:Workflow .
+
+<https://astrea.linkeddata.es/shapes#4077dfea2d12de958f6d00c1e8feb1f7>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://dkm.fbk.eu/index.php/BPMN2_Ontology#scriptTask" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    bpmn:ScriptTask .
+
+<https://astrea.linkeddata.es/shapes#b4f08031d4f5e8c5b143eaf68269bd94>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://edamontology.org/format_2376" ;
+        rdfs:label        "Resource Description Framework (RDF)" ;
+        sh:name           "Resource Description Framework (RDF)" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    edam:format_2376 .
+
+<https://astrea.linkeddata.es/shapes#126c5ececc6c8a294961e605c4f7f0d0>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://purl.org/net/p-plan#Step" ;
+        sh:nodeKind       sh:IRI ;
+        sh:property       <https://astrea.linkeddata.es/shapes#f828c6af14fb4677ad73168c26e8eb6b> , <https://astrea.linkeddata.es/shapes#8f99343de5298d9519fffde0241fec54> , <https://astrea.linkeddata.es/shapes#26452bf219c1052eeb57e20b0cca77fd> ;
+        sh:targetClass    p-plan:Step .
+
+<https://astrea.linkeddata.es/shapes#832e48f6362587f704051e405d495b54>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/prov#Generation" ;
+        sh:description    "Generation is the completion of production of a new entity by an activity. This entity did not exist before generation and becomes available for usage after this generation." ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:Generation .
+
+<https://astrea.linkeddata.es/shapes#3e3cc6e3d43f641af398b8073906980b>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "http://www.w3.org/ns/mls#specifiedBy" ;
+        sh:class      mls:EvaluationMeasure ;
+        sh:nodeKind   sh:BlankNodeOrIRI ;
+        sh:path       mls:specifiedBy .
+
+<https://astrea.linkeddata.es/shapes#d18a97a852a607a0308fb5f8582bafcd>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "http://www.w3.org/ns/prov#generated" ;
+        sh:class      prov:Entity ;
+        sh:nodeKind   sh:BlankNodeOrIRI ;
+        sh:path       prov:generated .
+
+<https://astrea.linkeddata.es/shapes#1f849e48eb5251db75ededf05d1b45d0>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://dkm.fbk.eu/index.php/BPMN2_Ontology#manualTask" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    bpmn:ManualTask .
+
+<https://astrea.linkeddata.es/shapes#c3719f07614b52dddd7ee3569095785e>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://purl.org/net/p-plan#Activity" ;
+        sh:description    "A p-plan:Activity represents the execution of the process planned in a p-plan:Step. p-plan:Activity is a subclass of prov:Activity" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    p-plan:Activity .
+
+<https://astrea.linkeddata.es/shapes#a25d2c40a2b65a3d3bbfa446af913b52>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "https://www.w3.org/TR/prov-o/#Role" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:Role .
+
+<https://astrea.linkeddata.es/shapes#f828c6af14fb4677ad73168c26e8eb6b>
+        a                 sh:PropertyShape ;
+        rdfs:isDefinedBy  p-plan:isStepOfPlan ;
+        sh:class          p-plan:Plan ;
+        sh:nodeKind       sh:BlankNodeOrIRI ;
+        sh:path           p-plan:isStepOfPlan .
+
+<https://astrea.linkeddata.es/shapes#f1569d82a24734f2d5df36acdacf01bc>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/prov#InstantaneousEvent" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:InstantaneousEvent .
+
+<https://astrea.linkeddata.es/shapes#fadac7ceeeb747176ed685af535ebc3f>
+        a               sh:PropertyShape ;
+        rdfs:label      "Generation is the completion of production of a new entity by an activity. This entity did not exist before generation and becomes available for usage after this generation." ;
+        rdfs:seeAlso    "http://www.w3.org/ns/prov#qualifiedGeneration" ;
+        sh:class        prov:Generation ;
+        sh:description  "Generation is the completion of production of a new entity by an activity. This entity did not exist before generation and becomes available for usage after this generation." ;
+        sh:nodeKind     sh:BlankNodeOrIRI ;
+        sh:path         prov:qualifiedGeneration .
+
+<https://astrea.linkeddata.es/shapes#a0005af2635b82beb671b40f25536d31>
+        a               sh:NodeShape ;
+        sh:nodeKind     sh:IRI ;
+        sh:targetClass  rdfs:Resource .
+
+<https://astrea.linkeddata.es/shapes#f2b936631a2448d7deb2b882370376b0>
+        a            sh:PropertyShape ;
+        sh:datatype  xsd:string ;
+        sh:nodeKind  sh:Literal ;
+        sh:path      schema:URL ;
+        sh:pattern   ".*" .
+
+<https://astrea.linkeddata.es/shapes#d105e7f7ceff3bf16cdbfa183899eb58>
+        a                 sh:PropertyShape ;
+        rdfs:isDefinedBy  dc:language ;
+        sh:class          dc:LinguisticSystem ;
+        sh:nodeKind       sh:BlankNodeOrIRI ;
+        sh:path           dc:language .
+
+<https://astrea.linkeddata.es/shapes#26452bf219c1052eeb57e20b0cca77fd>
+        a                 sh:PropertyShape ;
+        rdfs:isDefinedBy  "http://purl.org/net/p-plan#hasOutputVar" ;
+        sh:class          p-plan:Variable ;
+        sh:nodeKind       sh:BlankNodeOrIRI ;
+        sh:path           p-plan:hasOutputVar .
+
+<https://astrea.linkeddata.es/shapes#f455feb00056a91db26c00d9253b6d4d>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/shacl#NodeShape" ;
+        sh:nodeKind       sh:IRI ;
+        sh:property       <https://astrea.linkeddata.es/shapes#006e3d8570ce373aff58971ab1605d3e> , <https://astrea.linkeddata.es/shapes#ce52293832481838e41a8e164f5d5ed7> ;
+        sh:targetClass    sh:NodeShape .
+
+<https://astrea.linkeddata.es/shapes#21feca0aa2ac782b9be4ee7f6439de32>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://purl.org/net/p-plan#Variable" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    p-plan:Variable .
+
+<https://astrea.linkeddata.es/shapes#4c9bb26e7f4b96422a668345dbaf53dc>
+        a            sh:PropertyShape ;
+        sh:class     p-plan:Step ;
+        sh:nodeKind  sh:IRIOrLiteral ;
+        sh:path      pwo:hasFirstStep .
+
+<https://astrea.linkeddata.es/shapes#ce52293832481838e41a8e164f5d5ed7>
+        a            sh:PropertyShape ;
+        sh:class     sh:SPARQLConstraint ;
+        sh:nodeKind  sh:BlankNodeOrIRI ;
+        sh:path      sh:sparql .
+
+<https://astrea.linkeddata.es/shapes#7d0c752fbaa773778fd7ddfab7df61f5>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://edamontology.org/format_1915" ;
+        rdfs:label        "Data format" ;
+        sh:name           "Data format" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    edam:format_1915 .
+
+<https://astrea.linkeddata.es/shapes#2ba1311541b146316fca9cabedad585d>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.opmw.org/ontology/WorkflowExecutionArtifact" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    opmw:WorkflowExecutionArtifact .
+
+<https://astrea.linkeddata.es/shapes#02593da342b5a364b87413f58db28026>
+        a                 sh:PropertyShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/prov#qualifiedUsage" ;
+        sh:class          prov:Usage ;
+        sh:nodeKind       sh:BlankNodeOrIRI ;
+        sh:path           prov:qualifiedUsage .
+
+<https://astrea.linkeddata.es/shapes#e1f33209247ac6680cb19a492d35d0c2>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "https://www.w3.org/TR/prov-o/#p_agent" ;
+        sh:class      prov:Agent ;
+        sh:nodeKind   sh:BlankNodeOrIRI ;
+        sh:path       prov:agent .
+
+<https://astrea.linkeddata.es/shapes#006e3d8570ce373aff58971ab1605d3e>
+        a            sh:PropertyShape ;
+        sh:class     owl:Thing ;
+        sh:nodeKind  sh:BlankNodeOrIRI ;
+        sh:path      sh:targetClass .
+
+<https://astrea.linkeddata.es/shapes#caba1d6abfcdf5b1e3085188f4db2a98>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "https://www.w3.org/ns/prov#Activity" ;
+        sh:nodeKind       sh:IRI ;
+        sh:property       <https://astrea.linkeddata.es/shapes#d18a97a852a607a0308fb5f8582bafcd> ;
+        sh:targetClass    prov:Activity .
+
+<http://astrea.linkeddata.es/report>
+        a       <https://w3id.org/def/astrea#ShapeReport> ;
+        <https://w3id.org/def/astrea#contains>
+                <https://astrea.linkeddata.es/shapes#8039c5b998ce5507fef3f197592cfe07> , <https://astrea.linkeddata.es/shapes#7d0c752fbaa773778fd7ddfab7df61f5> , <https://astrea.linkeddata.es/shapes#ff95cae48951c90a8e6e22cd8c162be3> , <https://astrea.linkeddata.es/shapes#ff1ce932ff02df4c83e509045e72f26a> , <https://astrea.linkeddata.es/shapes#3e2f60daa912b4bbfdda79d75fe2752b> , <https://astrea.linkeddata.es/shapes#3604ff5cd1f2b727bc77c99c5ce2280c> , <https://astrea.linkeddata.es/shapes#f455feb00056a91db26c00d9253b6d4d> , <https://astrea.linkeddata.es/shapes#a25d2c40a2b65a3d3bbfa446af913b52> , <https://astrea.linkeddata.es/shapes#4077dfea2d12de958f6d00c1e8feb1f7> , <https://astrea.linkeddata.es/shapes#f828c6af14fb4677ad73168c26e8eb6b> , <https://astrea.linkeddata.es/shapes#3eb1053bfb8d8e3227c72df7638cd75d> , <https://astrea.linkeddata.es/shapes#e1f33209247ac6680cb19a492d35d0c2> , <https://astrea.linkeddata.es/shapes#006e3d8570ce373aff58971ab1605d3e> , <https://astrea.linkeddata.es/shapes#3e7240d4828098b2bb44802115118dfb> , <https://astrea.linkeddata.es/shapes#4c9bb26e7f4b96422a668345dbaf53dc> , <https://astrea.linkeddata.es/shapes#b9f303f3ae53bd2b1577c950f1778a36> , <https://astrea.linkeddata.es/shapes#c6f53d10d323d929a8e9e365b3616ebd> , <https://astrea.linkeddata.es/shapes#0c7a6782b7789e420087704ad89674ef> , <https://astrea.linkeddata.es/shapes#23f29c3c88729cbbfdca4f8d496ac5c5> , <https://astrea.linkeddata.es/shapes#4ca9a96a54e3087d1ed009f065b89955> , <https://astrea.linkeddata.es/shapes#bed21b12435bd1a3b0277246cb92f4d2> , <https://astrea.linkeddata.es/shapes#51e8435703d048632323dab0de1704b9> , <https://astrea.linkeddata.es/shapes#3e3cc6e3d43f641af398b8073906980b> , <https://astrea.linkeddata.es/shapes#2ba1311541b146316fca9cabedad585d> , <https://astrea.linkeddata.es/shapes#26452bf219c1052eeb57e20b0cca77fd> , <https://astrea.linkeddata.es/shapes#21feca0aa2ac782b9be4ee7f6439de32> , <https://astrea.linkeddata.es/shapes#0d004d7b0c08bc7f9bb6fe1594907998> , <https://astrea.linkeddata.es/shapes#b12426c28e40c8065a8d4036243dfb17> , <https://astrea.linkeddata.es/shapes#30355cabeb51e18e91907ebf1eaa8053> , <https://astrea.linkeddata.es/shapes#cf764ba53e5778f128f3f671affe9594> , <https://astrea.linkeddata.es/shapes#ce52293832481838e41a8e164f5d5ed7> , <https://astrea.linkeddata.es/shapes#fa92e9b0e6e2805da4179a8fbab7ff8e> , <https://astrea.linkeddata.es/shapes#dfcd5fc30011d551739f9877c244fb84> , <https://astrea.linkeddata.es/shapes#caba1d6abfcdf5b1e3085188f4db2a98> , <https://astrea.linkeddata.es/shapes#68c0292de163d9fccf99ee0fb760bcc1> , <https://astrea.linkeddata.es/shapes#d18a97a852a607a0308fb5f8582bafcd> , <https://astrea.linkeddata.es/shapes#ad37c34a735811937bada118cc65cc69> , <https://astrea.linkeddata.es/shapes#0dd70f767dd5bf9d27b283022f5fdad4> , <https://astrea.linkeddata.es/shapes#d86d39fe22d383728eb67f8caebf5274> , <https://astrea.linkeddata.es/shapes#84e0eac538b8e168f2278ad31a5e6a61> , <https://astrea.linkeddata.es/shapes#d105e7f7ceff3bf16cdbfa183899eb58> , <https://astrea.linkeddata.es/shapes#91bdb733f5c5f8b68ed72a7c77d5360b> , <https://astrea.linkeddata.es/shapes#50ee12d03373a78308e5484bd860ad98> , <https://astrea.linkeddata.es/shapes#718a7d9333c9c7ccab7a6dfcfa2d5038> , <https://astrea.linkeddata.es/shapes#f31288f45557f654fc2db4a369bebfa7> , <https://astrea.linkeddata.es/shapes#f2b936631a2448d7deb2b882370376b0> , <https://astrea.linkeddata.es/shapes#b4f08031d4f5e8c5b143eaf68269bd94> , <https://astrea.linkeddata.es/shapes#a0005af2635b82beb671b40f25536d31> , <https://astrea.linkeddata.es/shapes#ad89e8dc7487648b0158a2f47b7303e3> , <https://astrea.linkeddata.es/shapes#fadac7ceeeb747176ed685af535ebc3f> , <https://astrea.linkeddata.es/shapes#788c67f93f7cc71058e8ef87d5eb3afa> , <https://astrea.linkeddata.es/shapes#8f99343de5298d9519fffde0241fec54> , <https://astrea.linkeddata.es/shapes#126c5ececc6c8a294961e605c4f7f0d0> , <https://astrea.linkeddata.es/shapes#f1569d82a24734f2d5df36acdacf01bc> , <https://astrea.linkeddata.es/shapes#832e48f6362587f704051e405d495b54> , <https://astrea.linkeddata.es/shapes#1f849e48eb5251db75ededf05d1b45d0> , <https://astrea.linkeddata.es/shapes#c3719f07614b52dddd7ee3569095785e> , <https://astrea.linkeddata.es/shapes#51c255e4401df48eae3352c0109f80ab> , <https://astrea.linkeddata.es/shapes#02593da342b5a364b87413f58db28026> ;
+        <https://w3id.org/def/astrea#generatedShapesFrom>
+                <https://astrea.linkeddata.es/report/0620946147> .
+
+<https://astrea.linkeddata.es/shapes#0d004d7b0c08bc7f9bb6fe1594907998>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/mls#ModelEvaluation" ;
+        sh:nodeKind       sh:IRI ;
+        sh:property       <https://astrea.linkeddata.es/shapes#3e3cc6e3d43f641af398b8073906980b> ;
+        sh:targetClass    mls:ModelEvaluation .
+
+<https://astrea.linkeddata.es/shapes#ff1ce932ff02df4c83e509045e72f26a>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/shacl#SPARQLConstraint" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    sh:SPARQLConstraint .
+
+<https://astrea.linkeddata.es/shapes#bed21b12435bd1a3b0277246cb92f4d2>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/dcat#Dataset" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    dcat:Dataset .
+
+<https://astrea.linkeddata.es/shapes#84e0eac538b8e168f2278ad31a5e6a61>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://www.w3.org/ns/prov#EntityInfluence" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:EntityInfluence .
+
+<https://astrea.linkeddata.es/shapes#4ca9a96a54e3087d1ed009f065b89955>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://schema.org/ComputerLanguage" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    schema:ComputerLanguage .
+
+<https://astrea.linkeddata.es/shapes#fa92e9b0e6e2805da4179a8fbab7ff8e>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "https://www.w3.org/ns/dcat#mediaType" ;
+        sh:class      edam:format_1915 ;
+        sh:nodeKind   sh:BlankNodeOrIRI ;
+        sh:path       dcat:mediaType .
+
+<https://astrea.linkeddata.es/shapes#c6f53d10d323d929a8e9e365b3616ebd>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "https://www.w3.org/TR/prov-o/#Plan" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    prov:Plan .
+
+<https://astrea.linkeddata.es/shapes#3e7240d4828098b2bb44802115118dfb>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://purl.org/spar/fabio/Triplestore" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    fabio:Triplestore .
+
+<https://astrea.linkeddata.es/shapes#788c67f93f7cc71058e8ef87d5eb3afa>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://edamontology.org/operation_0224" ;
+        rdfs:label        "Query and retrieval (EDAM)" ;
+        sh:name           "Query and retrieval (EDAM)" ;
+        sh:nodeKind       sh:IRI ;
+        sh:targetClass    edam:operation_0224 .
+
+<https://astrea.linkeddata.es/shapes#51e8435703d048632323dab0de1704b9>
+        a                 sh:NodeShape ;
+        rdfs:isDefinedBy  "http://purl.org/net/p-plan#Plan" ;
+        sh:nodeKind       sh:IRI ;
+        sh:property       <https://astrea.linkeddata.es/shapes#4c9bb26e7f4b96422a668345dbaf53dc> ;
+        sh:targetClass    p-plan:Plan .
+
+<https://astrea.linkeddata.es/shapes#68c0292de163d9fccf99ee0fb760bcc1>
+        a               sh:NodeShape ;
+        rdfs:label      "Data handling (EDAM)" ;
+        rdfs:seeAlso    "http://edamontology.org/operation_2409" ;
+        sh:name         "Data handling (EDAM)" ;
+        sh:nodeKind     sh:IRI ;
+        sh:targetClass  edam:operation_2409 .
+
+<https://astrea.linkeddata.es/shapes#f31288f45557f654fc2db4a369bebfa7>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "http://purl.org/dc/terms/created" ;
+        sh:datatype   rdfs:Literal ;
+        sh:nodeKind   sh:Literal ;
+        sh:path       dc:created .
+
+<https://astrea.linkeddata.es/shapes#23f29c3c88729cbbfdca4f8d496ac5c5>
+        a             sh:PropertyShape ;
+        rdfs:seeAlso  "https://www.w3.org/TR/prov-o/#hadPlan" ;
+        sh:class      prov:Plan ;
+        sh:nodeKind   sh:BlankNodeOrIRI ;
+        sh:path       prov:hadPlan .
