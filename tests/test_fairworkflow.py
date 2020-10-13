@@ -6,7 +6,7 @@ import rdflib
 from rdflib.compare import isomorphic
 from requests import HTTPError
 
-from fairworkflows import FairWorkflow, FairStep, fairstep
+from fairworkflows import FairWorkflow, FairStep, add_step
 from fairworkflows.config import TESTS_RESOURCES
 
 
@@ -189,7 +189,7 @@ class TestFairWorkflow:
                                self.workflow.unbound_outputs]
         assert sorted(unbound_output_uris) == sorted(['var1', 'var3'])
 
-    @mock.patch('fairworkflows.nanopub_wrapper.publish')
+    @mock.patch('fairworkflows.fairworkflow.Nanopub.publish')
     def test_publish(self, nanopub_wrapper_publish_mock):
         """
         Test (mock) publishing of workflow
@@ -199,7 +199,7 @@ class TestFairWorkflow:
     def test_decorator(self):
         workflow = FairWorkflow(description='This is a test workflow.')
 
-        @fairstep(workflow)
+        @add_step(workflow)
         def test_fn(x, y):
             return x * y
 

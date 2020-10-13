@@ -6,8 +6,6 @@ name: Python application
 on:
   push:
     branches: [ '**' ]
-  pull_request:
-    branches: [ master ]
 
 jobs:
   build:
@@ -28,7 +26,7 @@ jobs:
           sudo apt-get install -y graphviz
       - name: Create RSA key for nanopubs
         run: |
-          fairworkflows/np mkkeys -a RSA
+          make_nanopub_keys
 
       - name: Lint with flake8
         run: |

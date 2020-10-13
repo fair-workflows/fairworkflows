@@ -31,12 +31,6 @@ setup(name='fairworkflows',
     url='https://github.com/fair-workflows/fairworkflows/',
     install_requires=open("requirements.txt", "r").readlines(),
     packages=['fairworkflows'],
-    package_data={
-        'fairworkflows': [
-            'np'
-        ],
-    },
-    include_package_data=True,
     extras_require={
         'dev': open('requirements_dev.txt', 'r').readlines()
     },

@@ -1,7 +1,8 @@
 import warnings
 import rdflib
 
-from .nanopub import Nanopub
+from nanopub import Nanopub
+
 
 class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject'):
