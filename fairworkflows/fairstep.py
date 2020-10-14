@@ -5,13 +5,14 @@ from typing import List
 from urllib.parse import urldefrag
 
 import rdflib
-from nanopub import Nanopub
+from nanopub import NanopubClient
 from rdflib import RDF, DCTERMS
 
+from fairworkflows import namespaces
 from fairworkflows.rdf_wrapper import RdfWrapper
 
-FAIRSTEP_PREDICATES = [RDF.type, Nanopub.PPLAN.hasInputVar,
-                       Nanopub.PPLAN.hasOutputVar, DCTERMS.description]
+FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
+                       namespaces.PPLAN.hasOutputVar, DCTERMS.description]
 
 
 class FairStep(RdfWrapper):
@@ -56,13 +57,14 @@ class FairStep(RdfWrapper):
         nanopub_uri, frag = urldefrag(uri)
 
         # Fetch the nanopub
-        np = Nanopub.fetch(nanopub_uri)
+        client = NanopubClient()
+        np = client.fetch(nanopub_uri)
 
         # If there was no fragment in the original uri, then the uri was already the nanopub one.
         # Try to work out what the step's URI is, by looking at what the np is introducing.
         if len(frag) == 0:
             concepts_introduced = []
-            for s, p, o in np.pubinfo.triples((None, Nanopub.NPX.introduces, None)):
+            for s, p, o in np.pubinfo.triples((None, namespaces.NPX.introduces, None)):
                 concepts_introduced.append(o)
 
             if len(concepts_introduced) == 0:
@@ -103,27 +105,27 @@ class FairStep(RdfWrapper):
         self.description = code
 
         # Specify that step is a pplan:Step
-        self.set_attribute(RDF.type, Nanopub.PPLAN.Step, overwrite=False)
+        self.set_attribute(RDF.type, namespaces.PPLAN.Step, overwrite=False)
 
         # Specify that step is a ScriptTask
-        self.set_attribute(RDF.type, Nanopub.BPMN.ScriptTask, overwrite=False)
+        self.set_attribute(RDF.type, namespaces.BPMN.ScriptTask, overwrite=False)
 
         return self
 
     @property
     def is_pplan_step(self):
         """Return True if this FairStep is a pplan:Step, else False."""
-        return (self.self_ref, RDF.type, Nanopub.PPLAN.Step) in self._rdf
+        return (self.self_ref, RDF.type, namespaces.PPLAN.Step) in self._rdf
 
     @property
     def is_manual_task(self):
         """Returns True if this FairStep is a bpmn:ManualTask, else False."""
-        return (self.self_ref, RDF.type, Nanopub.BPMN.ManualTask) in self._rdf
+        return (self.self_ref, RDF.type, namespaces.BPMN.ManualTask) in self._rdf
 
     @property
     def is_script_task(self):
         """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
-        return (self.self_ref, RDF.type, Nanopub.BPMN.ScriptTask) in self._rdf
+        return (self.self_ref, RDF.type, namespaces.BPMN.ScriptTask) in self._rdf
 
     @property
     def inputs(self) -> List[rdflib.URIRef]:
@@ -134,14 +136,14 @@ class FairStep(RdfWrapper):
         Set inputs by passing a list of strings depicting URIs. This
         overwrites old inputs.
         """
-        return self.get_attribute(Nanopub.PPLAN.hasInputVar,
+        return self.get_attribute(namespaces.PPLAN.hasInputVar,
                                   return_list=True)
 
     @inputs.setter
     def inputs(self, uris: List[str]):
-        self.remove_attribute(Nanopub.PPLAN.hasInputVar)
+        self.remove_attribute(namespaces.PPLAN.hasInputVar)
         for uri in uris:
-            self.set_attribute(Nanopub.PPLAN.hasInputVar, rdflib.URIRef(uri),
+            self.set_attribute(namespaces.PPLAN.hasInputVar, rdflib.URIRef(uri),
                                overwrite=False)
 
     @property
@@ -153,14 +155,14 @@ class FairStep(RdfWrapper):
         Set outputs by passing a list of strings depicting URIs. This
         overwrites old outputs.
         """
-        return self.get_attribute(Nanopub.PPLAN.hasOutputVar,
+        return self.get_attribute(namespaces.PPLAN.hasOutputVar,
                                   return_list=True)
 
     @outputs.setter
     def outputs(self, uris: List[str]):
-        self.remove_attribute(Nanopub.PPLAN.hasOutputVar)
+        self.remove_attribute(namespaces.PPLAN.hasOutputVar)
         for uri in uris:
-            self.set_attribute(Nanopub.PPLAN.hasOutputVar, rdflib.URIRef(uri),
+            self.set_attribute(namespaces.PPLAN.hasOutputVar, rdflib.URIRef(uri),
                                overwrite=False)
 
     @property

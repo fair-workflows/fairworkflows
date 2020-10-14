@@ -1,7 +1,10 @@
 import warnings
 import rdflib
 
-from nanopub import Nanopub
+# TODO: use this:
+# from nanopub import Nanopub, NanopubClient
+# instead of:
+from nanopub.nanopub import NanopubClient, Nanopub
 
 
 class RdfWrapper:
@@ -102,8 +105,12 @@ class RdfWrapper:
                 warnings.warn(f'Cannot publish() this Fair object. This rdf is already published (at {self._uri}) and has not been modified locally.')
                 return {'nanopub_uri': None, 'concept_uri': None}
 
-        # Publish the rdf of this step as a nanopub
-        publication_info = Nanopub.publish(self._rdf, introduces_concept=self.self_ref, derived_from=derived_from)
+        # Publish the rdf of this step as a nanopublication
+        nanopub = Nanopub.from_assertion(assertion_rdf=self.rdf,
+                                         introduces_concept=self.self_ref,
+                                         derived_from=derived_from)
+        client = NanopubClient()
+        publication_info = client.publish(nanopub)
 
         # Set the new, published, URI, which should be whatever the (published) URI of the concept that was introduced is.
         # Note that this is NOT the nanopub's URI, since the nanopub is not the step/workflow. The rdf object describing the step/workflow

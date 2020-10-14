@@ -6,11 +6,11 @@ from typing import Iterator, Tuple, List, Optional
 
 import networkx as nx
 import rdflib
-from nanopub import Nanopub
 from rdflib import RDF, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
+from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep, FAIRSTEP_PREDICATES
 from fairworkflows.rdf_wrapper import RdfWrapper
 
@@ -30,7 +30,7 @@ class FairWorkflow(RdfWrapper):
 
         self._is_published = False
 
-        self._rdf.add((self.self_ref, RDF.type, Nanopub.PPLAN.Plan))
+        self._rdf.add((self.self_ref, RDF.type, namespaces.PPLAN.Plan))
         self.description = description
         self._steps = {}
         self._last_step_added = None
@@ -65,7 +65,7 @@ class FairWorkflow(RdfWrapper):
         triples describing steps from rdf, those will be represented in
         the separate step RDF. Optionally try to fetch steps from nanopub.
         """
-        step_refs = rdf.subjects(predicate=Nanopub.PPLAN.isStepOfPlan,
+        step_refs = rdf.subjects(predicate=namespaces.PPLAN.isStepOfPlan,
                                  object=rdflib.URIRef(uri))
         for step_ref in step_refs:
             step_uri = str(step_ref)
@@ -116,14 +116,14 @@ class FairWorkflow(RdfWrapper):
              RDF has multiple first steps and is thus invalid) return a list of
              first steps.
         """
-        return self.get_attribute(Nanopub.PWO.hasFirstStep)
+        return self.get_attribute(namespaces.PWO.hasFirstStep)
 
     @first_step.setter
     def first_step(self, step: FairStep):
         """
         Sets the first step of this plex workflow to the given FairStep
         """
-        self.set_attribute(Nanopub.PWO.hasFirstStep, rdflib.URIRef(step.uri))
+        self.set_attribute(namespaces.PWO.hasFirstStep, rdflib.URIRef(step.uri))
         self._add_step(step)
 
     @property
@@ -162,7 +162,7 @@ class FairWorkflow(RdfWrapper):
     def _add_step(self, step: FairStep):
         """Add a step to workflow (low-level method)."""
         self._steps[step.uri] = step
-        self._rdf.add((rdflib.URIRef(step.uri), Nanopub.PPLAN.isStepOfPlan,
+        self._rdf.add((rdflib.URIRef(step.uri), namespaces.PPLAN.isStepOfPlan,
                        self.self_ref))
         self._last_step_added = step
 
@@ -180,7 +180,7 @@ class FairWorkflow(RdfWrapper):
             else:
                 self.add(step, follows=self._last_step_added)
         else:
-            self._rdf.add((rdflib.URIRef(follows.uri), Nanopub.DUL.precedes, rdflib.URIRef(step.uri)))
+            self._rdf.add((rdflib.URIRef(follows.uri), namespaces.DUL.precedes, rdflib.URIRef(step.uri)))
             self._add_step(follows)
             self._add_step(step)
 
@@ -202,7 +202,7 @@ class FairWorkflow(RdfWrapper):
         else:
             G = nx.MultiDiGraph()
             for s, p, o in self._rdf:
-                if p == Nanopub.DUL.precedes:
+                if p == namespaces.DUL.precedes:
                     G.add_edge(s, o)
             if len(G) == len(self._steps):
                 ordered_steps = nx.topological_sort(G)
@@ -217,7 +217,7 @@ class FairWorkflow(RdfWrapper):
         """
         Returns True if this object's rdf specifies that it is a pplan:Plan
         """
-        return (self.self_ref, RDF.type, Nanopub.PPLAN.Plan) in self._rdf
+        return (self.self_ref, RDF.type, namespaces.PPLAN.Plan) in self._rdf
 
     def get_step(self, uri):
         """
