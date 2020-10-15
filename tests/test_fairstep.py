@@ -112,8 +112,8 @@ class TestFairStep:
         with pytest.raises(AssertionError):
             step.validate()
 
-    @patch('fairworkflows.fairstep.Nanopub.publish')
-    @patch('fairworkflows.fairstep.Nanopub.fetch')
+    @patch('fairworkflows.fairstep.NanopubClient.publish')
+    @patch('fairworkflows.fairstep.NanopubClient.fetch')
     def test_modification_and_republishing(self, nanopub_fetch_mock,
                                            nanopub_publish_mock):
 
@@ -123,7 +123,7 @@ class TestFairStep:
         nanopub_rdf = rdflib.ConjunctiveGraph()
         nanopub_rdf.parse(str(TESTS_RESOURCES / 'sample_fairstep_nanopub.trig'),
                           format='trig')
-        returned_nanopubobj = Nanopub.NanopubObj(rdf=nanopub_rdf, source_uri=test_uri)
+        returned_nanopubobj = Nanopub(rdf=nanopub_rdf, source_uri=test_uri)
         nanopub_fetch_mock.return_value = returned_nanopubobj
 
         # 'Fetch' the nanopub as a fairstep, and attempt to publish it without modification

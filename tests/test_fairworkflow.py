@@ -189,7 +189,7 @@ class TestFairWorkflow:
                                self.workflow.unbound_outputs]
         assert sorted(unbound_output_uris) == sorted(['var1', 'var3'])
 
-    @mock.patch('fairworkflows.fairworkflow.Nanopub.publish')
+    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
     def test_publish(self, nanopub_wrapper_publish_mock):
         """
         Test (mock) publishing of workflow
