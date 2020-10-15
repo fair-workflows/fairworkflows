@@ -3,8 +3,7 @@ from unittest.mock import patch
 import pytest
 import rdflib
 import requests
-# TODO nanopub instead of nanopub.nanopub
-from nanopub.nanopub import Nanopub
+from nanopub import Nanopub
 
 from fairworkflows import FairStep
 from fairworkflows.config import TESTS_RESOURCES

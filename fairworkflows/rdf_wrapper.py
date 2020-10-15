@@ -1,10 +1,7 @@
 import warnings
-import rdflib
 
-# TODO: use this:
-# from nanopub import Nanopub, NanopubClient
-# instead of:
-from nanopub.nanopub import NanopubClient, Nanopub
+import rdflib
+from nanopub import Nanopub, NanopubClient
 
 
 class RdfWrapper:
