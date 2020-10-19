@@ -246,10 +246,10 @@
         sh:nodeKind     sh:BlankNodeOrIRI ;
         sh:path         prov:qualifiedGeneration .
 
-#<https://astrea.linkeddata.es/shapes#a0005af2635b82beb671b40f25536d31>
-#        a               sh:NodeShape ;
+<https://astrea.linkeddata.es/shapes#a0005af2635b82beb671b40f25536d31>
+        a               sh:NodeShape ;
 #        sh:nodeKind     sh:IRI ;
-#        sh:targetClass  rdfs:Resource .
+        sh:targetClass  rdfs:Resource .
 
 <https://astrea.linkeddata.es/shapes#f2b936631a2448d7deb2b882370376b0>
         a            sh:PropertyShape ;
