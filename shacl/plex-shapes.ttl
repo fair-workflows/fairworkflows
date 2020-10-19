@@ -180,7 +180,7 @@
 <https://astrea.linkeddata.es/shapes#126c5ececc6c8a294961e605c4f7f0d0>
         a                 sh:NodeShape ;
         rdfs:isDefinedBy  "http://purl.org/net/p-plan#Step" ;
-        sh:nodeKind       sh:IRI ;
+#        sh:nodeKind       sh:IRI ;
         sh:property       <https://astrea.linkeddata.es/shapes#f828c6af14fb4677ad73168c26e8eb6b> , <https://astrea.linkeddata.es/shapes#8f99343de5298d9519fffde0241fec54> , <https://astrea.linkeddata.es/shapes#26452bf219c1052eeb57e20b0cca77fd> ;
         sh:targetClass    p-plan:Step .
 
@@ -208,7 +208,7 @@
 <https://astrea.linkeddata.es/shapes#1f849e48eb5251db75ededf05d1b45d0>
         a                 sh:NodeShape ;
         rdfs:isDefinedBy  "http://dkm.fbk.eu/index.php/BPMN2_Ontology#manualTask" ;
-        sh:nodeKind       sh:IRI ;
+#        sh:nodeKind       sh:IRI ;
         sh:targetClass    bpmn:ManualTask .
 
 <https://astrea.linkeddata.es/shapes#c3719f07614b52dddd7ee3569095785e>
