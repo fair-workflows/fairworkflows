@@ -71,6 +71,9 @@ class TestFairWorkflow:
             assert step.uri in valid_step_uris
         workflow.validate()
 
+        # Check that workflow rdf passes plex shacl validation
+        assert workflow.shacl_validate()
+
     @mock.patch('fairworkflows.fairworkflow.FairWorkflow._fetch_step')
     def test_construct_from_rdf_fetch_steps(self, mock_fetch_step):
         """
