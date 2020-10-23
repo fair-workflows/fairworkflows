@@ -2,10 +2,8 @@ import inspect
 import time
 import warnings
 from typing import List
-from urllib.parse import urldefrag
 
 import rdflib
-from nanopub import NanopubClient
 from rdflib import RDF, DCTERMS
 
 from fairworkflows import namespaces
