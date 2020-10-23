@@ -58,32 +58,25 @@ class FairStep(RdfWrapper):
 
         # Fetch the nanopub
         client = NanopubClient()
-        np = client.fetch(nanopub_uri)
+        nanopub = client.fetch(nanopub_uri)
 
-        # If there was no fragment in the original uri, then the uri was already the nanopub one.
-        # Try to work out what the step's URI is, by looking at what the np is introducing.
-        if len(frag) == 0:
-            concepts_introduced = []
-            for s, p, o in np.pubinfo.triples((None, namespaces.NPX.introduces, None)):
-                concepts_introduced.append(o)
-
-            if len(concepts_introduced) == 0:
-                raise ValueError('This nanopub does not introduce any concepts. Please provide URI to the step itself (not just the nanopub).')
-            elif len(concepts_introduced) > 0:
-                step_uri = str(concepts_introduced[0])
-
-            print('Assuming step URI is', step_uri)
-
-        else:
+        if len(frag) > 0:
+            # If we found a fragment we can use the passed URI
             step_uri = uri
+        elif nanopub.introduces_concept:
+            # Otherwise we try to extract it from 'introduced concept'
+            step_uri = str(nanopub.introduces_concept)
+        else:
+            raise ValueError('This nanopub does not introduce any concepts. Please provide URI to '
+                             'the FAIR object itself (not just the nanopub).')
         self = cls(uri=step_uri)
 
         # Check that the nanopub's assertion actually contains triples refering to the given step's uri
-        if (rdflib.URIRef(self._uri), None, None) not in np.assertion:
+        if (rdflib.URIRef(self._uri), None, None) not in nanopub.assertion:
             raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={nanopub_uri})')
 
         # Else extract all triples in the assertion into the rdf graph for this step
-        self._rdf += np.assertion
+        self._rdf += nanopub.assertion
 
         # Record that this RDF originates from a published source
         self._is_published = True

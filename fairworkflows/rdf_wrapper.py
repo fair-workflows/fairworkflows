@@ -3,6 +3,8 @@ import warnings
 import rdflib
 from nanopub import Nanopub, NanopubClient
 
+from fairworkflows import namespaces
+
 
 class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject'):
