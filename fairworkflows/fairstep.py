@@ -44,14 +44,13 @@ class FairStep(RdfWrapper):
 
     @classmethod
     def from_nanopub(cls, uri):
-        """
-            Fetches the nanopublication corresponding to the specified URI, and attempts to extract the rdf describing a fairstep from
-            its assertion graph. If the URI passed to this function is the uri of the nanopublication (and not the step itself) then
-            an attempt will be made to identify what the URI of the step actually is, by checking if the nanopub npx:introduces a
-            particular concept.
+        """Construct FairStep object from an existing nanopublication.
 
-            If the assertion graph does not contain any triples with the step URI as subject, an exception is raised. If such triples
-            are found, then ALL triples in the assertion are added to the rdf graph for this FairStep.
+        Fetch the nanopublication corresponding to the specified URI, and attempt to extract the
+        rdf describing a fairstep from its assertion graph. If the URI passed to this function is
+        the uri of the nanopublication (and not the step itself) then an attempt will be made to
+        identify what the URI of the step actually is, by checking if the nanopub npx:introduces a
+        particular concept.
         """
         # Work out the nanopub URI by defragging the step URI
         nanopub_uri, frag = urldefrag(uri)
@@ -62,26 +61,16 @@ class FairStep(RdfWrapper):
 
         if len(frag) > 0:
             # If we found a fragment we can use the passed URI
-            step_uri = uri
+            uri = uri
         elif nanopub.introduces_concept:
             # Otherwise we try to extract it from 'introduced concept'
-            step_uri = str(nanopub.introduces_concept)
+            uri = str(nanopub.introduces_concept)
         else:
             raise ValueError('This nanopub does not introduce any concepts. Please provide URI to '
                              'the FAIR object itself (not just the nanopub).')
-        self = cls(uri=step_uri)
-
-        # Check that the nanopub's assertion actually contains triples refering to the given step's uri
-        if (rdflib.URIRef(self._uri), None, None) not in nanopub.assertion:
-            raise ValueError(f'No triples pertaining to the specified step (uri={step_uri}) were found in the assertion graph of the corresponding nanopublication (uri={nanopub_uri})')
-
-        # Else extract all triples in the assertion into the rdf graph for this step
-        self._rdf += nanopub.assertion
-
+        self = cls.from_rdf(rdf=nanopub.assertion, uri=uri)
         # Record that this RDF originates from a published source
         self._is_published = True
-
-        self.anonymise_rdf()
         return self
 
     @classmethod
