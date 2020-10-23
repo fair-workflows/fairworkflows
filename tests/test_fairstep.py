@@ -102,8 +102,8 @@ class TestFairStep:
         with pytest.raises(AssertionError):
             step.validate()
 
-    @patch('fairworkflows.fairstep.NanopubClient.publish')
-    @patch('fairworkflows.fairstep.NanopubClient.fetch')
+    @patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    @patch('fairworkflows.rdf_wrapper.NanopubClient.fetch')
     def test_modification_and_republishing(self, nanopub_fetch_mock,
                                            nanopub_publish_mock):
 
