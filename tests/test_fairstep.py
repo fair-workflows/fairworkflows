@@ -2,21 +2,11 @@ from unittest.mock import patch
 
 import pytest
 import rdflib
-import requests
 from nanopub import Nanopub
 
+from conftest import skip_if_nanopub_server_unavailable
 from fairworkflows import FairStep
 from fairworkflows.config import TESTS_RESOURCES
-
-BAD_GATEWAY = 502
-NANOPUB_SERVER = 'http://purl.org/np/'
-SERVER_UNAVAILABLE = 'Nanopub server is unavailable'
-
-
-def nanopub_server_unavailable():
-    response = requests.get(NANOPUB_SERVER)
-
-    return response.status_code == BAD_GATEWAY
 
 
 class TestFairStep:
@@ -46,7 +36,7 @@ class TestFairStep:
             assert str(output) == new_output
 
     @pytest.mark.flaky(max_runs=10)
-    @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
+    @skip_if_nanopub_server_unavailable
     def test_construction_from_nanopub(self):
         """
             Check that we can load a FairStep from known nanopub URIs for manual steps,
@@ -67,7 +57,7 @@ class TestFairStep:
             assert not step.is_script_task
 
     @pytest.mark.flaky(max_runs=10)
-    @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
+    @skip_if_nanopub_server_unavailable
     def test_construction_from_nanopub_without_fragment(self):
         """
             Check that we can load a FairStep from known nanopub URIs also

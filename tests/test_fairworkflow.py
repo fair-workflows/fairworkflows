@@ -6,6 +6,7 @@ import rdflib
 from rdflib.compare import isomorphic
 from requests import HTTPError
 
+from conftest import skip_if_nanopub_server_unavailable
 from fairworkflows import FairWorkflow, FairStep, add_step
 from fairworkflows.config import TESTS_RESOURCES
 
@@ -115,6 +116,25 @@ class TestFairWorkflow:
             assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
+
+    @pytest.mark.flaky(max_runs=10)
+    @skip_if_nanopub_server_unavailable
+    def test_construction_from_nanopub(self):
+        """Test loading a FairWorkflow from known nanopub URI."""
+
+        # Test for a url both with fragment specified and without
+        uris = [
+            'http://purl.org/np/RAVtqYmYjLCSdSde4iBPOF98qakyxBg8MgXdh1KBYut0w#plan',
+            'http://purl.org/np/RAVtqYmYjLCSdSde4iBPOF98qakyxBg8MgXdh1KBYut0w'
+        ]
+        for uri in uris:
+            workflow = FairWorkflow.from_nanopub(uri=uri)
+            assert workflow is not None
+            workflow.validate()
+            steps = list(workflow)
+            assert len(steps) > 0
+            for step in steps:
+                step.validate()
 
     @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
     def test_fetch_step_404(self, mock_from_nanopub):

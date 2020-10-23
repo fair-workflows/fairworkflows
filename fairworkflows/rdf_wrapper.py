@@ -91,7 +91,7 @@ class RdfWrapper:
     @classmethod
     def from_rdf(cls, rdf: rdflib.Graph, uri: str = None, fetch_references: bool = False):
         """Construct RdfWrapper object from rdf graph.
-        
+
         Args:
             rdf: The RDF graph
             uri: Uri of the object
