@@ -1,9 +1,8 @@
 import warnings
+from urllib.parse import urldefrag
 
 import rdflib
 from nanopub import Nanopub, NanopubClient
-
-from fairworkflows import namespaces
 
 
 class RdfWrapper:
@@ -88,6 +87,51 @@ class RdfWrapper:
             if self._uri == str(o):
                 self._rdf.remove((s, p, o))
                 self._rdf.add((s, p, self.self_ref))
+
+    @classmethod
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None, fetch_references: bool = False):
+        """Construct RdfWrapper object from rdf graph.
+        
+        Args:
+            rdf: The RDF graph
+            uri: Uri of the object
+            fetch_references: Boolean toggling whether to fetch objects from nanopub that are
+                referred by this object (e.g. FairSteps in a FairWorkflow)
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def from_nanopub(cls, uri: str):
+        """Construct RdfWrapper object from an existing nanopublication.
+
+        Fetch the nanopublication corresponding to the specified URI. Pass its assertion
+        graph to from_rdf to construct the object.
+
+        Args:
+            uri: The URI of a nanopublication (e.g.: http://purl.org/np/id) that npx:introduces
+                the RDF object as a concept or the URI of a nanopublication fragment pointing to a
+                concept (e.g.: http://purl.org/np/id#concept)
+        """
+        # Work out the nanopub URI by defragging the step URI
+        nanopub_uri, frag = urldefrag(uri)
+
+        # Fetch the nanopub
+        client = NanopubClient()
+        nanopub = client.fetch(nanopub_uri)
+
+        if len(frag) > 0:
+            # If we found a fragment we can use the passed URI
+            uri = uri
+        elif nanopub.introduces_concept:
+            # Otherwise we try to extract it from 'introduced concept'
+            uri = str(nanopub.introduces_concept)
+        else:
+            raise ValueError('This nanopub does not introduce any concepts. Please provide URI to '
+                             'the FAIR object itself (not just the nanopub).')
+        self = cls.from_rdf(rdf=nanopub.assertion, uri=uri, fetch_references=True)
+        # Record that this RDF originates from a published source
+        self._is_published = True
+        return self
 
     def publish_as_nanopub(self):
         """

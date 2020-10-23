@@ -32,45 +32,21 @@ class FairStep(RdfWrapper):
         super().__init__(uri=uri, ref_name='step')
 
     @classmethod
-    def from_rdf(cls, rdf, uri=None):
-        """Construct Fair Step from existing RDF."""
+    def from_rdf(cls, rdf, uri=None, fetch_references: bool = False):
+        """Construct Fair Step from existing RDF.
+
+        Args:
+            rdf: The RDF graph
+            uri: Uri of the object
+            fetch_references: Boolean toggling whether to fetch objects from nanopub that are
+                referred by this object. For a FairStep there are currently no references supported.
+        """
         self = cls(uri)
         self._rdf = rdf
         if rdflib.URIRef(self._uri) not in rdf.subjects():
             warnings.warn(f"Warning: Provided URI '{self._uri}' does not "
                           f"match any subject in provided rdf graph.")
         self.anonymise_rdf()
-        return self
-
-    @classmethod
-    def from_nanopub(cls, uri):
-        """Construct FairStep object from an existing nanopublication.
-
-        Fetch the nanopublication corresponding to the specified URI, and attempt to extract the
-        rdf describing a fairstep from its assertion graph. If the URI passed to this function is
-        the uri of the nanopublication (and not the step itself) then an attempt will be made to
-        identify what the URI of the step actually is, by checking if the nanopub npx:introduces a
-        particular concept.
-        """
-        # Work out the nanopub URI by defragging the step URI
-        nanopub_uri, frag = urldefrag(uri)
-
-        # Fetch the nanopub
-        client = NanopubClient()
-        nanopub = client.fetch(nanopub_uri)
-
-        if len(frag) > 0:
-            # If we found a fragment we can use the passed URI
-            uri = uri
-        elif nanopub.introduces_concept:
-            # Otherwise we try to extract it from 'introduced concept'
-            uri = str(nanopub.introduces_concept)
-        else:
-            raise ValueError('This nanopub does not introduce any concepts. Please provide URI to '
-                             'the FAIR object itself (not just the nanopub).')
-        self = cls.from_rdf(rdf=nanopub.assertion, uri=uri)
-        # Record that this RDF originates from a published source
-        self._is_published = True
         return self
 
     @classmethod

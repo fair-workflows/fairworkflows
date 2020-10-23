@@ -57,7 +57,7 @@ class TestFairWorkflow:
         """
         rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
         uri = 'http://www.example.org/workflow1'
-        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
         new_rdf = self._get_rdf_test_resource(
             'test_workflow_including_steps.trig')
         assert rdflib.compare.isomorphic(rdf, new_rdf),\
@@ -80,7 +80,7 @@ class TestFairWorkflow:
         mock_fetch_step.return_value = self.step1
         rdf = self._get_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
-        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=True)
         assert len(workflow._steps) == 1
         assert mock_fetch_step.call_count == 1
         assert list(workflow._steps.values())[0] == self.step1
@@ -95,7 +95,7 @@ class TestFairWorkflow:
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
+            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
             assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
@@ -111,7 +111,7 @@ class TestFairWorkflow:
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
+            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=True)
             assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
