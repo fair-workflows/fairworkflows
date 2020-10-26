@@ -166,7 +166,7 @@
 <https://astrea.linkeddata.es/shapes#4077dfea2d12de958f6d00c1e8feb1f7>
         a                 sh:NodeShape ;
         rdfs:isDefinedBy  "http://dkm.fbk.eu/index.php/BPMN2_Ontology#scriptTask" ;
-        sh:nodeKind       sh:IRI ;
+#        sh:nodeKind       sh:IRI ;
         sh:targetClass    bpmn:ScriptTask .
 
 <https://astrea.linkeddata.es/shapes#b4f08031d4f5e8c5b143eaf68269bd94>
