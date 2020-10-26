@@ -81,11 +81,7 @@ class RdfWrapper:
         r = pyshacl.validate(self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False, meta_shacl=False, advanced=False, js=False, debug=False)
         conforms, results_graph, results_text = r
 
-        if not conforms:
-            print(results_graph)
-            print(results_text)
-
-        return conforms
+        assert conforms, results_text
 
     def anonymise_rdf(self):
         """
