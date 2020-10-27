@@ -12,7 +12,7 @@ from fairworkflows import namespaces
 from fairworkflows.rdf_wrapper import RdfWrapper
 
 FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
-                       namespaces.PPLAN.hasOutputVar, DCTERMS.description]
+                       namespaces.PPLAN.hasOutputVar, DCTERMS.description, RDFS.label]
 
 
 class FairStep(RdfWrapper):
