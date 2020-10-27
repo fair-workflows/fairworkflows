@@ -35,6 +35,7 @@ The ```fairworkflows``` library has a number of modules to help with FAIRifying 
 
 ## Quick Start
 
+### Construct FairWorkflow from existing published steps
 ```python
 from fairworkflows import FairWorkflow, FairStep
 
@@ -60,6 +61,37 @@ for step in workflow:
     
 # Visualize the workflow directly in a jupyter notebook
 workflow.display()
+
+```
+
+### Make a FairStep from scratch
+```python
+from fairworkflows import FairStep, FairWorkflow, fairstep
+import rdflib
+
+# Make a new 'empty' step
+step = FairStep()
+
+# Specify various characteristics needed to describe it
+step.label = 'Label for this step'
+step.description = 'String describing the procedure that happens in this step'
+step.is_manual_task = True
+
+# Add other statements, about the step itself
+step.set_attribute(rdflib.URIRef('www.example.org/pred'), object=rdflib.URIRef('www.example.org/obj'))
+
+# Add any other, general triples
+step.add_triple(rdflib.URIRef('www.example.org/subj'), rdflib.URIRef('www.example.org/pred'), rdflib.URIRef('www.example.org/obj'))
+
+# Set the URIs of the inputs and outputs to this step
+step.inputs = ['www.example.org/input1', 'www.example.org/input2']
+step.outputs = ['www.example.org/output2']
+
+# Print the RDF description of the step
+print(step)
+
+# Publish the step as a nanopublication for others to find
+step.publish_as_nanopub()
 
 ```
 
