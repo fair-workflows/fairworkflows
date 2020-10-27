@@ -44,9 +44,9 @@ class TestFairStep:
         """
 
         nanopub_uris = [
-            'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step',
-            'http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BBy92bDlt991X4#step',
-            'http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M#step'
+            'http://purl.org/np/RA1pK9JQDyBHYGcl1zu4wh3BUmh47oE5RfldZh1Ml4XQw#step',
+            'http://purl.org/np/RAz-A7EGUT9VCrSjK92HHc9DjwBssuc5eMdF09u1Psx5Q#step',
+            'http://purl.org/np/RAfAJos5jSLTQ4sBoJj2Orau3xxa3AMa2QSvoEVLVtUwE#step'
         ]
 
         for uri in nanopub_uris:
@@ -67,9 +67,9 @@ class TestFairStep:
         """
 
         nanopub_uris = [
-            'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg',
-            'http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BBy92bDlt991X4',
-            'http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M'
+            'http://purl.org/np/RA1pK9JQDyBHYGcl1zu4wh3BUmh47oE5RfldZh1Ml4XQw',
+            'http://purl.org/np/RAz-A7EGUT9VCrSjK92HHc9DjwBssuc5eMdF09u1Psx5Q',
+            'http://purl.org/np/RAfAJos5jSLTQ4sBoJj2Orau3xxa3AMa2QSvoEVLVtUwE'
         ]
 
         for uri in nanopub_uris:

@@ -4,13 +4,14 @@ import warnings
 from typing import List
 
 import rdflib
-from rdflib import RDF, DCTERMS
+from rdflib import RDF, RDFS, DCTERMS
+
 
 from fairworkflows import namespaces
 from fairworkflows.rdf_wrapper import RdfWrapper
 
 FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
-                       namespaces.PPLAN.hasOutputVar, DCTERMS.description]
+                       namespaces.PPLAN.hasOutputVar, DCTERMS.description, RDFS.label]
 
 
 class FairStep(RdfWrapper):
@@ -59,6 +60,9 @@ class FairStep(RdfWrapper):
 
         # Set description of step to the raw function code
         self.description = code
+
+        # Set a label for this step
+        self.label = function.__name__
 
         # Specify that step is a pplan:Step
         self.set_attribute(RDF.type, namespaces.PPLAN.Step, overwrite=False)
@@ -122,6 +126,22 @@ class FairStep(RdfWrapper):
                                overwrite=False)
 
     @property
+    def label(self):
+        """Label.
+
+        Returns the rdfs:label of this step (or a list, if more than one matching triple is found)
+        """
+        return self.get_attribute(RDFS.label)
+
+    @label.setter
+    def label(self, value):
+        """
+        Adds the given text string as an rdfs:label for this FairStep
+        object.
+        """
+        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
+
+    @property
     def description(self):
         """Description.
 
@@ -153,6 +173,10 @@ class FairStep(RdfWrapper):
 
         if not self.description:
             log += 'Step RDF has no dcterms:description\n'
+            conforms = False
+
+        if not self.label:
+            log += 'Step RDF has no rdfs:label\n'
             conforms = False
 
         if self.is_manual_task == self.is_script_task:

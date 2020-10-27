@@ -13,7 +13,8 @@ from fairworkflows.config import TESTS_RESOURCES
 
 class TestFairWorkflow:
     test_description = 'This is a test workflow.'
-    workflow = FairWorkflow(description=test_description)
+    test_label = 'Test'
+    workflow = FairWorkflow(description=test_description, label=test_label)
 
     step1 = FairStep(uri='http://www.example.org/step1')
     step2 = FairStep(uri='http://www.example.org/step2')
@@ -29,7 +30,7 @@ class TestFairWorkflow:
         return rdf
 
     def test_build(self):
-        workflow = FairWorkflow(description=self.test_description)
+        workflow = FairWorkflow(description=self.test_description, label=self.test_label)
 
         assert workflow is not None
         assert str(workflow.description) == self.test_description
@@ -69,6 +70,7 @@ class TestFairWorkflow:
         about steps.
         """
         rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
+
         uri = 'http://www.example.org/workflow1'
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
         new_rdf = self._get_rdf_test_resource(
@@ -82,6 +84,7 @@ class TestFairWorkflow:
         for step in steps:
             step.validate()
             assert step.uri in valid_step_uris
+
         workflow.validate()
 
     @mock.patch('fairworkflows.fairworkflow.FairWorkflow._fetch_step')
@@ -136,8 +139,8 @@ class TestFairWorkflow:
 
         # Test for a url both with fragment specified and without
         uris = [
-            'http://purl.org/np/RAVtqYmYjLCSdSde4iBPOF98qakyxBg8MgXdh1KBYut0w#plan',
-            'http://purl.org/np/RAVtqYmYjLCSdSde4iBPOF98qakyxBg8MgXdh1KBYut0w'
+            'http://purl.org/np/RAxae-D21NYtRL7Sd5xU6gZEkUUQ6mj4VUUwgD8BLgMzc#plan',
+            'http://purl.org/np/RAxae-D21NYtRL7Sd5xU6gZEkUUQ6mj4VUUwgD8BLgMzc'
         ]
         for uri in uris:
             workflow = FairWorkflow.from_nanopub(uri=uri)
@@ -145,8 +148,6 @@ class TestFairWorkflow:
             workflow.validate()
             steps = list(workflow)
             assert len(steps) > 0
-            for step in steps:
-                step.validate()
 
     @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
     def test_fetch_step_404(self, mock_from_nanopub):
@@ -229,7 +230,7 @@ class TestFairWorkflow:
         self.workflow.publish_as_nanopub()
 
     def test_decorator(self):
-        workflow = FairWorkflow(description='This is a test workflow.')
+        workflow = FairWorkflow(description='This is a test workflow.', label=self.test_label)
 
         @add_step(workflow)
         def test_fn(x, y):

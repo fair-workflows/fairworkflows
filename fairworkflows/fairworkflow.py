@@ -6,7 +6,7 @@ from typing import Iterator, Tuple, List, Optional
 
 import networkx as nx
 import rdflib
-from rdflib import RDF, DCTERMS
+from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
@@ -25,13 +25,19 @@ class FairWorkflow(RdfWrapper):
         Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
     """
 
-    def __init__(self, description=None, uri=None):
+    def __init__(self, description=None, label=None, uri=None):
         super().__init__(uri=uri, ref_name='plan')
 
         self._is_published = False
 
         self._rdf.add((self.self_ref, RDF.type, namespaces.PPLAN.Plan))
-        self.description = description
+
+        if description:
+            self.description = description
+
+        if label:
+            self.label = label
+
         self._steps = {}
         self._last_step_added = None
 
@@ -226,6 +232,22 @@ class FairWorkflow(RdfWrapper):
         return self._steps[uri]
 
     @property
+    def label(self):
+        """Label.
+
+        Returns the rdfs:label of this workflow (or a list, if more than one matching triple is found)
+        """
+        return self.get_attribute(RDFS.label)
+
+    @label.setter
+    def label(self, value):
+        """
+        Adds the given text string as an rdfs:label for this FairWorkflow
+        object.
+        """
+        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
+
+    @property
     def description(self):
         """
         Description of the workflow. This is the dcterms:description found in
@@ -256,6 +278,10 @@ class FairWorkflow(RdfWrapper):
 
         if not self.description:
             log += 'Plan RDF has no dcterms:description\n'
+            conforms = False
+
+        if not self.label:
+            log += 'Plan RDF has no rdfs:label\n'
             conforms = False
 
         if self.first_step is None:
