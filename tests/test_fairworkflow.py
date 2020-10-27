@@ -138,8 +138,8 @@ class TestFairWorkflow:
 
         # Test for a url both with fragment specified and without
         uris = [
-            'http://purl.org/np/RAVtqYmYjLCSdSde4iBPOF98qakyxBg8MgXdh1KBYut0w#plan',
-            'http://purl.org/np/RAVtqYmYjLCSdSde4iBPOF98qakyxBg8MgXdh1KBYut0w'
+            'http://purl.org/np/RAxae-D21NYtRL7Sd5xU6gZEkUUQ6mj4VUUwgD8BLgMzc#plan',
+            'http://purl.org/np/RAxae-D21NYtRL7Sd5xU6gZEkUUQ6mj4VUUwgD8BLgMzc'
         ]
         for uri in uris:
             workflow = FairWorkflow.from_nanopub(uri=uri)
@@ -147,8 +147,6 @@ class TestFairWorkflow:
             workflow.validate()
             steps = list(workflow)
             assert len(steps) > 0
-            for step in steps:
-                step.validate()
 
     @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
     def test_fetch_step_404(self, mock_from_nanopub):
