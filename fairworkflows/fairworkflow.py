@@ -32,10 +32,10 @@ class FairWorkflow(RdfWrapper):
 
         self._rdf.add((self.self_ref, RDF.type, namespaces.PPLAN.Plan))
 
-        if self.description:
+        if description:
             self.description = description
 
-        if self.label:
+        if label:
             self.label = label
 
         self._steps = {}

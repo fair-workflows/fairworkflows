@@ -13,7 +13,8 @@ from fairworkflows.config import TESTS_RESOURCES
 
 class TestFairWorkflow:
     test_description = 'This is a test workflow.'
-    workflow = FairWorkflow(description=test_description)
+    test_label = 'Test'
+    workflow = FairWorkflow(description=test_description, label=test_label)
 
     step1 = FairStep(uri='http://www.example.org/step1')
     step2 = FairStep(uri='http://www.example.org/step2')
@@ -29,7 +30,7 @@ class TestFairWorkflow:
         return rdf
 
     def test_build(self):
-        workflow = FairWorkflow(description=self.test_description)
+        workflow = FairWorkflow(description=self.test_description, label=self.test_label)
 
         assert workflow is not None
         assert str(workflow.description) == self.test_description
@@ -229,7 +230,7 @@ class TestFairWorkflow:
         self.workflow.publish_as_nanopub()
 
     def test_decorator(self):
-        workflow = FairWorkflow(description='This is a test workflow.')
+        workflow = FairWorkflow(description='This is a test workflow.', label=self.test_label)
 
         @add_step(workflow)
         def test_fn(x, y):
