@@ -6,7 +6,7 @@ from typing import Iterator, Tuple, List, Optional
 
 import networkx as nx
 import rdflib
-from rdflib import RDF, DCTERMS
+from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
