@@ -104,6 +104,9 @@ class FairStep(RdfWrapper):
         # Set description of step to the raw function code
         self.description = code
 
+        # Set a label for this step
+        self.label = function.__name__
+
         # Specify that step is a pplan:Step
         self.set_attribute(RDF.type, namespaces.PPLAN.Step, overwrite=False)
 
@@ -213,6 +216,10 @@ class FairStep(RdfWrapper):
 
         if not self.description:
             log += 'Step RDF has no dcterms:description\n'
+            conforms = False
+
+        if not self.label:
+            log += 'Step RDF has no rdfs:label\n'
             conforms = False
 
         if self.is_manual_task == self.is_script_task:

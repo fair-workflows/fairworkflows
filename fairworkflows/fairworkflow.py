@@ -275,6 +275,10 @@ class FairWorkflow(RdfWrapper):
             log += 'Plan RDF has no dcterms:description\n'
             conforms = False
 
+        if not self.label:
+            log += 'Plan RDF has no rdfs:label\n'
+            conforms = False
+
         if self.first_step is None:
             log += 'Plan RDF does not specify a first step (pwo:hasFirstStep)\n'
             conforms = False
