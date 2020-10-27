@@ -182,7 +182,7 @@ class FairStep(RdfWrapper):
         """
         self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
 
-    def validate(self, shacl=True):
+    def validate(self, shacl=False):
         """Validate step.
 
         Check whether this step rdf has sufficient information required of

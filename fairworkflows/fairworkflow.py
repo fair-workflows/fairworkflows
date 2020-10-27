@@ -238,7 +238,7 @@ class FairWorkflow(RdfWrapper):
     def description(self, value):
         self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
 
-    def validate(self, shacl=True):
+    def validate(self, shacl=False):
         """Validate workflow.
 
         Checks whether this workflow's rdf:
