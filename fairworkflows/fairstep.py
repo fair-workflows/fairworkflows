@@ -117,6 +117,18 @@ class FairStep(RdfWrapper):
         """Return True if this FairStep is a pplan:Step, else False."""
         return (self.self_ref, RDF.type, namespaces.PPLAN.Step) in self._rdf
 
+    @is_pplan_step.setter
+    def is_pplan_step(self, value:bool):
+        """
+        Adds/removes the pplan:Step triple from the RDF, in accordance with the provided boolean.
+        """
+        if value is True:
+            if self.is_pplan_step is False:
+                self.set_attribute(RDF.type, namespaces.PPLAN.Step, overwrite=False) 
+        elif value is False:
+            if self.is_pplan_step is True:
+                self.remove_attribute(RDF.type, object=namespaces.PPLAN.Step)
+
     @property
     def is_manual_task(self):
         """Returns True if this FairStep is a bpmn:ManualTask, else False."""
@@ -129,10 +141,10 @@ class FairStep(RdfWrapper):
         """
         if value is True:
             if self.is_manual_task is False:
-                self.set_attribute(RDF.type, namespaces.BPMN.ManualTask) 
+                self.set_attribute(RDF.type, namespaces.BPMN.ManualTask, overwrite=False) 
         elif value is False:
             if self.is_manual_task is True:
-                self.remove_attribute(RDF.type, namespaces.BPMN.ManualTask)
+                self.remove_attribute(RDF.type, object=namespaces.BPMN.ManualTask)
 
     @property
     def is_script_task(self):
@@ -146,10 +158,10 @@ class FairStep(RdfWrapper):
         """
         if value is True:
             if self.is_script_task is False:
-                self.set_attribute(RDF.type, namespaces.BPMN.ScriptTask) 
+                self.set_attribute(RDF.type, namespaces.BPMN.ScriptTask, overwrite=False) 
         elif value is False:
             if self.is_script_task is True:
-                self.remove_attribute(RDF.type, namespaces.BPMN.ScriptTask)
+                self.remove_attribute(RDF.type, object=namespaces.BPMN.ScriptTask)
 
     @property
     def inputs(self) -> List[rdflib.URIRef]:
