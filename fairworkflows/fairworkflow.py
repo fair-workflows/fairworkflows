@@ -31,8 +31,13 @@ class FairWorkflow(RdfWrapper):
         self._is_published = False
 
         self._rdf.add((self.self_ref, RDF.type, namespaces.PPLAN.Plan))
-        self.description = description
-        self.label = label
+
+        if self.description:
+            self.description = description
+
+        if self.label:
+            self.label = label
+
         self._steps = {}
         self._last_step_added = None
 
