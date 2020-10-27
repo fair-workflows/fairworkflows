@@ -125,7 +125,7 @@ class FairStep(RdfWrapper):
     @is_manual_task.setter
     def is_manual_task(self, value:bool):
         """
-        Adds the manual task triple to the RDF, if not already there.
+        Adds/removes the manual task triple to the RDF, in accordance with the provided boolean.
         """
         if value is True:
             if self.is_manual_task is False:
@@ -138,6 +138,18 @@ class FairStep(RdfWrapper):
     def is_script_task(self):
         """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
         return (self.self_ref, RDF.type, namespaces.BPMN.ScriptTask) in self._rdf
+
+    @is_script_task.setter
+    def is_script_task(self, value:bool):
+        """
+        Adds/removes the script task triple to the RDF, in accordance with the provided boolean.
+        """
+        if value is True:
+            if self.is_script_task is False:
+                self.set_attribute(RDF.type, namespaces.BPMN.ScriptTask) 
+        elif value is False:
+            if self.is_script_task is True:
+                self.remove_attribute(RDF.type, namespaces.BPMN.ScriptTask)
 
     @property
     def inputs(self) -> List[rdflib.URIRef]:
