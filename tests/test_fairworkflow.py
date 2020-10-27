@@ -56,6 +56,7 @@ class TestFairWorkflow:
         about steps.
         """
         rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
+
         uri = 'http://www.example.org/workflow1'
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
         new_rdf = self._get_rdf_test_resource(
@@ -69,6 +70,7 @@ class TestFairWorkflow:
         for step in steps:
             step.validate()
             assert step.uri in valid_step_uris
+
         workflow.validate()
 
     @mock.patch('fairworkflows.fairworkflow.FairWorkflow._fetch_step')
