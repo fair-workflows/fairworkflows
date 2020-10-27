@@ -30,7 +30,7 @@ class FairWorkflow(RdfWrapper):
 
         self._is_published = False
 
-        self._rdf.add((self.self_ref, RDF.type, namespaces.PPLAN.Plan))
+        self.is_pplan_plan = True
 
         if description:
             self.description = description

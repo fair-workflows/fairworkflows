@@ -29,6 +29,7 @@ class FairStep(RdfWrapper):
 
     def __init__(self, uri=None):
         super().__init__(uri=uri, ref_name='step')
+        self.is_pplan_step = True
 
     @classmethod
     def from_rdf(cls, rdf, uri=None, fetch_references: bool = False, force: bool = False):
