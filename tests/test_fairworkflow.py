@@ -51,6 +51,18 @@ class TestFairWorkflow:
         assert len(workflow.__str__()) > 0
         assert workflow.rdf is not None
 
+    def test_construct_from_rdf_uri_not_in_subjects(self):
+        rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
+        # This URI is not in the subject of this RDF:
+        uri = 'http://www.example.org/some-random-uri'
+        with pytest.raises(ValueError):
+            FairWorkflow.from_rdf(rdf, uri, force=False)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            FairWorkflow.from_rdf(rdf, uri, force=True)
+            assert len(w) == 1
+
     def test_construct_from_rdf_including_steps(self):
         """
         Construct FairWorkflow from RDF that includes detailed information

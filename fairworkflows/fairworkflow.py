@@ -37,7 +37,7 @@ class FairWorkflow(RdfWrapper):
 
     @classmethod
     def from_rdf(cls, rdf: rdflib.Graph, uri: str = None,
-                 fetch_references: bool = False):
+                 fetch_references: bool = False, force: bool = False):
         """Construct Fair Workflow from existing RDF.
 
         Args:
@@ -47,11 +47,11 @@ class FairWorkflow(RdfWrapper):
             fetch_references: toggles fetching steps. I.e. if we encounter steps
                 that are part of the workflow, but are not specified in the
                 RDF we try fetching them from nanopub
+            force: Toggle forcing creation of object even if url is not in any of the subjects of
+                the passed RDF
         """
         rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
-        if rdflib.URIRef(uri) not in rdf.subjects():
-            warnings.warn(f"Warning: Provided URI '{uri}' does not "
-                          f"match any subject in provided rdf graph.")
+        cls._uri_is_subject_in_rdf(uri, rdf, raise_error=(not force))
         self = cls(uri=uri)
         self._extract_steps(rdf, uri, fetch_references)
         self._rdf = rdf

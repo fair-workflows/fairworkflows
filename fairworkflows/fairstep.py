@@ -30,7 +30,7 @@ class FairStep(RdfWrapper):
         super().__init__(uri=uri, ref_name='step')
 
     @classmethod
-    def from_rdf(cls, rdf, uri=None, fetch_references: bool = False):
+    def from_rdf(cls, rdf, uri=None, fetch_references: bool = False, force: bool = False):
         """Construct Fair Step from existing RDF.
 
         Args:
@@ -38,12 +38,12 @@ class FairStep(RdfWrapper):
             uri: Uri of the object
             fetch_references: Boolean toggling whether to fetch objects from nanopub that are
                 referred by this object. For a FairStep there are currently no references supported.
+            force: Toggle forcing creation of object even if url is not in any of the subjects of
+                the passed RDF
         """
+        cls._uri_is_subject_in_rdf(uri, rdf, raise_error=(not force))
         self = cls(uri)
         self._rdf = rdf
-        if rdflib.URIRef(self._uri) not in rdf.subjects():
-            warnings.warn(f"Warning: Provided URI '{self._uri}' does not "
-                          f"match any subject in provided rdf graph.")
         self.anonymise_rdf()
         return self
 

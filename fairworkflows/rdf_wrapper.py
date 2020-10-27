@@ -89,7 +89,8 @@ class RdfWrapper:
                 self._rdf.add((s, p, self.self_ref))
 
     @classmethod
-    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None, fetch_references: bool = False):
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None, fetch_references: bool = False,
+                 force: bool = False):
         """Construct RdfWrapper object from rdf graph.
 
         Args:
@@ -97,8 +98,27 @@ class RdfWrapper:
             uri: Uri of the object
             fetch_references: Boolean toggling whether to fetch objects from nanopub that are
                 referred by this object (e.g. FairSteps in a FairWorkflow)
+            force: Toggle forcing creation of object even if url is not in any of the subjects of
+                the passed RDF
         """
         raise NotImplementedError()
+
+    @staticmethod
+    def _uri_is_subject_in_rdf(uri: str, rdf: rdflib.Graph, raise_error: bool):
+        """Check whether uri is a subject in the rdf.
+
+        Args:
+            rdf: The RDF graph
+            uri: Uri of the object
+            raise_error: Toggle raising an error or just a warning
+        """
+        if rdflib.URIRef(uri) not in rdf.subjects():
+            message = (f"Provided URI '{uri}' does not "
+                       f"match any subject in provided rdf graph.")
+            if raise_error:
+                raise ValueError(message)
+            else:
+                warnings.warn(message, UserWarning)
 
     @classmethod
     def from_nanopub(cls, uri: str):
