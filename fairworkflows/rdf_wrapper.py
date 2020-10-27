@@ -104,21 +104,21 @@ class RdfWrapper:
         raise NotImplementedError()
 
     @staticmethod
-    def _uri_is_subject_in_rdf(uri: str, rdf: rdflib.Graph, raise_error: bool):
+    def _uri_is_subject_in_rdf(uri: str, rdf: rdflib.Graph, force: bool):
         """Check whether uri is a subject in the rdf.
 
         Args:
             rdf: The RDF graph
             uri: Uri of the object
-            raise_error: Toggle raising an error or just a warning
+            force: Toggle raising an error (force=False) or just a warning (force=True)
         """
         if rdflib.URIRef(uri) not in rdf.subjects():
             message = (f"Provided URI '{uri}' does not "
                        f"match any subject in provided rdf graph.")
-            if raise_error:
-                raise ValueError(message)
-            else:
+            if force:
                 warnings.warn(message, UserWarning)
+            else:
+                raise ValueError(message + " Use force=True to suppress this error")
 
     @classmethod
     def from_nanopub(cls, uri: str):

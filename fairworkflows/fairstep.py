@@ -41,7 +41,7 @@ class FairStep(RdfWrapper):
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
         """
-        cls._uri_is_subject_in_rdf(uri, rdf, raise_error=(not force))
+        cls._uri_is_subject_in_rdf(uri, rdf, force=force)
         self = cls(uri)
         self._rdf = rdf
         self.anonymise_rdf()

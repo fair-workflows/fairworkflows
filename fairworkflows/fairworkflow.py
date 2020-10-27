@@ -51,7 +51,7 @@ class FairWorkflow(RdfWrapper):
                 the passed RDF
         """
         rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
-        cls._uri_is_subject_in_rdf(uri, rdf, raise_error=(not force))
+        cls._uri_is_subject_in_rdf(uri, rdf, force=force)
         self = cls(uri=uri)
         self._extract_steps(rdf, uri, fetch_references)
         self._rdf = rdf
