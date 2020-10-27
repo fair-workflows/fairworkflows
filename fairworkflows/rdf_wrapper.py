@@ -28,6 +28,10 @@ class RdfWrapper:
         """Returns true if the RDF has been modified since initialisation"""
         return self._is_modified
 
+    def add_triple(self, s, p, o):
+        """ Add any general triple to the rdf i.e. that does not have the self_ref (step, or plan) as subject """
+        self._rdf.add((s, p, o))
+
     def get_attribute(self, predicate, return_list=False):
         """Get attribute.
 
