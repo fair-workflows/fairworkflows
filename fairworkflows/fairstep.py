@@ -6,7 +6,7 @@ from urllib.parse import urldefrag
 
 import rdflib
 from nanopub import NanopubClient
-from rdflib import RDF, DCTERMS
+from rdflib import RDF, RDFS, DCTERMS
 
 from fairworkflows import namespaces
 from fairworkflows.rdf_wrapper import RdfWrapper
@@ -164,6 +164,22 @@ class FairStep(RdfWrapper):
         for uri in uris:
             self.set_attribute(namespaces.PPLAN.hasOutputVar, rdflib.URIRef(uri),
                                overwrite=False)
+
+    @property
+    def label(self):
+        """Label.
+
+        Returns the rdfs:label of this step (or a list, if more than one matching triple is found)
+        """
+        self.get_attribute(RDFS.label)
+
+    @label.setter
+    def label(self, value):
+        """
+        Adds the given text string as an rdfs:label for this FairStep
+        object.
+        """
+        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
 
     @property
     def description(self):
