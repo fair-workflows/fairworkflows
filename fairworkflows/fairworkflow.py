@@ -25,13 +25,14 @@ class FairWorkflow(RdfWrapper):
         Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
     """
 
-    def __init__(self, description=None, uri=None):
+    def __init__(self, description=None, label=None, uri=None):
         super().__init__(uri=uri, ref_name='plan')
 
         self._is_published = False
 
         self._rdf.add((self.self_ref, RDF.type, namespaces.PPLAN.Plan))
         self.description = description
+        self.label = label
         self._steps = {}
         self._last_step_added = None
 
