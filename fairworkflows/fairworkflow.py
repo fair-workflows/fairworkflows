@@ -225,6 +225,18 @@ class FairWorkflow(RdfWrapper):
         """
         return (self.self_ref, RDF.type, namespaces.PPLAN.Plan) in self._rdf
 
+    @is_pplan_plan.setter
+    def is_pplan_plan(self, value:bool):
+        """
+        Adds/removes the pplan:Plan triple from the RDF, in accordance with the provided boolean.
+        """
+        if value is True:
+            if self.is_pplan_plan is False:
+                self.set_attribute(RDF.type, namespaces.PPLAN.Plan, overwrite=False)
+        elif value is False:
+            if self.is_pplan_plan is True:
+                self.remove_attribute(RDF.type, object=namespaces.PPLAN.Plan)
+
     def get_step(self, uri):
         """
             Returns the FairStep instance associated with the given step URI (if such a step was added to this workflow)
