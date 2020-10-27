@@ -6,13 +6,15 @@ import rdflib
 from rdflib.compare import isomorphic
 from requests import HTTPError
 
+from conftest import skip_if_nanopub_server_unavailable
 from fairworkflows import FairWorkflow, FairStep, add_step
 from fairworkflows.config import TESTS_RESOURCES
 
 
 class TestFairWorkflow:
     test_description = 'This is a test workflow.'
-    workflow = FairWorkflow(description=test_description)
+    test_label = 'Test'
+    workflow = FairWorkflow(description=test_description, label=test_label)
 
     step1 = FairStep(uri='http://www.example.org/step1')
     step2 = FairStep(uri='http://www.example.org/step2')
@@ -28,7 +30,7 @@ class TestFairWorkflow:
         return rdf
 
     def test_build(self):
-        workflow = FairWorkflow(description=self.test_description)
+        workflow = FairWorkflow(description=self.test_description, label=self.test_label)
 
         assert workflow is not None
         assert str(workflow.description) == self.test_description
@@ -50,14 +52,27 @@ class TestFairWorkflow:
         assert len(workflow.__str__()) > 0
         assert workflow.rdf is not None
 
+    def test_construct_from_rdf_uri_not_in_subjects(self):
+        rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
+        # This URI is not in the subject of this RDF:
+        uri = 'http://www.example.org/some-random-uri'
+        with pytest.raises(ValueError):
+            FairWorkflow.from_rdf(rdf, uri, force=False)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            FairWorkflow.from_rdf(rdf, uri, force=True)
+            assert len(w) == 1
+
     def test_construct_from_rdf_including_steps(self):
         """
         Construct FairWorkflow from RDF that includes detailed information
         about steps.
         """
         rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
+
         uri = 'http://www.example.org/workflow1'
-        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
         new_rdf = self._get_rdf_test_resource(
             'test_workflow_including_steps.trig')
         assert rdflib.compare.isomorphic(rdf, new_rdf),\
@@ -69,6 +84,7 @@ class TestFairWorkflow:
         for step in steps:
             step.validate()
             assert step.uri in valid_step_uris
+
         workflow.validate()
 
     @mock.patch('fairworkflows.fairworkflow.FairWorkflow._fetch_step')
@@ -80,7 +96,7 @@ class TestFairWorkflow:
         mock_fetch_step.return_value = self.step1
         rdf = self._get_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
-        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=True)
         assert len(workflow._steps) == 1
         assert mock_fetch_step.call_count == 1
         assert list(workflow._steps.values())[0] == self.step1
@@ -95,7 +111,7 @@ class TestFairWorkflow:
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=False)
+            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
             assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
@@ -111,10 +127,27 @@ class TestFairWorkflow:
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_steps=True)
+            workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=True)
             assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
+
+    @pytest.mark.flaky(max_runs=10)
+    @skip_if_nanopub_server_unavailable
+    def test_construction_from_nanopub(self):
+        """Test loading a FairWorkflow from known nanopub URI."""
+
+        # Test for a url both with fragment specified and without
+        uris = [
+            'http://purl.org/np/RAxae-D21NYtRL7Sd5xU6gZEkUUQ6mj4VUUwgD8BLgMzc#plan',
+            'http://purl.org/np/RAxae-D21NYtRL7Sd5xU6gZEkUUQ6mj4VUUwgD8BLgMzc'
+        ]
+        for uri in uris:
+            workflow = FairWorkflow.from_nanopub(uri=uri)
+            assert workflow is not None
+            workflow.validate()
+            steps = list(workflow)
+            assert len(steps) > 0
 
     @mock.patch('fairworkflows.fairworkflow.FairStep.from_nanopub')
     def test_fetch_step_404(self, mock_from_nanopub):
@@ -197,7 +230,7 @@ class TestFairWorkflow:
         self.workflow.publish_as_nanopub()
 
     def test_decorator(self):
-        workflow = FairWorkflow(description='This is a test workflow.')
+        workflow = FairWorkflow(description='This is a test workflow.', label=self.test_label)
 
         @add_step(workflow)
         def test_fn(x, y):

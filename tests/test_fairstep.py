@@ -2,21 +2,11 @@ from unittest.mock import patch
 
 import pytest
 import rdflib
-import requests
 from nanopub import Nanopub
 
+from conftest import skip_if_nanopub_server_unavailable
 from fairworkflows import FairStep
 from fairworkflows.config import TESTS_RESOURCES
-
-BAD_GATEWAY = 502
-NANOPUB_SERVER = 'http://purl.org/np/'
-SERVER_UNAVAILABLE = 'Nanopub server is unavailable'
-
-
-def nanopub_server_unavailable():
-    response = requests.get(NANOPUB_SERVER)
-
-    return response.status_code == BAD_GATEWAY
 
 
 class TestFairStep:
@@ -46,7 +36,7 @@ class TestFairStep:
             assert str(output) == new_output
 
     @pytest.mark.flaky(max_runs=10)
-    @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
+    @skip_if_nanopub_server_unavailable
     def test_construction_from_nanopub(self):
         """
             Check that we can load a FairStep from known nanopub URIs for manual steps,
@@ -54,9 +44,9 @@ class TestFairStep:
         """
 
         nanopub_uris = [
-            'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step',
-            'http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BBy92bDlt991X4#step',
-            'http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M#step'
+            'http://purl.org/np/RA1pK9JQDyBHYGcl1zu4wh3BUmh47oE5RfldZh1Ml4XQw#step',
+            'http://purl.org/np/RAz-A7EGUT9VCrSjK92HHc9DjwBssuc5eMdF09u1Psx5Q#step',
+            'http://purl.org/np/RAfAJos5jSLTQ4sBoJj2Orau3xxa3AMa2QSvoEVLVtUwE#step'
         ]
 
         for uri in nanopub_uris:
@@ -67,7 +57,7 @@ class TestFairStep:
             assert not step.is_script_task
 
     @pytest.mark.flaky(max_runs=10)
-    @pytest.mark.skipif(nanopub_server_unavailable(), reason=SERVER_UNAVAILABLE)
+    @skip_if_nanopub_server_unavailable
     def test_construction_from_nanopub_without_fragment(self):
         """
             Check that we can load a FairStep from known nanopub URIs also
@@ -77,9 +67,9 @@ class TestFairStep:
         """
 
         nanopub_uris = [
-            'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg',
-            'http://purl.org/np/RANBLu3UN2ngnjY5Hzrn7S5GpqFdz8_BBy92bDlt991X4',
-            'http://purl.org/np/RA5D8NzM2OXPZAWNlADQ8hZdVu1k0HnmVmgl20apjhU8M'
+            'http://purl.org/np/RA1pK9JQDyBHYGcl1zu4wh3BUmh47oE5RfldZh1Ml4XQw',
+            'http://purl.org/np/RAz-A7EGUT9VCrSjK92HHc9DjwBssuc5eMdF09u1Psx5Q',
+            'http://purl.org/np/RAfAJos5jSLTQ4sBoJj2Orau3xxa3AMa2QSvoEVLVtUwE'
         ]
 
         for uri in nanopub_uris:
@@ -112,8 +102,8 @@ class TestFairStep:
         with pytest.raises(AssertionError):
             step.validate()
 
-    @patch('fairworkflows.fairstep.NanopubClient.publish')
-    @patch('fairworkflows.fairstep.NanopubClient.fetch')
+    @patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    @patch('fairworkflows.rdf_wrapper.NanopubClient.fetch')
     def test_modification_and_republishing(self, nanopub_fetch_mock,
                                            nanopub_publish_mock):
 
