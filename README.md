@@ -67,13 +67,6 @@ workflow.display()
 ### Example
 * See [test_plex_builder.ipynb](test_plex_builder.ipynb) for a current example of using the fairworkflows library to build a workflow using plex rdf
 
-### Notes
-The np script needs to be called to generate rsa keys in the `~/.nanopub` directory.
-
-```shell script
-fairworkflows/np mkkeys -a RSA
-```
-
 ## How is the ```fairworkflows``` library expected to be used?
 While this library could be used as a standalone tool to build/publish RDF workflows, it is intended more as a component to be used in a variety of other tools that seek to add FAIR elements to workflows. At present the library is used in the following tools:
 
