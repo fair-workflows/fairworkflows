@@ -1,4 +1,4 @@
-git+https://github.com/fair-workflows/nanopub.git@fix_introduces_concept
+nanopub==0.2.2
 networkx~=2.5
 pytest
 pyyaml
