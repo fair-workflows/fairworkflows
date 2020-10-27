@@ -171,7 +171,7 @@ class FairStep(RdfWrapper):
 
         Returns the rdfs:label of this step (or a list, if more than one matching triple is found)
         """
-        self.get_attribute(RDFS.label)
+        return self.get_attribute(RDFS.label)
 
     @label.setter
     def label(self, value):
