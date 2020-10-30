@@ -10,6 +10,13 @@ from fairworkflows.config import TESTS_RESOURCES
 
 
 class TestFairStep:
+
+    @staticmethod
+    def _get_sample_fair_step_rdf():
+        rdf = rdflib.ConjunctiveGraph()
+        rdf.parse(str(TESTS_RESOURCES / 'sample_fairstep_nanopub.trig'), format='trig')
+        return rdf
+
     def test_inputs_outputs(self):
         test_inputs = ['test.org#input1', 'test.org#input2']
         test_outputs = ['test.org#output1', 'test.org#output2']
@@ -36,8 +43,7 @@ class TestFairStep:
             assert str(output) == new_output
 
     def test_construction_from_rdf(self):
-        rdf = rdflib.ConjunctiveGraph()
-        rdf.parse(str(TESTS_RESOURCES / 'sample_fairstep_nanopub.trig'), format='trig')
+        rdf = self._get_sample_fair_step_rdf()
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
         step = FairStep.from_rdf(rdf, uri)
         step.validate()
@@ -117,9 +123,7 @@ class TestFairStep:
         test_uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
 
         # Mock the Nanopub.fetch() method to return a locally sourced nanopub
-        nanopub_rdf = rdflib.ConjunctiveGraph()
-        nanopub_rdf.parse(str(TESTS_RESOURCES / 'sample_fairstep_nanopub.trig'),
-                          format='trig')
+        nanopub_rdf = self._get_sample_fair_step_rdf()
         returned_nanopubobj = Nanopub(rdf=nanopub_rdf, source_uri=test_uri)
         nanopub_fetch_mock.return_value = returned_nanopubobj
 
