@@ -1,4 +1,4 @@
-nanopub==0.2.2
+git+https://github.com/fair-workflows/nanopub.git@use-test-endpoint
 networkx~=2.5
 pytest
 pyyaml
