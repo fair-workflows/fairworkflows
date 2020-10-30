@@ -151,3 +151,30 @@ class TestFairStep:
             assert s is not test_uri
             assert isinstance(s, rdflib.term.BNode)
             assert s is step.self_ref
+
+    def test_shacl_does_not_validate(self):
+        """
+        Test a case where the plex shacl should not validate.
+        """
+
+        plex_rdf_trig = '''
+        @prefix this: <http://www.example.org/step1> .
+        @prefix sub: <http://www.example.org/step1#> .
+        @prefix pplan: <http://purl.org/net/p-plan#> .
+        @prefix pwo: <http://purl.org/spar/pwo/> .
+
+        {
+            this: a pplan:Step .
+
+            sub:step1 pplan:isStepOfPlan this:;
+                a pplan:Step .
+        }
+        '''
+
+        g = rdflib.Graph()
+        g.parse(data=plex_rdf_trig, format='trig')
+
+        step = FairStep.from_rdf(rdf=g,  uri='http://www.example.org/step1')
+
+        with pytest.raises(AssertionError):
+            step.shacl_validate()
