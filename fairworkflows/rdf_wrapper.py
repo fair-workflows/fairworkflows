@@ -89,7 +89,7 @@ class RdfWrapper:
                 self._rdf.add((s, p, self.self_ref))
 
     @classmethod
-    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None, fetch_references: bool = False,
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str, fetch_references: bool = False,
                  force: bool = False):
         """Construct RdfWrapper object from rdf graph.
 

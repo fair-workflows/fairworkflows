@@ -42,7 +42,7 @@ class FairWorkflow(RdfWrapper):
         self._last_step_added = None
 
     @classmethod
-    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None,
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str,
                  fetch_references: bool = False, force: bool = False):
         """Construct Fair Workflow from existing RDF.
 

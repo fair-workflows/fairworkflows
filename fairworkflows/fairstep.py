@@ -31,7 +31,7 @@ class FairStep(RdfWrapper):
         super().__init__(uri=uri, ref_name='step')
 
     @classmethod
-    def from_rdf(cls, rdf, uri=None, fetch_references: bool = False, force: bool = False):
+    def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False):
         """Construct Fair Step from existing RDF.
 
         Args:
