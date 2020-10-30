@@ -166,7 +166,7 @@
 <https://astrea.linkeddata.es/shapes#4077dfea2d12de958f6d00c1e8feb1f7>
         a                 sh:NodeShape ;
         rdfs:isDefinedBy  "http://dkm.fbk.eu/index.php/BPMN2_Ontology#scriptTask" ;
-        sh:nodeKind       sh:IRI ;
+#        sh:nodeKind       sh:IRI ;
         sh:targetClass    bpmn:ScriptTask .
 
 <https://astrea.linkeddata.es/shapes#b4f08031d4f5e8c5b143eaf68269bd94>
@@ -180,7 +180,7 @@
 <https://astrea.linkeddata.es/shapes#126c5ececc6c8a294961e605c4f7f0d0>
         a                 sh:NodeShape ;
         rdfs:isDefinedBy  "http://purl.org/net/p-plan#Step" ;
-        sh:nodeKind       sh:IRI ;
+#        sh:nodeKind       sh:IRI ;
         sh:property       <https://astrea.linkeddata.es/shapes#f828c6af14fb4677ad73168c26e8eb6b> , <https://astrea.linkeddata.es/shapes#8f99343de5298d9519fffde0241fec54> , <https://astrea.linkeddata.es/shapes#26452bf219c1052eeb57e20b0cca77fd> ;
         sh:targetClass    p-plan:Step .
 
@@ -208,7 +208,7 @@
 <https://astrea.linkeddata.es/shapes#1f849e48eb5251db75ededf05d1b45d0>
         a                 sh:NodeShape ;
         rdfs:isDefinedBy  "http://dkm.fbk.eu/index.php/BPMN2_Ontology#manualTask" ;
-        sh:nodeKind       sh:IRI ;
+#        sh:nodeKind       sh:IRI ;
         sh:targetClass    bpmn:ManualTask .
 
 <https://astrea.linkeddata.es/shapes#c3719f07614b52dddd7ee3569095785e>
@@ -248,7 +248,7 @@
 
 <https://astrea.linkeddata.es/shapes#a0005af2635b82beb671b40f25536d31>
         a               sh:NodeShape ;
-        sh:nodeKind     sh:IRI ;
+#        sh:nodeKind     sh:IRI ;
         sh:targetClass  rdfs:Resource .
 
 <https://astrea.linkeddata.es/shapes#f2b936631a2448d7deb2b882370376b0>
@@ -406,7 +406,7 @@
 <https://astrea.linkeddata.es/shapes#51e8435703d048632323dab0de1704b9>
         a                 sh:NodeShape ;
         rdfs:isDefinedBy  "http://purl.org/net/p-plan#Plan" ;
-        sh:nodeKind       sh:IRI ;
+#        sh:nodeKind       sh:IRI ;
         sh:property       <https://astrea.linkeddata.es/shapes#4c9bb26e7f4b96422a668345dbaf53dc> ;
         sh:targetClass    p-plan:Plan .
 

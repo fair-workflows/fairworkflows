@@ -2,8 +2,8 @@ import warnings
 from urllib.parse import urldefrag
 
 import rdflib
+import pyshacl
 from nanopub import Nanopub, NanopubClient
-
 
 class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject'):
@@ -79,6 +79,14 @@ class RdfWrapper:
         matching the `object` arg.
         """
         self._rdf.remove((self.self_ref, predicate, object))
+
+    def shacl_validate(self, shaclfile="./shacl/plex-shapes.ttl"):
+        sg = rdflib.Graph()
+        sg.parse(shaclfile, format='ttl')
+        r = pyshacl.validate(self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False, meta_shacl=False, advanced=False, js=False, debug=False)
+        conforms, results_graph, results_text = r
+
+        assert conforms, results_text
 
     def anonymise_rdf(self):
         """
