@@ -7,7 +7,7 @@ from rdflib.compare import isomorphic
 from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable
-from fairworkflows import FairWorkflow, FairStep, add_step
+from fairworkflows import FairWorkflow, FairStep, add_step, namespaces
 from fairworkflows.config import TESTS_RESOURCES
 
 
@@ -131,6 +131,15 @@ class TestFairWorkflow:
             assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
+
+    def test_construct_from_rdf_filter_irrelevant_rdf_statements(self):
+        rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
+        test_triple = (namespaces.NPX.test, namespaces.NPX.test, namespaces.NPX.test)
+        rdf.add(test_triple)
+        uri = 'http://www.example.org/workflow1'
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
+        workflow.validate()
+        assert test_triple not in workflow.rdf
 
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable

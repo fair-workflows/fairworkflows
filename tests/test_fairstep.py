@@ -48,7 +48,7 @@ class TestFairStep:
         step = FairStep.from_rdf(rdf, uri)
         step.validate()
 
-    def test_construction_from_rdf_filter_rdf_statements(self):
+    def test_construction_from_rdf_filter_irrelevant_rdf_statements(self):
         """
         Test that only relevant RDF statements end up in the FairStep rdf when constructing from
         RDF.

@@ -62,6 +62,8 @@ class FairWorkflow(RdfWrapper):
         self._extract_steps(rdf, uri, fetch_references)
         self._rdf = rdf
         self.anonymise_rdf()
+        # Filter out irrelevant triples from RDF, only keeping those describing the workflow
+        self.remove_non_attribute_triples(keep_triples=[(None, namespaces.DUL.precedes, None)])
         return self
 
     def _extract_steps(self, rdf, uri, fetch_steps=False):
