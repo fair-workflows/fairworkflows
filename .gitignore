@@ -3,6 +3,7 @@
 *.eggs
 .ipynb_checkpoints
 *.ipynb
+!examples/*.ipynb
 *.jar
 
 .DS_Store
