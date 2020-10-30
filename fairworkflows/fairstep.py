@@ -158,7 +158,7 @@ class FairStep(RdfWrapper):
         """
         self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
 
-    def validate(self):
+    def validate(self, shacl=False):
         """Validate step.
 
         Check whether this step rdf has sufficient information required of
@@ -184,6 +184,11 @@ class FairStep(RdfWrapper):
             conforms = False
 
         assert conforms, log
+
+        # Now validate against the PLEX shacl shapes file, if requested
+        if shacl:
+            self.shacl_validate()
+
 
     def __str__(self):
         """

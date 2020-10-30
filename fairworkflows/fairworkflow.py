@@ -260,7 +260,7 @@ class FairWorkflow(RdfWrapper):
     def description(self, value):
         self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
 
-    def validate(self):
+    def validate(self, shacl=False):
         """Validate workflow.
 
         Checks whether this workflow's rdf:
@@ -295,6 +295,10 @@ class FairWorkflow(RdfWrapper):
             conforms = False
 
         assert conforms, log
+
+        # Now validate against the PLEX shacl shapes file, if requested
+        if shacl:
+            self.shacl_validate()
 
     def _validate_inputs_and_outputs(self):
         """Validate that inputs and outputs match step order.
