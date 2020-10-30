@@ -28,6 +28,15 @@ class RdfWrapper:
         """Returns true if the RDF has been modified since initialisation"""
         return self._is_modified
 
+    def remove_non_attribute_triples(self):
+        """
+        Remove triples from RDF that are not attributes, i.e. the subject is not referring to the
+        URI of this concept
+        """
+        for s, p, o in self.rdf:
+            if s != self.self_ref:
+                self.rdf.remove((s, p, o))
+
     def get_attribute(self, predicate, return_list=False):
         """Get attribute.
 
@@ -35,7 +44,7 @@ class RdfWrapper:
 
         Returns:
             The object for which the predicate corresponds to predicate
-            argument and subject corresponds to this RDF itself. Return None
+            argument and subject corresponds to this concept. Return None
             if no attributes are found, or a list of attributes if multiple
             matching objects are found.
         """

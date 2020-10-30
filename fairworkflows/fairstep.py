@@ -1,6 +1,7 @@
 import inspect
 import time
 import warnings
+from copy import deepcopy
 from typing import List
 
 import rdflib
@@ -44,8 +45,9 @@ class FairStep(RdfWrapper):
         """
         cls._uri_is_subject_in_rdf(uri, rdf, force=force)
         self = cls(uri)
-        self._rdf = rdf
+        self._rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         self.anonymise_rdf()
+        self.remove_non_attribute_triples()
         return self
 
     @classmethod

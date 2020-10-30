@@ -5,7 +5,7 @@ import rdflib
 from nanopub import Nanopub
 
 from conftest import skip_if_nanopub_server_unavailable
-from fairworkflows import FairStep
+from fairworkflows import FairStep, namespaces
 from fairworkflows.config import TESTS_RESOURCES
 
 
@@ -47,6 +47,19 @@ class TestFairStep:
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
         step = FairStep.from_rdf(rdf, uri)
         step.validate()
+
+    def test_construction_from_rdf_filter_rdf_statements(self):
+        """
+        Test that only relevant RDF statements end up in the FairStep rdf when constructing from
+        RDF.
+        """
+        rdf = self._get_sample_fair_step_rdf()
+        test_triple = (namespaces.NPX.test, namespaces.NPX.test, namespaces.NPX.test)
+        rdf.add(test_triple)
+        uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        step = FairStep.from_rdf(rdf, uri)
+        step.validate()
+        assert test_triple not in step.rdf
 
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable
