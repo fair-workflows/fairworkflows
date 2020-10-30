@@ -35,6 +35,13 @@ class TestFairStep:
         for output in step.outputs:
             assert str(output) == new_output
 
+    def test_construction_from_rdf(self):
+        rdf = rdflib.ConjunctiveGraph()
+        rdf.parse(str(TESTS_RESOURCES / 'sample_fairstep_nanopub.trig'), format='trig')
+        uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        step = FairStep.from_rdf(rdf, uri)
+        step.validate()
+
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable
     def test_construction_from_nanopub(self):
