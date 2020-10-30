@@ -65,7 +65,7 @@ workflow.display()
 
 
 ### Example
-* See [test_fairworkflows.ipynb](test_fairworkflows.ipynb) for a current example of using the fairworkflows library to build a workflow using plex rdf
+* See [examples/test_fairworkflows.ipynb](examples/test_fairworkflows.ipynb) for a current example of using the fairworkflows library to build a workflow using plex rdf
 
 ### Notes
 The np script needs to be called to generate rsa keys in the `~/.nanopub` directory.
