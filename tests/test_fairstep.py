@@ -69,7 +69,7 @@ class TestFairStep:
         step.validate()
 
         # Replace blank nodes with the original URI so we can test the results
-        replace_in_rdf(step.rdf, oldvalue=rdflib.term.BNode('step'), newvalue=rdflib.URIRef(uri))
+        replace_in_rdf(step.rdf, oldvalue=step.self_ref, newvalue=rdflib.URIRef(uri))
         for relevant_triple in test_relevant_triples:
             assert relevant_triple in step.rdf
         for irrelevant_triple in test_irrelevant_triples:
