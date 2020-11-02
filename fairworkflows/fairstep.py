@@ -30,7 +30,8 @@ class FairStep(RdfWrapper):
         super().__init__(uri=uri, ref_name='step')
 
     @classmethod
-    def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False):
+    def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False,
+                 remove_irrelevant_triples: bool = True):
         """Construct Fair Step from existing RDF.
 
         Args:
@@ -40,12 +41,14 @@ class FairStep(RdfWrapper):
                 referred by this object. For a FairStep there are currently no references supported.
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
+            remove_irrelevant_triples: Toggle removing irrelevant triples for this Step.
         """
         cls._uri_is_subject_in_rdf(uri, rdf, force=force)
         self = cls(uri)
         self._rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         self.anonymise_rdf()
-        self.remove_non_attribute_triples()
+        if remove_irrelevant_triples:
+            self.remove_non_attribute_triples()
         return self
 
     @classmethod

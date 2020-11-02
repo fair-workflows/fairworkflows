@@ -43,7 +43,8 @@ class FairWorkflow(RdfWrapper):
 
     @classmethod
     def from_rdf(cls, rdf: rdflib.Graph, uri: str,
-                 fetch_references: bool = False, force: bool = False):
+                 fetch_references: bool = False, force: bool = False,
+                 remove_irrelevant_triples: bool = True):
         """Construct Fair Workflow from existing RDF.
 
         Args:
@@ -55,6 +56,7 @@ class FairWorkflow(RdfWrapper):
                 RDF we try fetching them from nanopub
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
+            remove_irrelevant_triples: Toggle removing irrelevant triples for this FairWorkflow.
         """
         rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         cls._uri_is_subject_in_rdf(uri, rdf, force=force)
@@ -62,8 +64,9 @@ class FairWorkflow(RdfWrapper):
         self._extract_steps(rdf, uri, fetch_references)
         self._rdf = rdf
         self.anonymise_rdf()
-        # Filter out irrelevant triples from RDF, only keeping those describing the workflow
-        self.remove_non_attribute_triples(keep_triples=[(None, namespaces.DUL.precedes, None)])
+        if remove_irrelevant_triples:
+            # Filter out irrelevant triples from RDF, only keeping those describing the workflow
+            self.remove_non_attribute_triples(keep_triples=[(None, namespaces.DUL.precedes, None)])
         return self
 
     def _extract_steps(self, rdf, uri, fetch_steps=False):

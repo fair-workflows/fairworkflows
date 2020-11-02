@@ -124,7 +124,7 @@ class RdfWrapper:
 
     @classmethod
     def from_rdf(cls, rdf: rdflib.Graph, uri: str, fetch_references: bool = False,
-                 force: bool = False):
+                 force: bool = False, remove_irrelevant_triples: bool = True):
         """Construct RdfWrapper object from rdf graph.
 
         Args:
@@ -134,6 +134,7 @@ class RdfWrapper:
                 referred by this object (e.g. FairSteps in a FairWorkflow)
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
+            remove_irrelevant_triples: Toggle removing irrelevant triples from the wrapped rdf.
         """
         raise NotImplementedError()
 

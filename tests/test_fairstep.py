@@ -191,7 +191,8 @@ class TestFairStep:
         g = rdflib.Graph()
         g.parse(data=plex_rdf_trig, format='trig')
 
-        step = FairStep.from_rdf(rdf=g,  uri='http://www.example.org/step1')
+        step = FairStep.from_rdf(rdf=g,  uri='http://www.example.org/step1',
+                                 remove_irrelevant_triples=False)
 
         with pytest.raises(AssertionError):
             step.shacl_validate()
