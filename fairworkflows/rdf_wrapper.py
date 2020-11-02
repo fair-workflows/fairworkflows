@@ -114,13 +114,7 @@ class RdfWrapper:
         """
         Replace any subjects or objects referring directly to the rdf uri, with a blank node
         """
-        for s, p, o in self._rdf:
-            if self._uri == str(s):
-                self._rdf.remove((s, p, o))
-                self._rdf.add((self.self_ref, p, o))
-            if self._uri == str(o):
-                self._rdf.remove((s, p, o))
-                self._rdf.add((s, p, self.self_ref))
+        replace_in_rdf(self._rdf, oldvalue=rdflib.URIRef(self.uri), newvalue=self.self_ref)
 
     @classmethod
     def from_rdf(cls, rdf: rdflib.Graph, uri: str, fetch_references: bool = False,
@@ -220,3 +214,16 @@ class RdfWrapper:
         self._is_modified = False
 
         return publication_info
+
+
+def replace_in_rdf(rdf: rdflib.Graph, oldvalue, newvalue):
+    """
+    Replace subjects or objects of oldvalue with newvalue
+    """
+    for s, p, o in rdf:
+        if s == oldvalue:
+            rdf.remove((s, p, o))
+            rdf.add((newvalue, p, o))
+        elif o == oldvalue:
+            rdf.remove((s, p, o))
+            rdf.add((s, p, newvalue))

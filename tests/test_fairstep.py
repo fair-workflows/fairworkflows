@@ -6,6 +6,7 @@ from nanopub import Nanopub
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairStep, namespaces
+from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
 class TestFairStep:
@@ -68,15 +69,11 @@ class TestFairStep:
         step.validate()
 
         # Replace blank nodes with the original URI so we can test the results
-        deanonymised_rdf = rdflib.Graph()
-        for s, p, o in step.rdf:
-            if isinstance(s, rdflib.term.BNode):
-                s = rdflib.URIRef(uri)
-            deanonymised_rdf.add((s, p, o))
+        replace_in_rdf(step.rdf, oldvalue=rdflib.term.BNode('step'), newvalue=rdflib.URIRef(uri))
         for relevant_triple in test_relevant_triples:
-            assert relevant_triple in deanonymised_rdf
+            assert relevant_triple in step.rdf
         for irrelevant_triple in test_irrelevant_triples:
-            assert irrelevant_triple not in deanonymised_rdf
+            assert irrelevant_triple not in step.rdf
 
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable
