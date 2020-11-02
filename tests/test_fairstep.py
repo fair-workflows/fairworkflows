@@ -41,18 +41,42 @@ class TestFairStep:
         step = FairStep.from_rdf(rdf, uri)
         step.validate()
 
-    def test_construction_from_rdf_filter_irrelevant_rdf_statements(self):
+    def test_construction_from_rdf_remove_irrelevant_triples(self):
         """
         Test that only relevant RDF statements end up in the FairStep rdf when constructing from
         RDF.
         """
         rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
-        test_triple = (namespaces.NPX.test, namespaces.NPX.test, namespaces.NPX.test)
-        rdf.add(test_triple)
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        test_namespace = rdflib.Namespace('http://example.com#')
+        test_irrelevant_triples = [
+            # A random test statement that has nothing to do with this step
+            (test_namespace.test, test_namespace.test, test_namespace.test),
+            # A precedes relation with another step that is part of the workflow RDF, not this
+            # step RDF.
+            # (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step)
+        ]
+        test_relevant_triples = [
+            # An input variable of the step
+            (rdflib.URIRef(uri), namespaces.PPLAN.hasInputVar, test_namespace.input1),
+            # A triple saying something about the input of the step, therefore relevant!
+            # (test_namespace.input1, rdflib.RDF.type, namespaces.PPLAN.Variable)
+        ]
+        for triple in test_relevant_triples + test_irrelevant_triples:
+            rdf.add(triple)
         step = FairStep.from_rdf(rdf, uri)
         step.validate()
-        assert test_triple not in step.rdf
+
+        # Replace blank nodes with the original URI so we can test the results
+        deanonymised_rdf = rdflib.Graph()
+        for s, p, o in step.rdf:
+            if isinstance(s, rdflib.term.BNode):
+                s = rdflib.URIRef(uri)
+            deanonymised_rdf.add((s, p, o))
+        for relevant_triple in test_relevant_triples:
+            assert relevant_triple in deanonymised_rdf
+        for irrelevant_triple in test_irrelevant_triples:
+            assert irrelevant_triple not in deanonymised_rdf
 
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable
