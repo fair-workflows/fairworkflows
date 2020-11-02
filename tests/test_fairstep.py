@@ -4,18 +4,11 @@ import pytest
 import rdflib
 from nanopub import Nanopub
 
-from conftest import skip_if_nanopub_server_unavailable
+from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairStep, namespaces
-from fairworkflows.config import TESTS_RESOURCES
 
 
 class TestFairStep:
-
-    @staticmethod
-    def _get_sample_fair_step_rdf():
-        rdf = rdflib.ConjunctiveGraph()
-        rdf.parse(str(TESTS_RESOURCES / 'sample_fairstep_nanopub.trig'), format='trig')
-        return rdf
 
     def test_inputs_outputs(self):
         test_inputs = ['test.org#input1', 'test.org#input2']
@@ -43,7 +36,7 @@ class TestFairStep:
             assert str(output) == new_output
 
     def test_construction_from_rdf(self):
-        rdf = self._get_sample_fair_step_rdf()
+        rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
         step = FairStep.from_rdf(rdf, uri)
         step.validate()
@@ -53,7 +46,7 @@ class TestFairStep:
         Test that only relevant RDF statements end up in the FairStep rdf when constructing from
         RDF.
         """
-        rdf = self._get_sample_fair_step_rdf()
+        rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         test_triple = (namespaces.NPX.test, namespaces.NPX.test, namespaces.NPX.test)
         rdf.add(test_triple)
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
@@ -136,7 +129,7 @@ class TestFairStep:
         test_uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
 
         # Mock the Nanopub.fetch() method to return a locally sourced nanopub
-        nanopub_rdf = self._get_sample_fair_step_rdf()
+        nanopub_rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         returned_nanopubobj = Nanopub(rdf=nanopub_rdf, source_uri=test_uri)
         nanopub_fetch_mock.return_value = returned_nanopubobj
 
