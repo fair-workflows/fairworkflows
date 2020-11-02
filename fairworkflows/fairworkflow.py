@@ -62,11 +62,11 @@ class FairWorkflow(RdfWrapper):
         cls._uri_is_subject_in_rdf(uri, rdf, force=force)
         self = cls(uri=uri)
         self._extract_steps(rdf, uri, fetch_references)
-        self._rdf = rdf
-        self.anonymise_rdf()
         if remove_irrelevant_triples:
-            # Filter out irrelevant triples from RDF, only keeping those describing the workflow
-            self.remove_non_attribute_triples(keep_triples=[(None, namespaces.DUL.precedes, None)])
+            self._rdf = self._get_relevant_triples(uri, rdf)
+        else:
+            self._rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
+        self.anonymise_rdf()
         return self
 
     def _extract_steps(self, rdf, uri, fetch_steps=False):
@@ -90,6 +90,31 @@ class FairWorkflow(RdfWrapper):
                               f'functionality of the FairWorkflow object.')
                 step = FairStep(uri=step_uri)
             self._add_step(step)
+
+    @staticmethod
+    def _get_relevant_triples(uri, rdf):
+        """
+        Select only relevant triples from RDF using the following heuristics:
+        * Match all triples that are through an arbitrary-length property path related to the
+            workflow uri. So if 'URI predicate Something', then all triples 'Something predicate
+            object' are selected, and so forth.
+        NB: We assume that all step-related triples are already extracted by the _extract_steps
+        method
+        """
+        q = """
+        SELECT ?s ?p ?o
+        WHERE {
+            ?s ?p ?o .
+            # Match all triples that are through an arbitrary-length property path related to the
+            # workflow uri. (a|!a) matches all predicates. Binding to workflow_uri is done when
+            # executing.
+            ?workflow_uri (a|!a)+ ?o .
+        }
+        """
+        g = rdflib.Graph(namespace_manager=rdf.namespace_manager)
+        for triple in rdf.query(q, initBindings={'workflow_uri': rdflib.URIRef(uri)}):
+            g.add(triple)
+        return g
 
     @staticmethod
     def _extract_step_from_rdf(uri, rdf: rdflib.Graph()) -> Optional[FairStep]:

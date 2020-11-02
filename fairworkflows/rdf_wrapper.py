@@ -30,30 +30,6 @@ class RdfWrapper:
         """Returns true if the RDF has been modified since initialisation"""
         return self._is_modified
 
-    def remove_non_attribute_triples(self, keep_triples: List[Tuple] = None):
-        """
-        Remove triples from RDF that are not attributes, i.e. the subject is not referring to the
-        URI of this concept
-
-        Args:
-            keep_triples: list of triples to keep. NB they do not have to be bound: (None,
-                RDF.type, None) will keep triples with RDF.type predicate.
-        """
-        if keep_triples is None:
-            keep_triples = []
-
-        def _keep(triple):
-            for keep_triple in keep_triples:
-                # If all of the s, p, o match (None or equal) we should keep
-                if all(keep is None or keep == x
-                       for x, keep in zip(triple, keep_triple)):
-                    return True
-            return False
-
-        for s, p, o in self.rdf:
-            if s != self.self_ref and not _keep((s, p, o)):
-                self.rdf.remove((s, p, o))
-
     def get_attribute(self, predicate, return_list=False):
         """Get attribute.
 

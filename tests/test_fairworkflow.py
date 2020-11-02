@@ -8,6 +8,7 @@ from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairWorkflow, FairStep, add_step, namespaces
+from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
 class TestFairWorkflow:
@@ -127,14 +128,36 @@ class TestFairWorkflow:
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
 
-    def test_construct_from_rdf_filter_irrelevant_rdf_statements(self):
+    def test_construct_from_rdf_remove_irrelevant_triples(self):
         rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
-        test_triple = (namespaces.NPX.test, namespaces.NPX.test, namespaces.NPX.test)
-        rdf.add(test_triple)
         uri = 'http://www.example.org/workflow1'
-        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
+        sub = rdflib.Namespace('http://www.example.org/workflow1#')
+        test_irrelevant_triples = [
+            # A random test statement that has nothing to do with this step
+            (sub.test, sub.test, sub.test),
+            # A statement about a step, this will be in the RDF of the related FairStep objects
+            (sub.step1, rdflib.RDFS.label, rdflib.Literal("Step 1"))
+        ]
+        test_relevant_triples = [
+            # Dul precedes statements are relevant
+            (sub.step1, namespaces.DUL.precedes, sub.step2),
+            # Properties of the workflow are relevant
+            (rdflib.URIRef(uri), sub.hasSecurityLevel, sub.highSecurity),
+            # And the properties of those properties
+            (sub.highSecurity, sub.color, rdflib.Literal('Red')),
+        ]
+        for triple in test_relevant_triples + test_irrelevant_triples:
+            rdf.set(triple)  # Some triples are already in there, so we use set to not duplicate
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False,
+                                         remove_irrelevant_triples=True)
         workflow.validate()
-        assert test_triple not in workflow.rdf
+        # Replace blank nodes with the original URI so we can test the results
+        replace_in_rdf(workflow.rdf, oldvalue=workflow.self_ref, newvalue=rdflib.URIRef(uri))
+
+        for relevant_triple in test_relevant_triples:
+            assert relevant_triple in workflow.rdf
+        for irrelevant_triple in test_irrelevant_triples:
+            assert irrelevant_triple not in workflow.rdf
 
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable
