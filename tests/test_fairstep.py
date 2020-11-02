@@ -54,17 +54,17 @@ class TestFairStep:
             (test_namespace.test, test_namespace.test, test_namespace.test),
             # A precedes relation with another step that is part of the workflow RDF, not this
             # step RDF.
-            # (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step)
+            (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step)
         ]
         test_relevant_triples = [
             # An input variable of the step
             (rdflib.URIRef(uri), namespaces.PPLAN.hasInputVar, test_namespace.input1),
             # A triple saying something about the input of the step, therefore relevant!
-            # (test_namespace.input1, rdflib.RDF.type, namespaces.PPLAN.Variable)
+            (test_namespace.input1, rdflib.RDF.type, namespaces.PPLAN.Variable)
         ]
         for triple in test_relevant_triples + test_irrelevant_triples:
             rdf.add(triple)
-        step = FairStep.from_rdf(rdf, uri)
+        step = FairStep.from_rdf(rdf, uri, remove_irrelevant_triples=True)
         step.validate()
 
         # Replace blank nodes with the original URI so we can test the results
