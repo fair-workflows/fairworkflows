@@ -3,8 +3,8 @@ from typing import List, Tuple
 from urllib.parse import urldefrag
 
 import rdflib
+import pyshacl
 from nanopub import Nanopub, NanopubClient
-
 
 class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject'):
@@ -101,6 +101,14 @@ class RdfWrapper:
         """
         self._rdf.remove((self.self_ref, predicate, object))
 
+    def shacl_validate(self, shaclfile="./shacl/plex-shapes.ttl"):
+        sg = rdflib.Graph()
+        sg.parse(shaclfile, format='ttl')
+        r = pyshacl.validate(self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False, meta_shacl=False, advanced=False, js=False, debug=False)
+        conforms, results_graph, results_text = r
+
+        assert conforms, results_text
+
     def anonymise_rdf(self):
         """
         Replace any subjects or objects referring directly to the rdf uri, with a blank node
@@ -146,7 +154,7 @@ class RdfWrapper:
                 raise ValueError(message + " Use force=True to suppress this error")
 
     @classmethod
-    def from_nanopub(cls, uri: str):
+    def from_nanopub(cls, uri: str, use_test_server=False):
         """Construct RdfWrapper object from an existing nanopublication.
 
         Fetch the nanopublication corresponding to the specified URI. Pass its assertion
@@ -156,12 +164,13 @@ class RdfWrapper:
             uri: The URI of a nanopublication (e.g.: http://purl.org/np/id) that npx:introduces
                 the RDF object as a concept or the URI of a nanopublication fragment pointing to a
                 concept (e.g.: http://purl.org/np/id#concept)
+            use_test_server: Toggle using the test nanopub server.
         """
         # Work out the nanopub URI by defragging the step URI
         nanopub_uri, frag = urldefrag(uri)
 
         # Fetch the nanopub
-        client = NanopubClient()
+        client = NanopubClient(use_test_server=use_test_server)
         nanopub = client.fetch(nanopub_uri)
 
         if len(frag) > 0:
@@ -178,7 +187,7 @@ class RdfWrapper:
         self._is_published = True
         return self
 
-    def publish_as_nanopub(self):
+    def publish_as_nanopub(self, use_test_server=False):
         """
         Publishes this rdf as a nanopublication.
         Returns True if published successfully.
@@ -197,7 +206,7 @@ class RdfWrapper:
         nanopub = Nanopub.from_assertion(assertion_rdf=self.rdf,
                                          introduces_concept=self.self_ref,
                                          derived_from=derived_from)
-        client = NanopubClient()
+        client = NanopubClient(use_test_server=use_test_server)
         publication_info = client.publish(nanopub)
 
         # Set the new, published, URI, which should be whatever the (published) URI of the concept that was introduced is.
