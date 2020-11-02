@@ -4,6 +4,7 @@ from urllib.parse import urldefrag
 
 import rdflib
 import pyshacl
+from fairworkflows.config import ROOT_DIR
 from nanopub import Nanopub, NanopubClient
 
 class RdfWrapper:
@@ -101,7 +102,7 @@ class RdfWrapper:
         """
         self._rdf.remove((self.self_ref, predicate, object))
 
-    def shacl_validate(self, shaclfile="./shacl/plex-shapes.ttl"):
+    def shacl_validate(self, shaclfile=str(ROOT_DIR / 'shacl/plex-shapes.ttl')):
         sg = rdflib.Graph()
         sg.parse(shaclfile, format='ttl')
         r = pyshacl.validate(self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False, meta_shacl=False, advanced=False, js=False, debug=False)
