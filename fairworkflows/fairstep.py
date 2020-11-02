@@ -64,20 +64,20 @@ class FairStep(RdfWrapper):
             not of a step.
 
         """
-        query = """
+        q = """
         PREFIX dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>
         SELECT ?s ?p ?o
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # step uri. (a|!a) matches all predicates.
-            <%s> (a|!a)+ ?o .
-            # Filter out precedes relations, those are part of a workflow not a step
+            # step uri. (a|!a) matches all predicates. Binding to step_uri is done when executing.
+            ?step_uri (a|!a)+ ?o .
+            # Filter out precedes relations
             ?s !dul:precedes ?o .
         }
-        """ % uri
-        g = rdflib.Graph()
-        for triple in rdf.query(query):
+        """
+        g = rdflib.Graph(namespace_manager=rdf.namespace_manager)
+        for triple in rdf.query(q, initBindings={'step_uri': rdflib.URIRef(uri)}):
             g.add(triple)
         return g
 
