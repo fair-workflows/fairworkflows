@@ -66,33 +66,35 @@ workflow.display()
 
 ### Make a FairStep from scratch
 ```python
-from fairworkflows import FairStep, FairWorkflow, fairstep
+from fairworkflows import FairStep
 import rdflib
 
 # Make a new 'empty' step
 step = FairStep()
 
 # Specify various characteristics needed to describe it
-step.label = 'Label for this step'
-step.description = 'String describing the procedure that happens in this step'
+step.label = 'Slicing an union 🧅'
+step.description = 'Slice the union in 0.5 cm thick slices'
 step.is_manual_task = True
 
 # Add other statements, about the step itself
-step.set_attribute(predicate=rdflib.URIRef('www.example.org/pred'),
-                   value=rdflib.URIRef('www.example.org/obj'))
+step.set_attribute(predicate=rdflib.URIRef('http://example.org/needsEquipment'),
+                   value=rdflib.URIRef('http://example.org/Knife'))
 
 # Add any other, general triples
-step.add_triple(rdflib.URIRef('www.example.org/subj'), rdflib.URIRef('www.example.org/pred'), rdflib.URIRef('www.example.org/obj'))
+step.add_triple(rdflib.URIRef('http://example.org/Union'),
+                rdflib.URIRef('http://example.org/Has'),
+                rdflib.URIRef('http://example.org/Layers'))
 
 # Set the URIs of the inputs and outputs to this step
-step.inputs = ['www.example.org/input1', 'www.example.org/input2']
-step.outputs = ['www.example.org/output2']
+step.inputs = ['http://example.org/IntactUnion', 'http://example.org/Knife']
+step.outputs = ['http://example.org/SlicedUnion']
 
 # Print the RDF description of the step
 print(step)
 
 # Publish the step as a nanopublication for others to find
-step.publish_as_nanopub()
+step.publish_as_nanopub(use_test_server=True)
 
 ```
 
