@@ -37,9 +37,8 @@ class TestFairStep:
 
     def test_setters(self):
         step = FairStep()
-        assert step.is_pplan_step  # Step should by default be a pplan step
-        step.is_pplan_step = False
-        assert not step.is_pplan_step
+        step.is_pplan_step = True
+        assert step.is_pplan_step
         step.is_manual_task = True
         assert step.is_manual_task
         step.is_script_task = True

@@ -5,6 +5,7 @@ import rdflib
 import pyshacl
 from nanopub import Nanopub, NanopubClient
 
+
 class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject'):
         self._rdf = rdflib.Graph()
