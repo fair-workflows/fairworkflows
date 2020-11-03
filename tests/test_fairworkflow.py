@@ -15,10 +15,14 @@ class TestFairWorkflow:
     test_description = 'This is a test workflow.'
     test_label = 'Test'
     workflow = FairWorkflow(description=test_description, label=test_label)
-
-    step1 = FairStep(uri='http://www.example.org/step1')
-    step2 = FairStep(uri='http://www.example.org/step2')
-    step3 = FairStep(uri='http://www.example.org/step3')
+    test_step_uris = [
+        'http://www.example.org/step1',
+        'http://www.example.org/step2',
+        'http://www.example.org/step3'
+    ]
+    step1 = FairStep(uri=test_step_uris[0])
+    step2 = FairStep(uri=test_step_uris[1])
+    step3 = FairStep(uri=test_step_uris[2])
 
     workflow.first_step = step1
     workflow.add(step2, follows=step1)
@@ -290,9 +294,28 @@ class TestFairWorkflow:
 
     @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
     def test_publish_as_nanopub(self, mock_publish):
+        test_published_uris = ['www.example.org/published_step1#step',
+                               'www.example.org/published_step2#step',
+                               'www.example.org/published_step3#step',
+                               'www.example.org/published_workflow#workflow']
+        mock_publish.side_effect = [
+            {'concept_uri': test_published_uris[0]},  # first call
+            {'concept_uri': test_published_uris[1]},
+            {'concept_uri': test_published_uris[2]},
+            {'concept_uri': test_published_uris[3]}   # Last call
+        ]
         for step in self.workflow:
             assert step.is_modified
         self.workflow.publish_as_nanopub()
         assert mock_publish.call_count == 4  # 1 workflow, 3 steps
-
+        for step in self.workflow:
+            assert step.uri in test_published_uris
+            #
+            assert ((rdflib.URIRef(step.uri), None, None) in self.workflow.rdf
+                    or (None, None, rdflib.URIRef(step.uri)) in self.workflow.rdf), \
+                'The new step URIs are not in the workflow'
+        for uri in self.test_step_uris:
+            assert ((rdflib.URIRef(uri), None, None) not in self.workflow.rdf
+                    and (None, None, rdflib.URIRef(uri)) not in self.workflow.rdf), \
+                'The old step URIs are still in the workflow'
 
