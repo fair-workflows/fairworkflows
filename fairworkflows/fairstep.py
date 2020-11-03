@@ -1,11 +1,10 @@
 import inspect
 import time
-import warnings
+from copy import deepcopy
 from typing import List
 
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
-
 
 from fairworkflows import namespaces
 from fairworkflows.rdf_wrapper import RdfWrapper
@@ -31,7 +30,8 @@ class FairStep(RdfWrapper):
         super().__init__(uri=uri, ref_name='step')
 
     @classmethod
-    def from_rdf(cls, rdf, uri=None, fetch_references: bool = False, force: bool = False):
+    def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False,
+                 remove_irrelevant_triples: bool = True):
         """Construct Fair Step from existing RDF.
 
         Args:
@@ -41,12 +41,45 @@ class FairStep(RdfWrapper):
                 referred by this object. For a FairStep there are currently no references supported.
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
+            remove_irrelevant_triples: Toggle removing irrelevant triples for this Step. This
+                uses heuristics that might not work for all passed RDF graphs.
         """
         cls._uri_is_subject_in_rdf(uri, rdf, force=force)
         self = cls(uri)
-        self._rdf = rdf
+        if remove_irrelevant_triples:
+            self._rdf = self._get_relevant_triples(uri, rdf)
+        else:
+            self._rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         self.anonymise_rdf()
         return self
+
+    @staticmethod
+    def _get_relevant_triples(uri, rdf):
+        """
+        Select only relevant triples from RDF using the following heuristics:
+        * Match all triples that are through an arbitrary-length property path related to the
+            step uri. So if 'URI predicate Something', then all triples 'Something predicate
+            object' are selected, and so forth.
+        * Filter out the DUL:precedes predicate triples, because they are part of a workflow and
+            not of a step.
+
+        """
+        q = """
+        PREFIX dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>
+        SELECT ?s ?p ?o
+        WHERE {
+            ?s ?p ?o .
+            # Match all triples that are through an arbitrary-length property path related to the
+            # step uri. (a|!a) matches all predicates. Binding to step_uri is done when executing.
+            ?step_uri (a|!a)+ ?o .
+            # Filter out precedes relations
+            ?s !dul:precedes ?o .
+        }
+        """
+        g = rdflib.Graph(namespace_manager=rdf.namespace_manager)
+        for triple in rdf.query(q, initBindings={'step_uri': rdflib.URIRef(uri)}):
+            g.add(triple)
+        return g
 
     @classmethod
     def from_function(cls, function):

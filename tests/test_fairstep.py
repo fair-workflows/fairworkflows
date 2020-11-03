@@ -4,12 +4,13 @@ import pytest
 import rdflib
 from nanopub import Nanopub
 
-from conftest import skip_if_nanopub_server_unavailable
-from fairworkflows import FairStep
-from fairworkflows.config import TESTS_RESOURCES
+from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
+from fairworkflows import FairStep, namespaces
+from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
 class TestFairStep:
+
     def test_inputs_outputs(self):
         test_inputs = ['test.org#input1', 'test.org#input2']
         test_outputs = ['test.org#output1', 'test.org#output2']
@@ -47,6 +48,45 @@ class TestFairStep:
         step.is_script_task = False
         step.is_script_task = False  # Test setting to current value
         assert not step.is_script_task
+
+    def test_construction_from_rdf(self):
+        rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
+        uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        step = FairStep.from_rdf(rdf, uri)
+        step.validate()
+
+    def test_construction_from_rdf_remove_irrelevant_triples(self):
+        """
+        Test that only relevant RDF statements end up in the FairStep rdf when constructing from
+        RDF.
+        """
+        rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
+        uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        test_namespace = rdflib.Namespace('http://example.com#')
+        test_irrelevant_triples = [
+            # A random test statement that has nothing to do with this step
+            (test_namespace.test, test_namespace.test, test_namespace.test),
+            # A precedes relation with another step that is part of the workflow RDF, not this
+            # step RDF.
+            (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step)
+        ]
+        test_relevant_triples = [
+            # An input variable of the step
+            (rdflib.URIRef(uri), namespaces.PPLAN.hasInputVar, test_namespace.input1),
+            # A triple saying something about the input of the step, therefore relevant!
+            (test_namespace.input1, rdflib.RDF.type, namespaces.PPLAN.Variable)
+        ]
+        for triple in test_relevant_triples + test_irrelevant_triples:
+            rdf.add(triple)
+        step = FairStep.from_rdf(rdf, uri, remove_irrelevant_triples=True)
+        step.validate()
+
+        # Replace blank nodes with the original URI so we can test the results
+        replace_in_rdf(step.rdf, oldvalue=step.self_ref, newvalue=rdflib.URIRef(uri))
+        for relevant_triple in test_relevant_triples:
+            assert relevant_triple in step.rdf
+        for irrelevant_triple in test_irrelevant_triples:
+            assert irrelevant_triple not in step.rdf
 
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable
@@ -123,9 +163,7 @@ class TestFairStep:
         test_uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
 
         # Mock the Nanopub.fetch() method to return a locally sourced nanopub
-        nanopub_rdf = rdflib.ConjunctiveGraph()
-        nanopub_rdf.parse(str(TESTS_RESOURCES / 'sample_fairstep_nanopub.trig'),
-                          format='trig')
+        nanopub_rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         returned_nanopubobj = Nanopub(rdf=nanopub_rdf, source_uri=test_uri)
         nanopub_fetch_mock.return_value = returned_nanopubobj
 
@@ -187,7 +225,8 @@ class TestFairStep:
         g = rdflib.Graph()
         g.parse(data=plex_rdf_trig, format='trig')
 
-        step = FairStep.from_rdf(rdf=g,  uri='http://www.example.org/step1')
+        step = FairStep.from_rdf(rdf=g,  uri='http://www.example.org/step1',
+                                 remove_irrelevant_triples=False)
 
         with pytest.raises(AssertionError):
             step.shacl_validate()

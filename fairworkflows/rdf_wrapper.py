@@ -1,8 +1,10 @@
 import warnings
+from typing import List, Tuple
 from urllib.parse import urldefrag
 
 import rdflib
 import pyshacl
+from fairworkflows.config import ROOT_DIR
 from nanopub import Nanopub, NanopubClient
 
 
@@ -40,7 +42,7 @@ class RdfWrapper:
 
         Returns:
             The object for which the predicate corresponds to predicate
-            argument and subject corresponds to this RDF itself. Return None
+            argument and subject corresponds to this concept. Return None
             if no attributes are found, or a list of attributes if multiple
             matching objects are found.
         """
@@ -81,7 +83,7 @@ class RdfWrapper:
         """
         self._rdf.remove((self.self_ref, predicate, object))
 
-    def shacl_validate(self, shaclfile="./shacl/plex-shapes.ttl"):
+    def shacl_validate(self, shaclfile=str(ROOT_DIR / 'shacl/plex-shapes.ttl')):
         sg = rdflib.Graph()
         sg.parse(shaclfile, format='ttl')
         r = pyshacl.validate(self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False, meta_shacl=False, advanced=False, js=False, debug=False)
@@ -93,17 +95,11 @@ class RdfWrapper:
         """
         Replace any subjects or objects referring directly to the rdf uri, with a blank node
         """
-        for s, p, o in self._rdf:
-            if self._uri == str(s):
-                self._rdf.remove((s, p, o))
-                self._rdf.add((self.self_ref, p, o))
-            if self._uri == str(o):
-                self._rdf.remove((s, p, o))
-                self._rdf.add((s, p, self.self_ref))
+        replace_in_rdf(self._rdf, oldvalue=rdflib.URIRef(self.uri), newvalue=self.self_ref)
 
     @classmethod
-    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None, fetch_references: bool = False,
-                 force: bool = False):
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str, fetch_references: bool = False,
+                 force: bool = False, remove_irrelevant_triples: bool = True):
         """Construct RdfWrapper object from rdf graph.
 
         Args:
@@ -113,6 +109,7 @@ class RdfWrapper:
                 referred by this object (e.g. FairSteps in a FairWorkflow)
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
+            remove_irrelevant_triples: Toggle removing irrelevant triples from the wrapped rdf.
         """
         raise NotImplementedError()
 
@@ -198,3 +195,16 @@ class RdfWrapper:
         self._is_modified = False
 
         return publication_info
+
+
+def replace_in_rdf(rdf: rdflib.Graph, oldvalue, newvalue):
+    """
+    Replace subjects or objects of oldvalue with newvalue
+    """
+    for s, p, o in rdf:
+        if s == oldvalue:
+            rdf.remove((s, p, o))
+            rdf.add((newvalue, p, o))
+        elif o == oldvalue:
+            rdf.remove((s, p, o))
+            rdf.add((s, p, newvalue))

@@ -7,6 +7,7 @@
 @prefix p-plan: <http://purl.org/net/p-plan#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
 sub:Head {
   this: np:hasAssertion sub:assertion;
@@ -17,7 +18,8 @@ sub:Head {
 
 sub:assertion {
   sub:step dcterms:description "Preheat an oven to 350 degrees F (175 degrees C).";
-    a bpmn:ManualTask, p-plan:Step .
+    a bpmn:ManualTask, p-plan:Step;
+    rdfs:label "Preheat oven" .
 }
 
 sub:provenance {
@@ -30,7 +32,7 @@ sub:pubInfo {
     npx:hasPublicKey "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCoZmUKAHAF0CY2sKahOanR1V8wP62NOw3G0wcVLULWxqXB/gcW25bGPcA5RKoiuhT6dUbfcRXmwLknE29h6KWfKYLtNaqdrHbjSnNC65dNmNxCNp0i6ZLZRh51mxw9IPJHZrDqQ9bcLwm9d1G1fDKasA+h1vrF3Hv1YrQsF9aW1QIDAQAB";
     npx:hasSignature "hxNAxQb14SbdDtvPyyOurd4cG5/qWe5lb6cxrmRawDkzsF1VHguvwQ2VoAPQJ1lv3+kKhECuHO7LSB/Cip2S/36jtrllNIqn8HaDM2iWxXs0n9f8Gjkszprn0x7fjgh5w7zWw9/DQHjb29T/UGiG9bJABjaDgA3HOannLUy7Y1I=";
     npx:hasSignatureTarget this: .
-  
+
   this: npx:introduces sub:step;
     prov:generatedAtTime "2020-07-23T11:55:58.343358"^^xsd:dateTime;
     prov:wasAttributedTo <http://purl.org/person#DrBob> .

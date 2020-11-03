@@ -42,8 +42,9 @@ class FairWorkflow(RdfWrapper):
         self._last_step_added = None
 
     @classmethod
-    def from_rdf(cls, rdf: rdflib.Graph, uri: str = None,
-                 fetch_references: bool = False, force: bool = False):
+    def from_rdf(cls, rdf: rdflib.Graph, uri: str,
+                 fetch_references: bool = False, force: bool = False,
+                 remove_irrelevant_triples: bool = True):
         """Construct Fair Workflow from existing RDF.
 
         Args:
@@ -55,12 +56,16 @@ class FairWorkflow(RdfWrapper):
                 RDF we try fetching them from nanopub
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
+            remove_irrelevant_triples: Toggle removing irrelevant triples for this FairWorkflow.
         """
         rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         cls._uri_is_subject_in_rdf(uri, rdf, force=force)
         self = cls(uri=uri)
         self._extract_steps(rdf, uri, fetch_references)
-        self._rdf = rdf
+        if remove_irrelevant_triples:
+            self._rdf = self._get_relevant_triples(uri, rdf)
+        else:
+            self._rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         self.anonymise_rdf()
         return self
 
@@ -85,6 +90,31 @@ class FairWorkflow(RdfWrapper):
                               f'functionality of the FairWorkflow object.')
                 step = FairStep(uri=step_uri)
             self._add_step(step)
+
+    @staticmethod
+    def _get_relevant_triples(uri, rdf):
+        """
+        Select only relevant triples from RDF using the following heuristics:
+        * Match all triples that are through an arbitrary-length property path related to the
+            workflow uri. So if 'URI predicate Something', then all triples 'Something predicate
+            object' are selected, and so forth.
+        NB: We assume that all step-related triples are already extracted by the _extract_steps
+        method
+        """
+        q = """
+        SELECT ?s ?p ?o
+        WHERE {
+            ?s ?p ?o .
+            # Match all triples that are through an arbitrary-length property path related to the
+            # workflow uri. (a|!a) matches all predicates. Binding to workflow_uri is done when
+            # executing.
+            ?workflow_uri (a|!a)+ ?o .
+        }
+        """
+        g = rdflib.Graph(namespace_manager=rdf.namespace_manager)
+        for triple in rdf.query(q, initBindings={'workflow_uri': rdflib.URIRef(uri)}):
+            g.add(triple)
+        return g
 
     @staticmethod
     def _extract_step_from_rdf(uri, rdf: rdflib.Graph()) -> Optional[FairStep]:
