@@ -6,9 +6,9 @@ import rdflib
 from rdflib.compare import isomorphic
 from requests import HTTPError
 
-from conftest import skip_if_nanopub_server_unavailable
-from fairworkflows import FairWorkflow, FairStep, add_step
-from fairworkflows.config import TESTS_RESOURCES
+from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
+from fairworkflows import FairWorkflow, FairStep, add_step, namespaces
+from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
 class TestFairWorkflow:
@@ -30,11 +30,6 @@ class TestFairWorkflow:
 
     for step in workflow:
         step.is_pplan_step = True
-
-    def _get_rdf_test_resource(self, filename: str):
-        rdf = rdflib.Graph()
-        rdf.parse(str(TESTS_RESOURCES / filename), format='trig')
-        return rdf
 
     def test_build(self):
         workflow = FairWorkflow(description=self.test_description, label=self.test_label)
@@ -60,7 +55,7 @@ class TestFairWorkflow:
         assert workflow.rdf is not None
 
     def test_construct_from_rdf_uri_not_in_subjects(self):
-        rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
         # This URI is not in the subject of this RDF:
         uri = 'http://www.example.org/some-random-uri'
         with pytest.raises(ValueError):
@@ -76,12 +71,10 @@ class TestFairWorkflow:
         Construct FairWorkflow from RDF that includes detailed information
         about steps.
         """
-        rdf = self._get_rdf_test_resource('test_workflow_including_steps.trig')
-
+        rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
         uri = 'http://www.example.org/workflow1'
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
-        new_rdf = self._get_rdf_test_resource(
-            'test_workflow_including_steps.trig')
+        new_rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
         assert rdflib.compare.isomorphic(rdf, new_rdf),\
             'The user RDF was altered after constructing a Fairworkflow ' \
             'object from it'
@@ -104,7 +97,7 @@ class TestFairWorkflow:
         steps which we should fetch.
         """
         mock_fetch_step.return_value = self.step1
-        rdf = self._get_rdf_test_resource('test_workflow_excluding_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=True)
         assert len(workflow._steps) == 1
@@ -117,7 +110,7 @@ class TestFairWorkflow:
         steps. We choose not to fetch these steps and have empty fair steps
         pointing to the uri.
         """
-        rdf = self._get_rdf_test_resource('test_workflow_excluding_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -133,7 +126,7 @@ class TestFairWorkflow:
         steps. Fetching the step fails in this scenario.
         """
         mock_fetch_step.return_value = None
-        rdf = self._get_rdf_test_resource('test_workflow_excluding_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -141,6 +134,37 @@ class TestFairWorkflow:
             assert len(w) == 1, 'Exactly 1 warning should be raised'
             assert 'Could not get detailed information' in str(w[0].message)
         assert len(workflow._steps) == 1
+
+    def test_construct_from_rdf_remove_irrelevant_triples(self):
+        rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
+        uri = 'http://www.example.org/workflow1'
+        sub = rdflib.Namespace('http://www.example.org/workflow1#')
+        test_irrelevant_triples = [
+            # A random test statement that has nothing to do with this step
+            (sub.test, sub.test, sub.test),
+            # A statement about a step, this will be in the RDF of the related FairStep objects
+            (sub.step1, rdflib.RDFS.label, rdflib.Literal("Step 1"))
+        ]
+        test_relevant_triples = [
+            # Dul precedes statements are relevant
+            (sub.step1, namespaces.DUL.precedes, sub.step2),
+            # Properties of the workflow are relevant
+            (rdflib.URIRef(uri), sub.hasSecurityLevel, sub.highSecurity),
+            # And the properties of those properties
+            (sub.highSecurity, sub.color, rdflib.Literal('Red')),
+        ]
+        for triple in test_relevant_triples + test_irrelevant_triples:
+            rdf.set(triple)  # Some triples are already in there, so we use set to not duplicate
+        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False,
+                                         remove_irrelevant_triples=True)
+        workflow.validate()
+        # Replace blank nodes with the original URI so we can test the results
+        replace_in_rdf(workflow.rdf, oldvalue=workflow.self_ref, newvalue=rdflib.URIRef(uri))
+
+        for relevant_triple in test_relevant_triples:
+            assert relevant_triple in workflow.rdf
+        for irrelevant_triple in test_irrelevant_triples:
+            assert irrelevant_triple not in workflow.rdf
 
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable
