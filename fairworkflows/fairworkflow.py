@@ -390,7 +390,7 @@ class FairWorkflow(RdfWrapper):
             step.publish_as_nanopub(use_test_server=use_test_server)
             new_uri = step.uri
             # TODO: replace old for new in workflow RDF
-        self._publish_as_nanopub(use_test_server=use_test_server)
+        return self._publish_as_nanopub(use_test_server=use_test_server)
 
     def __str__(self):
         """
