@@ -30,7 +30,7 @@ class FairWorkflow(RdfWrapper):
 
         self._is_published = False
 
-        self._rdf.add((self.self_ref, RDF.type, namespaces.PPLAN.Plan))
+        self.is_pplan_plan = True
 
         if description:
             self.description = description
@@ -254,6 +254,18 @@ class FairWorkflow(RdfWrapper):
         Returns True if this object's rdf specifies that it is a pplan:Plan
         """
         return (self.self_ref, RDF.type, namespaces.PPLAN.Plan) in self._rdf
+
+    @is_pplan_plan.setter
+    def is_pplan_plan(self, value:bool):
+        """
+        Adds/removes the pplan:Plan triple from the RDF, in accordance with the provided boolean.
+        """
+        if value is True:
+            if self.is_pplan_plan is False:
+                self.set_attribute(RDF.type, namespaces.PPLAN.Plan, overwrite=False)
+        elif value is False:
+            if self.is_pplan_plan is True:
+                self.remove_attribute(RDF.type, object=namespaces.PPLAN.Plan)
 
     def get_step(self, uri):
         """

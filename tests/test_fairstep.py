@@ -36,6 +36,19 @@ class TestFairStep:
         for output in step.outputs:
             assert str(output) == new_output
 
+    def test_setters(self):
+        step = FairStep()
+        step.is_pplan_step = True
+        assert step.is_pplan_step
+        step.is_manual_task = True
+        assert step.is_manual_task
+        step.is_script_task = True
+        assert step.is_script_task
+        assert not step.is_manual_task  # script and manual task are mutually exclusive
+        step.is_script_task = False
+        step.is_script_task = False  # Test setting to current value
+        assert not step.is_script_task
+
     def test_construction_from_rdf(self):
         rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'

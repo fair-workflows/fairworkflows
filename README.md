@@ -35,6 +35,7 @@ The ```fairworkflows``` library has a number of modules to help with FAIRifying 
 
 ## Quick Start
 
+### Construct FairWorkflow from existing published steps
 ```python
 from fairworkflows import FairWorkflow, FairStep
 
@@ -63,16 +64,43 @@ workflow.display()
 
 ```
 
+### Make a FairStep from scratch
+```python
+from fairworkflows import FairStep
+import rdflib
+
+# Make a new 'empty' step
+step = FairStep()
+
+# Specify various characteristics needed to describe it
+step.label = 'Slicing an union 🧅'
+step.description = 'Slice the union in 0.5 cm thick slices'
+step.is_manual_task = True
+
+# Add other statements, about the step itself
+step.set_attribute(predicate=rdflib.URIRef('http://example.org/needsEquipment'),
+                   value=rdflib.URIRef('http://example.org/Knife'))
+
+# Add any other, general triples
+step.add_triple(rdflib.URIRef('http://example.org/Union'),
+                rdflib.URIRef('http://example.org/Has'),
+                rdflib.URIRef('http://example.org/Layers'))
+
+# Set the URIs of the inputs and outputs to this step
+step.inputs = ['http://example.org/IntactUnion', 'http://example.org/Knife']
+step.outputs = ['http://example.org/SlicedUnion']
+
+# Print the RDF description of the step
+print(step)
+
+# Publish the step as a nanopublication for others to find
+step.publish_as_nanopub(use_test_server=True)
+
+```
+
 
 ### Example
 * See [examples/test_fairworkflows.ipynb](examples/test_fairworkflows.ipynb) for a current example of using the fairworkflows library to build a workflow using plex rdf
-
-### Notes
-The np script needs to be called to generate rsa keys in the `~/.nanopub` directory.
-
-```shell script
-fairworkflows/np mkkeys -a RSA
-```
 
 ## How is the ```fairworkflows``` library expected to be used?
 While this library could be used as a standalone tool to build/publish RDF workflows, it is intended more as a component to be used in a variety of other tools that seek to add FAIR elements to workflows. At present the library is used in the following tools:
