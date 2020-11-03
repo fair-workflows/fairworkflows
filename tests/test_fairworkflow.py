@@ -24,6 +24,9 @@ class TestFairWorkflow:
     workflow.add(step2, follows=step1)
     workflow.add(step3, follows=step2)
 
+    for step in workflow:
+        step.is_pplan_step = True
+
     def _get_rdf_test_resource(self, filename: str):
         rdf = rdflib.Graph()
         rdf.parse(str(TESTS_RESOURCES / filename), format='trig')
@@ -284,4 +287,12 @@ class TestFairWorkflow:
         installed
         """
         self.workflow.display()
+
+    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    def test_publish_as_nanopub(self, mock_publish):
+        for step in self.workflow:
+            assert step.is_modified
+        self.workflow.publish_as_nanopub()
+        assert mock_publish.call_count == 4  # 1 workflow, 3 steps
+
 

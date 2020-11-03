@@ -224,6 +224,8 @@ class FairStep(RdfWrapper):
         if shacl:
             self.shacl_validate()
 
+    def publish_as_nanopub(self, use_test_server=False):
+        self._publish_as_nanopub(use_test_server=use_test_server)
 
     def __str__(self):
         """

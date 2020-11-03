@@ -384,6 +384,14 @@ class FairWorkflow(RdfWrapper):
                 'Cannot produce visualization of RDF, you need to install '
                 'graphviz dependency https://graphviz.org/')
 
+    def publish_as_nanopub(self, use_test_server=False):
+        for step in self:
+            old_uri = step.uri
+            step.publish_as_nanopub(use_test_server=use_test_server)
+            new_uri = step.uri
+            # TODO: replace old for new in workflow RDF
+        self._publish_as_nanopub(use_test_server=use_test_server)
+
     def __str__(self):
         """
             Returns string representation of this FairWorkflow object.

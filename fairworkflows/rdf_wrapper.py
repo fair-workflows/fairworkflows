@@ -167,7 +167,7 @@ class RdfWrapper:
         self._is_published = True
         return self
 
-    def publish_as_nanopub(self, use_test_server=False):
+    def _publish_as_nanopub(self, use_test_server=False):
         """
         Publishes this rdf as a nanopublication.
         Returns True if published successfully.
