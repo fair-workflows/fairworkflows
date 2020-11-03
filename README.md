@@ -98,7 +98,7 @@ step.publish_as_nanopub()
 
 
 ### Example
-* See [test_plex_builder.ipynb](test_plex_builder.ipynb) for a current example of using the fairworkflows library to build a workflow using plex rdf
+* See [examples/test_fairworkflows.ipynb](examples/test_fairworkflows.ipynb) for a current example of using the fairworkflows library to build a workflow using plex rdf
 
 ## How is the ```fairworkflows``` library expected to be used?
 While this library could be used as a standalone tool to build/publish RDF workflows, it is intended more as a component to be used in a variety of other tools that seek to add FAIR elements to workflows. At present the library is used in the following tools:
