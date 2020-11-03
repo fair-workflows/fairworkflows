@@ -77,15 +77,50 @@ class FairStep(RdfWrapper):
         """Return True if this FairStep is a pplan:Step, else False."""
         return (self.self_ref, RDF.type, namespaces.PPLAN.Step) in self._rdf
 
+    @is_pplan_step.setter
+    def is_pplan_step(self, value: bool):
+        """
+        Adds/removes the pplan:Step triple from the RDF, in accordance with the provided boolean.
+        """
+        if value:
+            if not self.is_pplan_step:
+                self.set_attribute(RDF.type, namespaces.PPLAN.Step, overwrite=False)
+        else:
+            self.remove_attribute(RDF.type, object=namespaces.PPLAN.Step)
+
     @property
     def is_manual_task(self):
         """Returns True if this FairStep is a bpmn:ManualTask, else False."""
         return (self.self_ref, RDF.type, namespaces.BPMN.ManualTask) in self._rdf
 
+    @is_manual_task.setter
+    def is_manual_task(self, value: bool):
+        """
+        Adds/removes the manual task triple to the RDF, in accordance with the provided boolean.
+        """
+        if value:
+            if not self.is_manual_task:
+                self.set_attribute(RDF.type, namespaces.BPMN.ManualTask, overwrite=False)
+            self.is_script_task = False  # manual and script are mutually exclusive
+        else:
+            self.remove_attribute(RDF.type, object=namespaces.BPMN.ManualTask)
+
     @property
     def is_script_task(self):
         """Returns True if this FairStep is a bpmn:ScriptTask, else False."""
         return (self.self_ref, RDF.type, namespaces.BPMN.ScriptTask) in self._rdf
+
+    @is_script_task.setter
+    def is_script_task(self, value: bool):
+        """
+        Adds/removes the script task triple to the RDF, in accordance with the provided boolean.
+        """
+        if value:
+            if not self.is_script_task:
+                self.set_attribute(RDF.type, namespaces.BPMN.ScriptTask, overwrite=False)
+            self.is_manual_task = False  # manual and script are mutually exclusive
+        else:
+            self.remove_attribute(RDF.type, object=namespaces.BPMN.ScriptTask)
 
     @property
     def inputs(self) -> List[rdflib.URIRef]:

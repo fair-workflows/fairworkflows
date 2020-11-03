@@ -35,6 +35,19 @@ class TestFairStep:
         for output in step.outputs:
             assert str(output) == new_output
 
+    def test_setters(self):
+        step = FairStep()
+        step.is_pplan_step = True
+        assert step.is_pplan_step
+        step.is_manual_task = True
+        assert step.is_manual_task
+        step.is_script_task = True
+        assert step.is_script_task
+        assert not step.is_manual_task  # script and manual task are mutually exclusive
+        step.is_script_task = False
+        step.is_script_task = False  # Test setting to current value
+        assert not step.is_script_task
+
     @pytest.mark.flaky(max_runs=10)
     @skip_if_nanopub_server_unavailable
     def test_construction_from_nanopub(self):
