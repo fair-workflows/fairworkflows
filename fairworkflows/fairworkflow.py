@@ -12,7 +12,7 @@ from requests import HTTPError
 
 from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep, FAIRSTEP_PREDICATES
-from fairworkflows.rdf_wrapper import RdfWrapper
+from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 
 class FairWorkflow(RdfWrapper):
@@ -419,7 +419,10 @@ class FairWorkflow(RdfWrapper):
             old_uri = step.uri
             step.publish_as_nanopub(use_test_server=use_test_server)
             new_uri = step.uri
-            # TODO: replace old for new in workflow RDF
+            replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_uri),
+                           newvalue=rdflib.URIRef(new_uri))
+            del self._steps[old_uri]
+            self._steps[new_uri] = step
         return self._publish_as_nanopub(use_test_server=use_test_server)
 
     def __str__(self):

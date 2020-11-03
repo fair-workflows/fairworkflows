@@ -334,7 +334,6 @@ class TestFairWorkflow:
         assert mock_publish.call_count == 4  # 1 workflow, 3 steps
         for step in self.workflow:
             assert step.uri in test_published_uris
-            #
             assert ((rdflib.URIRef(step.uri), None, None) in self.workflow.rdf
                     or (None, None, rdflib.URIRef(step.uri)) in self.workflow.rdf), \
                 'The new step URIs are not in the workflow'
