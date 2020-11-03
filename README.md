@@ -78,7 +78,8 @@ step.description = 'String describing the procedure that happens in this step'
 step.is_manual_task = True
 
 # Add other statements, about the step itself
-step.set_attribute(rdflib.URIRef('www.example.org/pred'), object=rdflib.URIRef('www.example.org/obj'))
+step.set_attribute(predicate=rdflib.URIRef('www.example.org/pred'),
+                   value=rdflib.URIRef('www.example.org/obj'))
 
 # Add any other, general triples
 step.add_triple(rdflib.URIRef('www.example.org/subj'), rdflib.URIRef('www.example.org/pred'), rdflib.URIRef('www.example.org/obj'))
