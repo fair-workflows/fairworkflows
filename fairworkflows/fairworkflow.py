@@ -415,6 +415,11 @@ class FairWorkflow(RdfWrapper):
                 'graphviz dependency https://graphviz.org/')
 
     def publish_as_nanopub(self, use_test_server=False):
+        """Publish to nanopub server.
+
+        First publish the steps, use the URIs of the published steps in the workflow. Then
+        publish the workflow.
+        """
         for step in self:
             old_uri = step.uri
             step.publish_as_nanopub(use_test_server=use_test_server)
