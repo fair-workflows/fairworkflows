@@ -1,4 +1,4 @@
-nanopub==0.2.4
+nanopub==0.2.5
 networkx~=2.5
 pytest
 pyyaml
