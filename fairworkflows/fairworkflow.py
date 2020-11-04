@@ -419,6 +419,10 @@ class FairWorkflow(RdfWrapper):
 
         First publish the steps, use the URIs of the published steps in the workflow. Then
         publish the workflow.
+
+        Returns:
+            a dictionary with publication info, including 'nanopub_uri', and 'concept_uri' of the
+                published workflow
         """
         for step in self:
             if step.is_modified or not step._is_published:

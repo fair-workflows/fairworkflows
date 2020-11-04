@@ -258,6 +258,12 @@ class FairStep(RdfWrapper):
             self.shacl_validate()
 
     def publish_as_nanopub(self, use_test_server=False):
+        """
+        Publish this rdf as a nanopublication.
+
+        Returns:
+            a dictionary with publication info, including 'nanopub_uri', and 'concept_uri'
+        """
         return self._publish_as_nanopub(use_test_server=use_test_server)
 
     def __str__(self):
