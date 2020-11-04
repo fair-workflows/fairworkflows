@@ -421,13 +421,15 @@ class FairWorkflow(RdfWrapper):
         publish the workflow.
         """
         for step in self:
-            old_uri = step.uri
-            step.publish_as_nanopub(use_test_server=use_test_server)
-            new_uri = step.uri
-            replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_uri),
-                           newvalue=rdflib.URIRef(new_uri))
-            del self._steps[old_uri]
-            self._steps[new_uri] = step
+            if step.is_modified or not step._is_published:
+                self._is_modified = True  # If one of the steps is modified the workflow is too.
+                old_uri = step.uri
+                step.publish_as_nanopub(use_test_server=use_test_server)
+                published_step_uri = step.uri
+                replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_uri),
+                               newvalue=rdflib.URIRef(published_step_uri))
+                del self._steps[old_uri]
+                self._steps[published_step_uri] = step
         return self._publish_as_nanopub(use_test_server=use_test_server)
 
     def __str__(self):

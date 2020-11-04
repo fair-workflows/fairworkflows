@@ -342,3 +342,15 @@ class TestFairWorkflow:
                     and (None, None, rdflib.URIRef(uri)) not in self.workflow.rdf), \
                 'The old step URIs are still in the workflow'
 
+    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    def test_publish_as_nanopub_no_modifications(self, mock_publish):
+        """
+        Test case of an already published workflow that itself nor its steps are not modified.
+        """
+        for step in self.workflow:
+            step._is_modified = False
+        self.workflow._is_modified = False
+        self.workflow._is_published = True
+        pubinfo = self.workflow.publish_as_nanopub()
+        assert mock_publish.call_count == 0
+        assert pubinfo['nanopub_uri'] is None
