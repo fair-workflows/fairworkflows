@@ -341,7 +341,8 @@ class TestFairWorkflow:
         ]
         for step in test_workflow:
             assert step.is_modified
-        test_workflow.publish_as_nanopub()
+        pubinfo = test_workflow.publish_as_nanopub()
+        assert pubinfo['concept_uri'] == 'www.example.org/published_workflow#workflow'
         assert mock_publish.call_count == 4  # 1 workflow, 3 steps
         for step in test_workflow:
             assert step.uri in test_published_uris
