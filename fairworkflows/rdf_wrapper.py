@@ -164,10 +164,12 @@ class RdfWrapper:
         self._is_published = True
         return self
 
-    def publish_as_nanopub(self, use_test_server=False):
+    def _publish_as_nanopub(self, use_test_server=False):
         """
         Publishes this rdf as a nanopublication.
-        Returns True if published successfully.
+
+        Returns:
+            a dictionary with publication info, including 'nanopub_uri', and 'concept_uri'
         """
 
         # If this RDF has been modified from something that was previously published, include the original URI in the derived_from PROV (if applicable)

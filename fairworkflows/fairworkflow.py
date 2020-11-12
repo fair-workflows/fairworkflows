@@ -12,7 +12,7 @@ from requests import HTTPError
 
 from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep, FAIRSTEP_PREDICATES
-from fairworkflows.rdf_wrapper import RdfWrapper
+from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 
 class FairWorkflow(RdfWrapper):
@@ -413,6 +413,28 @@ class FairWorkflow(RdfWrapper):
             raise RuntimeError(
                 'Cannot produce visualization of RDF, you need to install '
                 'graphviz dependency https://graphviz.org/')
+
+    def publish_as_nanopub(self, use_test_server=False):
+        """Publish to nanopub server.
+
+        First publish the steps, use the URIs of the published steps in the workflow. Then
+        publish the workflow.
+
+        Returns:
+            a dictionary with publication info, including 'nanopub_uri', and 'concept_uri' of the
+                published workflow
+        """
+        for step in self:
+            if step.is_modified or not step._is_published:
+                self._is_modified = True  # If one of the steps is modified the workflow is too.
+                old_uri = step.uri
+                step.publish_as_nanopub(use_test_server=use_test_server)
+                published_step_uri = step.uri
+                replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_uri),
+                               newvalue=rdflib.URIRef(published_step_uri))
+                del self._steps[old_uri]
+                self._steps[published_step_uri] = step
+        return self._publish_as_nanopub(use_test_server=use_test_server)
 
     def __str__(self):
         """
