@@ -5,7 +5,7 @@ from urllib.parse import urldefrag
 import rdflib
 import pyshacl
 from fairworkflows.config import ROOT_DIR
-from nanopub import Nanopub, NanopubClient
+from nanopub import Publication, NanopubClient
 
 
 class RdfWrapper:
@@ -182,7 +182,7 @@ class RdfWrapper:
                 return {'nanopub_uri': None, 'concept_uri': None}
 
         # Publish the rdf of this step as a nanopublication
-        nanopub = Nanopub.from_assertion(assertion_rdf=self.rdf,
+        nanopub = Publication.from_assertion(assertion_rdf=self.rdf,
                                          introduces_concept=self.self_ref,
                                          derived_from=derived_from)
         client = NanopubClient(use_test_server=use_test_server)
