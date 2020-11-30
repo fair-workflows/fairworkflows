@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 import rdflib
-from nanopub import Nanopub
+from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairStep, namespaces
@@ -164,7 +164,7 @@ class TestFairStep:
 
         # Mock the Nanopub.fetch() method to return a locally sourced nanopub
         nanopub_rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
-        returned_nanopubobj = Nanopub(rdf=nanopub_rdf, source_uri=test_uri)
+        returned_nanopubobj = Publication(rdf=nanopub_rdf, source_uri=test_uri)
         nanopub_fetch_mock.return_value = returned_nanopubobj
 
         # 'Fetch' the nanopub as a fairstep, and attempt to publish it without modification
