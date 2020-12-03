@@ -189,13 +189,15 @@ class RdfWrapper:
                 warnings.warn(f'Cannot publish() this Fair object. This rdf is already published (at {self._uri}) and has not been modified locally.')
                 return {'nanopub_uri': None, 'concept_uri': None}
 
-        if 'introduces_concept' in kwargs:
-            raise ValueError('introduces_concept is automatically filled by fairworkflows library,'
-                             'you cannot set it.')
+        for invalid_kwarg in ['introduces_concept', 'assertion_rdf']:
+            if invalid_kwarg in kwargs:
+                raise ValueError(f'{invalid_kwarg} is automatically filled by fairworkflows '
+                                 f'library, you cannot set it.')
 
         if 'derived_from' in kwargs:
             derived_from = self._merge_derived_from(user_derived_from=kwargs['derived_from'],
                                                     our_derived_from=derived_from)
+            del kwargs['derived_from']  # We do not want to pass derived_from multiple times.
 
         # Publish the rdf of this step as a nanopublication
         nanopub = Publication.from_assertion(assertion_rdf=self.rdf,
@@ -223,6 +225,8 @@ class RdfWrapper:
         Returns:
              A list of derived_from URIRefs.
         """
+        if our_derived_from is None:
+            return user_derived_from
         if not isinstance(user_derived_from, list):
             user_derived_from = [user_derived_from]
         return user_derived_from + [our_derived_from]
