@@ -217,8 +217,14 @@ class RdfWrapper:
 
     @staticmethod
     def _merge_derived_from(user_derived_from, our_derived_from):
+        """
+        Merge user-provided `derived_from` with `derived_from` that is based on self.uri .
+
+        Returns:
+             A list of derived_from URIRefs.
+        """
         if not isinstance(user_derived_from, list):
-            user_derived_from = list(user_derived_from)
+            user_derived_from = [user_derived_from]
         return user_derived_from + [our_derived_from]
 
 

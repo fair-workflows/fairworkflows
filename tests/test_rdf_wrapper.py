@@ -39,3 +39,11 @@ class TestRdfWrapper:
         wrapper.rdf.add((rdflib.Literal('test'), rdflib.Literal('test'), rdflib.Literal('test')))
         # attribute_assertion_to_profile is a kwarg for nanopub.Publication.from_assertion()
         wrapper._publish_as_nanopub(attribute_assertion_to_profile=True)
+
+    def test_merge_derived_from(self):
+        wrapper = RdfWrapper(uri='test')
+        result = wrapper._merge_derived_from(user_derived_from='test1', our_derived_from='test2')
+        assert result == ['test1', 'test2']
+        result = wrapper._merge_derived_from(user_derived_from=['test1', 'test2'],
+                                             our_derived_from='test3')
+        assert result == ['test1', 'test2', 'test3']
