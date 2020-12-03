@@ -414,11 +414,18 @@ class FairWorkflow(RdfWrapper):
                 'Cannot produce visualization of RDF, you need to install '
                 'graphviz dependency https://graphviz.org/')
 
-    def publish_as_nanopub(self, use_test_server=False):
+    def publish_as_nanopub(self, use_test_server=False, **kwargs):
         """Publish to nanopub server.
 
         First publish the steps, use the URIs of the published steps in the workflow. Then
         publish the workflow.
+
+        Args:
+            use_test_server (bool): Toggle using the test nanopub server.
+            kwargs: Keyword arguments to be passed to [nanopub.Publication.from_assertion](
+                https://nanopub.readthedocs.io/en/latest/reference/publication.html#
+                nanopub.publication.Publication.from_assertion).
+                This allows for more control over the nanopublication RDF.
 
         Returns:
             a dictionary with publication info, including 'nanopub_uri', and 'concept_uri' of the
@@ -428,13 +435,13 @@ class FairWorkflow(RdfWrapper):
             if step.is_modified or not step._is_published:
                 self._is_modified = True  # If one of the steps is modified the workflow is too.
                 old_uri = step.uri
-                step.publish_as_nanopub(use_test_server=use_test_server)
+                step.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
                 published_step_uri = step.uri
                 replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_uri),
                                newvalue=rdflib.URIRef(published_step_uri))
                 del self._steps[old_uri]
                 self._steps[published_step_uri] = step
-        return self._publish_as_nanopub(use_test_server=use_test_server)
+        return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
 
     def __str__(self):
         """

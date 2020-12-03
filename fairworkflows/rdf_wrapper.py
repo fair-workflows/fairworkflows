@@ -164,15 +164,23 @@ class RdfWrapper:
         self._is_published = True
         return self
 
-    def _publish_as_nanopub(self, use_test_server=False):
+    def _publish_as_nanopub(self, use_test_server=False, **kwargs):
         """
         Publishes this rdf as a nanopublication.
+
+        Args:
+            use_test_server (bool): Toggle using the test nanopub server.
+            kwargs: Keyword arguments to be passed to [nanopub.Publication.from_assertion](
+                https://nanopub.readthedocs.io/en/latest/reference/publication.html#
+                nanopub.publication.Publication.from_assertion).
+                This allows for more control over the nanopublication RDF.
 
         Returns:
             a dictionary with publication info, including 'nanopub_uri', and 'concept_uri'
         """
 
-        # If this RDF has been modified from something that was previously published, include the original URI in the derived_from PROV (if applicable)
+        # If this RDF has been modified from something that was previously published,
+        # include the original URI in the derived_from PROV (if applicable)
         derived_from = None
         if self._is_published:
             if self.is_modified:
@@ -181,10 +189,19 @@ class RdfWrapper:
                 warnings.warn(f'Cannot publish() this Fair object. This rdf is already published (at {self._uri}) and has not been modified locally.')
                 return {'nanopub_uri': None, 'concept_uri': None}
 
+        if 'introduces_concept' in kwargs:
+            raise ValueError('introduces_concept is automatically filled by fairworkflows library,'
+                             'you cannot set it.')
+
+        if 'derived_from' in kwargs:
+            derived_from = self._merge_derived_from(user_derived_from=kwargs['derived_from'],
+                                                    our_derived_from=derived_from)
+
         # Publish the rdf of this step as a nanopublication
         nanopub = Publication.from_assertion(assertion_rdf=self.rdf,
-                                         introduces_concept=self.self_ref,
-                                         derived_from=derived_from)
+                                             introduces_concept=self.self_ref,
+                                             derived_from=derived_from,
+                                             **kwargs)
         client = NanopubClient(use_test_server=use_test_server)
         publication_info = client.publish(nanopub)
 
@@ -197,6 +214,12 @@ class RdfWrapper:
         self._is_modified = False
 
         return publication_info
+
+    @staticmethod
+    def _merge_derived_from(user_derived_from, our_derived_from):
+        if not isinstance(user_derived_from, list):
+            user_derived_from = list(user_derived_from)
+        return user_derived_from + [our_derived_from]
 
 
 def replace_in_rdf(rdf: rdflib.Graph, oldvalue, newvalue):
