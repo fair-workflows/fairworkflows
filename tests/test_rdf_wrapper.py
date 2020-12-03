@@ -1,5 +1,7 @@
 import warnings
+from unittest import mock
 
+import pytest
 import rdflib
 
 from fairworkflows.rdf_wrapper import RdfWrapper
@@ -25,3 +27,15 @@ class TestRdfWrapper:
             assert issubclass(w[-1].category, UserWarning)
 
         assert wrapper.get_attribute(test_predicate) == test_value_2
+
+    def test_publish_as_nanopub_introduces_concept_kwarg(self):
+        wrapper = RdfWrapper(uri='test')
+        with pytest.raises(ValueError):
+            wrapper._publish_as_nanopub(introduces_concept='test')
+
+    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    def test_publish_as_nanopub_with_kwargs(self, nanopub_wrapper_publish_mock):
+        wrapper = RdfWrapper(uri='test')
+        wrapper.rdf.add((rdflib.Literal('test'), rdflib.Literal('test'), rdflib.Literal('test')))
+        # attribute_assertion_to_profile is a kwarg for nanopub.Publication.from_assertion()
+        wrapper._publish_as_nanopub(attribute_assertion_to_profile=True)
