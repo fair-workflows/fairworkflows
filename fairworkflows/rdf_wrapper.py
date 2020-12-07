@@ -4,6 +4,8 @@ from urllib.parse import urldefrag
 
 import rdflib
 import pyshacl
+
+from fairworkflows import namespaces
 from fairworkflows.config import ROOT_DIR
 from nanopub import Publication, NanopubClient
 
@@ -15,6 +17,18 @@ class RdfWrapper:
         self.self_ref = rdflib.term.BNode(ref_name)
         self._is_modified = False
         self._is_published = False
+        self._bind_namespaces()
+
+    def _bind_namespaces(self):
+        """Bind namespaces used often in fair step and fair workflow.
+
+        Unused namespaces will be removed upon serialization.
+        """
+        self.rdf.bind("npx", namespaces.NPX)
+        self.rdf.bind("pplan", namespaces.PPLAN)
+        self.rdf.bind("dul", namespaces.DUL)
+        self.rdf.bind("bpmn", namespaces.BPMN)
+        self.rdf.bind("pwo", namespaces.PWO)
 
     @property
     def rdf(self) -> rdflib.Graph:
