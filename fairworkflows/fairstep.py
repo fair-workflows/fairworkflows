@@ -257,14 +257,21 @@ class FairStep(RdfWrapper):
         if shacl:
             self.shacl_validate()
 
-    def publish_as_nanopub(self, use_test_server=False):
+    def publish_as_nanopub(self, use_test_server=False, **kwargs):
         """
         Publish this rdf as a nanopublication.
+
+        Args:
+            use_test_server (bool): Toggle using the test nanopub server.
+            kwargs: Keyword arguments to be passed to [nanopub.Publication.from_assertion](
+                https://nanopub.readthedocs.io/en/latest/reference/publication.html#
+                nanopub.publication.Publication.from_assertion).
+                This allows for more control over the nanopublication RDF.
 
         Returns:
             a dictionary with publication info, including 'nanopub_uri', and 'concept_uri'
         """
-        return self._publish_as_nanopub(use_test_server=use_test_server)
+        return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
 
     def __str__(self):
         """
