@@ -18,6 +18,9 @@ The goals of the project are:
 
 We seek to provide an easy-to-use python interface for achieving the above.
 
+### Quick demo
+Try out the library in this online executable notebook: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fair-workflows/fairworkflows/HEAD?filepath=examples%2Ftest_fairworkflows.ipynb)
+
 ### Installation
 
 The most recent release can be installed from the python package index using ```pip```:
