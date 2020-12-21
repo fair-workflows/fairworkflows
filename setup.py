@@ -21,7 +21,9 @@ def get_version(rel_path):
     else:
         raise RuntimeError("Unable to find version string.")
 
-setup(name='fairworkflows',
+
+setup(
+    name='fairworkflows',
     version=get_version('fairworkflows/_version.py'),
     description='FAIRWorkflows python library',
     long_description=open("README.md", "r").read(),
@@ -34,6 +36,7 @@ setup(name='fairworkflows',
     extras_require={
         'dev': open('requirements_dev.txt', 'r').readlines()
     },
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",

@@ -1,13 +1,14 @@
 import warnings
-from typing import List, Tuple
 from urllib.parse import urldefrag
 
-import rdflib
 import pyshacl
+import rdflib
+from nanopub import Publication, NanopubClient
 
 from fairworkflows import namespaces
-from fairworkflows.config import ROOT_DIR
-from nanopub import Publication, NanopubClient
+from fairworkflows.config import PACKAGE_DIR
+
+PLEX_SHAPES_SHACL_FILEPATH = str(PACKAGE_DIR / 'resources' / 'plex-shapes.ttl')
 
 
 class RdfWrapper:
@@ -97,12 +98,12 @@ class RdfWrapper:
         """
         self._rdf.remove((self.self_ref, predicate, object))
 
-    def shacl_validate(self, shaclfile=str(ROOT_DIR / 'shacl/plex-shapes.ttl')):
+    def shacl_validate(self):
         sg = rdflib.Graph()
-        sg.parse(shaclfile, format='ttl')
-        r = pyshacl.validate(self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False, meta_shacl=False, advanced=False, js=False, debug=False)
-        conforms, results_graph, results_text = r
-
+        sg.parse(PLEX_SHAPES_SHACL_FILEPATH, format='ttl')
+        conforms, results_graph, results_text = pyshacl.validate(
+            self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False,
+            meta_shacl=False, advanced=False, js=False, debug=False)
         assert conforms, results_text
 
     def anonymise_rdf(self):
