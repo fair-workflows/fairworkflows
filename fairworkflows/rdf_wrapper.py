@@ -1,3 +1,4 @@
+import copy
 import warnings
 from urllib.parse import urldefrag
 
@@ -101,8 +102,9 @@ class RdfWrapper:
     def shacl_validate(self):
         sg = rdflib.Graph()
         sg.parse(PLEX_SHAPES_SHACL_FILEPATH, format='ttl')
-        conforms, results_graph, results_text = pyshacl.validate(
-            self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False,
+        data_graph = copy.deepcopy(self.rdf)
+        conforms, _, results_text = pyshacl.validate(
+            data_graph, shacl_graph=sg, inference='rdfs', abort_on_error=False,
             meta_shacl=False, advanced=False, js=False, debug=False)
         assert conforms, results_text
 
