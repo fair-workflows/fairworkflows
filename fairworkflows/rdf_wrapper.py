@@ -102,7 +102,7 @@ class RdfWrapper:
     def shacl_validate(self):
         sg = rdflib.Graph()
         sg.parse(PLEX_SHAPES_SHACL_FILEPATH, format='ttl')
-        data_graph = copy.deepcopy(self.rdf)
+        data_graph = copy.deepcopy(self._rdf)  # Otherwise pyshacl mutates it.
         conforms, _, results_text = pyshacl.validate(
             data_graph, shacl_graph=sg, inference='rdfs', abort_on_error=False,
             meta_shacl=False, advanced=False, js=False, debug=False)
