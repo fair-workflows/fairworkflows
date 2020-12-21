@@ -77,8 +77,8 @@ import rdflib
 step = FairStep()
 
 # Specify various characteristics needed to describe it
-step.label = 'Slicing an union 🧅'
-step.description = 'Slice the union in 0.5 cm thick slices'
+step.label = 'Slicing an onion 🧅'
+step.description = 'Slice the onion in 0.5 cm thick slices'
 step.is_manual_task = True
 
 # Add other statements, about the step itself
@@ -86,7 +86,7 @@ step.set_attribute(predicate=rdflib.URIRef('http://example.org/needsEquipment'),
                    value=rdflib.URIRef('http://example.org/Knife'))
 
 # Add any other, general triples
-step.add_triple(rdflib.URIRef('http://example.org/Union'),
+step.add_triple(rdflib.URIRef('http://example.org/Onion'),
                 rdflib.URIRef('http://example.org/Has'),
                 rdflib.URIRef('http://example.org/Layers'))
 
