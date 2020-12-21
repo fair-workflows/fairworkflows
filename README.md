@@ -91,8 +91,8 @@ step.add_triple(rdflib.URIRef('http://example.org/Onion'),
                 rdflib.URIRef('http://example.org/Layers'))
 
 # Set the URIs of the inputs and outputs to this step
-step.inputs = ['http://example.org/IntactUnion', 'http://example.org/Knife']
-step.outputs = ['http://example.org/SlicedUnion']
+step.inputs = ['http://example.org/IntactOnion', 'http://example.org/Knife']
+step.outputs = ['http://example.org/SlicedOnion']
 
 # Print the RDF description of the step
 print(step)
