@@ -231,4 +231,4 @@ class TestFairStep:
         with pytest.raises(AssertionError):
             step.shacl_validate()
 
-        assert len(step.rdf) == n_triples_before, 'shacl_validate manipulated RDF'
+        assert len(step.rdf) == n_triples_before, 'shacl_validate mutated RDF'
