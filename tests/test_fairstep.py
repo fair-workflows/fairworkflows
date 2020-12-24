@@ -6,6 +6,7 @@ from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairStep, namespaces
+from fairworkflows.fairstep import mark_as_fairstep
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
@@ -230,3 +231,16 @@ class TestFairStep:
 
         with pytest.raises(AssertionError):
             step.shacl_validate()
+
+
+def test_mark_as_fairstep():
+    @mark_as_fairstep(label='test_label')
+    def add(a: int, b: int) -> int:
+        """
+        Computational step adding two ints together.
+        """
+        return a + b
+
+    assert add(40, 2) == 42, 'Function execution does not work as expected'
+    assert str(add._fairstep.label) == 'test_label'
+    assert isinstance(add._fairstep, FairStep)

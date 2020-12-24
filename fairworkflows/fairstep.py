@@ -26,8 +26,9 @@ class FairStep(RdfWrapper):
     graphs or python functions.
     """
 
-    def __init__(self, uri=None):
+    def __init__(self, uri=None, label: str = None):
         super().__init__(uri=uri, ref_name='step')
+        self.label = label
 
     @classmethod
     def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False,
@@ -280,3 +281,12 @@ class FairStep(RdfWrapper):
         s = f'Step URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
+
+
+def mark_as_fairstep(label: str = None):
+    def modify_function(func):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        wrapper._fairstep = FairStep(label=label)
+        return wrapper
+    return modify_function
