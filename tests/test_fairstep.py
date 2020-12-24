@@ -234,7 +234,7 @@ class TestFairStep:
 
 
 def test_mark_as_fairstep():
-    @mark_as_fairstep(label='test_label')
+    @mark_as_fairstep(label='test_label', is_manual_task=True)
     def add(a: int, b: int) -> int:
         """
         Computational step adding two ints together.
@@ -243,4 +243,9 @@ def test_mark_as_fairstep():
 
     assert add(40, 2) == 42, 'Function execution does not work as expected'
     assert str(add._fairstep.label) == 'test_label'
+    assert add._fairstep.is_manual_task
+    assert add._fairstep.is_pplan_step
+    assert not add._fairstep.is_script_task
+    assert 'def add(a: int, b: int) -> int:' in str(add._fairstep.description)
+    assert 'Computational step adding two ints together.' in str(add._fairstep.description)
     assert isinstance(add._fairstep, FairStep)

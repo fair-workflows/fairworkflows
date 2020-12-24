@@ -26,9 +26,17 @@ class FairStep(RdfWrapper):
     graphs or python functions.
     """
 
-    def __init__(self, uri=None, label: str = None):
+    def __init__(self, label: str, description: str, uri=None, is_pplan_step: bool = True,
+                 is_manual_task: bool = None, is_script_task: bool = None):
         super().__init__(uri=uri, ref_name='step')
         self.label = label
+        self.description = description
+        self.is_pplan_step = is_pplan_step
+        if is_script_task and is_manual_task:
+            ValueError('A fair step cannot be both a manual and a script task, at least one of'
+                       'is_fair_step and is_script_task must be False')
+        self.is_manual_task = is_manual_task
+        self.is_script_task = is_script_task
 
     @classmethod
     def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False,
@@ -283,10 +291,18 @@ class FairStep(RdfWrapper):
         return s
 
 
-def mark_as_fairstep(label: str = None):
+def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: bool = None,
+                     is_script_task: bool = None):
     def modify_function(func):
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
-        wrapper._fairstep = FairStep(label=label)
+        # Description of step is the raw function code
+        description = inspect.getsource(func)
+        wrapper._fairstep = FairStep(label=label,
+                                     description=description,
+                                     is_pplan_step=is_pplan_step,
+                                     is_manual_task=is_manual_task,
+                                     is_script_task=is_script_task,
+                                     )
         return wrapper
     return modify_function
