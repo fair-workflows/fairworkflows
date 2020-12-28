@@ -254,3 +254,5 @@ def test_mark_as_fairstep():
     assert 'def add(a: int, b: int) -> int:' in str(add._fairstep.description)
     assert 'Computational step adding two ints together.' in str(add._fairstep.description)
     assert isinstance(add._fairstep, FairStep)
+    assert set(add._fairstep.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
+    assert add._fairstep.outputs[0] == FairVariable('add_output', 'int')

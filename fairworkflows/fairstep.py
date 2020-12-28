@@ -14,9 +14,18 @@ FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
 
 
 class FairVariable:
-    def __init__(self, name: str = None, var_type: str = None):
+    def __init__(self, name: str = None, type: str = None):
         self.name = name
-        self.type = var_type
+        self.type = type
+
+    def __eq__(self, other):
+        return self.name == other.name and self.type == other.type
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __str__(self):
+        return f'FairVariable {self.name} of type: {self.type}'
 
 
 class FairStep(RdfWrapper):
@@ -34,7 +43,8 @@ class FairStep(RdfWrapper):
 
     def __init__(self, label: str = None, description: str = None, uri=None,
                  is_pplan_step: bool = True, is_manual_task: bool = None,
-                 is_script_task: bool = None):
+                 is_script_task: bool = None, inputs: List[FairVariable] = None,
+                 outputs: List[FairVariable] = None):
         super().__init__(uri=uri, ref_name='step')
         self.label = label
         self.description = description
@@ -44,6 +54,10 @@ class FairStep(RdfWrapper):
                        'is_fair_step and is_script_task must be False')
         self.is_manual_task = is_manual_task
         self.is_script_task = is_script_task
+        if inputs is not None:
+            self.inputs = inputs
+        if outputs is not None:
+            self.outputs = outputs
         self._is_modified = False
 
     @classmethod
@@ -165,7 +179,7 @@ class FairStep(RdfWrapper):
         var_type = [var_type for var_type in var_types
                     if isinstance(var_type, rdflib.term.Literal)][0]
         return FairVariable(name=str(var_ref),
-                            var_type=str(var_type))
+                            type=str(var_type))
 
     def _add_variable(self, variable: FairVariable, relation_to_step):
         """Add triples describing FairVariable to rdf."""
@@ -306,11 +320,19 @@ def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_ta
             return func(*args, **kwargs)
         # Description of step is the raw function code
         description = inspect.getsource(func)
+        argspec = inspect.getfullargspec(func)
+        inputs = [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
+                  for arg in argspec.args]
+        output = FairVariable(name=func.__name__ + '_output',
+                              type=argspec.annotations['return'].__name__)
+
         wrapper._fairstep = FairStep(label=label,
                                      description=description,
                                      is_pplan_step=is_pplan_step,
                                      is_manual_task=is_manual_task,
                                      is_script_task=is_script_task,
+                                     inputs=inputs,
+                                     outputs=[output]
                                      )
         return wrapper
     return modify_function
