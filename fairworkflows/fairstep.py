@@ -165,7 +165,7 @@ class FairStep(RdfWrapper):
         var_type = [var_type for var_type in var_types
                     if isinstance(var_type, rdflib.term.Literal)][0]
         return FairVariable(name=str(var_ref),
-                            var_type=var_type)
+                            var_type=str(var_type))
 
     def _add_variable(self, variable: FairVariable, relation_to_step):
         """Add triples describing FairVariable to rdf."""
