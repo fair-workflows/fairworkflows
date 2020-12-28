@@ -40,8 +40,8 @@ class TestFairWorkflow:
 
     @pytest.fixture()
     def test_workflow(self, test_step1, test_step2, test_step3):
-        workflow = FairWorkflow(description=self.test_description, label=self.test_label)
-        workflow.first_step = test_step1
+        workflow = FairWorkflow(description=self.test_description, label=self.test_label,
+                                first_step=test_step1)
         workflow.add(test_step2, follows=test_step1)
         workflow.add(test_step3, follows=test_step2)
         return workflow
