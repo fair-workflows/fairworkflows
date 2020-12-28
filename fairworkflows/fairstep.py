@@ -14,6 +14,18 @@ FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
 
 
 class FairVariable:
+    """Represents a variable.
+
+    The variable corresponds to a blank node that has 2 RDF:type relations: (1) PPLAN:Variable,
+    and (2) a string literal representing the type (i.e. int, str, float) of the variable.
+
+    The FairVariable is normally associated with a FairStep by a PPLAN:hasInputVar or
+    PPLAN:hasOutputVar predicate.
+
+    Attributes:
+        name: The name of the variable (and of the blank node in rdf)
+        type: The type of the variable (i.e. int, str, float etc.)
+    """
     def __init__(self, name: str = None, type: str = None):
         self.name = name
         self.type = type
