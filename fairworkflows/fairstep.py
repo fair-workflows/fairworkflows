@@ -32,8 +32,9 @@ class FairStep(RdfWrapper):
     graphs or python functions.
     """
 
-    def __init__(self, label: str, description: str, uri=None, is_pplan_step: bool = True,
-                 is_manual_task: bool = None, is_script_task: bool = None):
+    def __init__(self, label: str = None, description: str = None, uri=None,
+                 is_pplan_step: bool = True, is_manual_task: bool = None,
+                 is_script_task: bool = None):
         super().__init__(uri=uri, ref_name='step')
         self.label = label
         self.description = description
@@ -43,6 +44,7 @@ class FairStep(RdfWrapper):
                        'is_fair_step and is_script_task must be False')
         self.is_manual_task = is_manual_task
         self.is_script_task = is_script_task
+        self._is_modified = False
 
     @classmethod
     def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False,
@@ -60,7 +62,7 @@ class FairStep(RdfWrapper):
                 uses heuristics that might not work for all passed RDF graphs.
         """
         cls._uri_is_subject_in_rdf(uri, rdf, force=force)
-        self = cls(uri)
+        self = cls(uri=uri)
         if remove_irrelevant_triples:
             self._rdf = self._get_relevant_triples(uri, rdf)
         else:
@@ -103,22 +105,9 @@ class FairStep(RdfWrapper):
         """
         name = function.__name__ + str(time.time())
         uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
-        self = cls(uri=uri)
         code = inspect.getsource(function)
-
-        # Set description of step to the raw function code
-        self.description = code
-
-        # Set a label for this step
-        self.label = function.__name__
-
-        # Specify that step is a pplan:Step
-        self.set_attribute(RDF.type, namespaces.PPLAN.Step, overwrite=False)
-
-        # Specify that step is a ScriptTask
-        self.set_attribute(RDF.type, namespaces.BPMN.ScriptTask, overwrite=False)
-
-        return self
+        return cls(label=function.__name__, description=code, uri=uri, is_pplan_step=True,
+                   is_script_task=True)
 
     @property
     def is_pplan_step(self):
