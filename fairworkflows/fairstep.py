@@ -202,9 +202,9 @@ class FairStep(RdfWrapper):
         """Inputs for this step.
 
         Inputs are a list of FairVariable objects. They correspond to triples in the RDF:
-        The name is stored as a blanknode with a hasInPutVar relation to the step.
-        This blanknode has type pplan:Variable and a string literal referring to the type of the
-        variable.
+        The name is stored as a blanknode with a hasInputVar relation to the step.
+        This blanknode has 2 RDF:type relations: (1) PPLAN:Variable, and (2) a string literal
+        representing the type (i.e. int, str, float) of the variable.
         """
         return [self._get_variable(var_ref) for var_ref
                 in self.get_attribute(namespaces.PPLAN.hasInputVar, return_list=True)]
@@ -219,10 +219,10 @@ class FairStep(RdfWrapper):
     def outputs(self) -> List[FairVariable]:
         """Outputs for this step.
 
-        Outputs are a list of URIRef's. The URIs should point to
-        a pplan.Variable, for example: www.purl.org/stepuri#outputvarname.
-        Set outputs by passing a list of strings depicting URIs. This
-        overwrites old outputs.
+        Outputs are a list of FairVariable objects. They correspond to triples in the RDF:
+        The name is stored as a blanknode with a hasOutputVar relation to the step.
+        This blanknode has 2 RDF:type relations: (1) PPLAN:Variable, and (2) a string literal
+        representing the type (i.e. int, str, float) of the variable.
         """
         return [self._get_variable(var_ref) for var_ref
                 in self.get_attribute(namespaces.PPLAN.hasOutputVar, return_list=True)]
