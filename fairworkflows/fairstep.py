@@ -46,14 +46,18 @@ class FairStep(RdfWrapper):
                  is_script_task: bool = None, inputs: List[FairVariable] = None,
                  outputs: List[FairVariable] = None):
         super().__init__(uri=uri, ref_name='step')
-        self.label = label
-        self.description = description
+        if label is not None:
+            self.label = label
+        if description is not None:
+            self.description = description
         self.is_pplan_step = is_pplan_step
         if is_script_task and is_manual_task:
             ValueError('A fair step cannot be both a manual and a script task, at least one of'
                        'is_fair_step and is_script_task must be False')
-        self.is_manual_task = is_manual_task
-        self.is_script_task = is_script_task
+        if is_manual_task is not None:
+            self.is_manual_task = is_manual_task
+        if is_script_task is not None:
+            self.is_script_task = is_script_task
         if inputs is not None:
             self.inputs = inputs
         if outputs is not None:
