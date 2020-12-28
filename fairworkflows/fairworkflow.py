@@ -162,39 +162,6 @@ class FairWorkflow(RdfWrapper):
         self.set_attribute(namespaces.PWO.hasFirstStep, rdflib.URIRef(step.uri))
         self._add_step(step)
 
-    @property
-    def unbound_inputs(self) -> List[Tuple[rdflib.URIRef, FairStep]]:
-        """Get unbound inputs for workflow.
-
-        Unbound inputs are inputs that are not outputs of any preceding step.
-        You could consider them inputs for the workflow.
-        """
-        outputs = list()
-        unbound_inputs = list()
-        for step in self:
-            for input in step.inputs:
-                if input not in outputs:
-                    unbound_inputs.append((input, step))
-            outputs += step.outputs
-        return unbound_inputs
-
-    @property
-    def unbound_outputs(self) -> List[Tuple[rdflib.URIRef, FairStep]]:
-        """Get unbound outputs for workflow.
-
-        Unbound outputs are outputs that are not inputs of any following
-        step. You could consider them outputs of the workflow.
-        """
-        self._validate_inputs_and_outputs()
-        inputs = list()
-        unbound_outputs = list()
-        for step in reversed(list(self)):
-            for output in step.outputs:
-                if output not in inputs:
-                    unbound_outputs.append((output, step))
-            inputs += step.inputs
-        return unbound_outputs
-
     def _add_step(self, step: FairStep):
         """Add a step to workflow (low-level method)."""
         self._steps[step.uri] = step
@@ -330,43 +297,11 @@ class FairWorkflow(RdfWrapper):
             log += 'Plan RDF does not specify a first step (pwo:hasFirstStep)\n'
             conforms = False
 
-        try:
-            self._validate_inputs_and_outputs()
-        except AssertionError as e:
-            log += str(e)
-            conforms = False
-
         assert conforms, log
 
         # Now validate against the PLEX shacl shapes file, if requested
         if shacl:
             self.shacl_validate()
-
-    def _validate_inputs_and_outputs(self):
-        """Validate that inputs and outputs match step order.
-
-        Assert that for all steps the input of a step is *not* the output of a
-        step later in the workflow (order based on the 'precedes' predicate).
-
-        NB: Step inputs can be unbound (and thus inputs for the workflow
-        itself). Only if a later step outputs the input variable of a
-        preceding step this is invalid.
-        """
-        outputs = list()
-        unbound_inputs = list()
-        for step in self:
-            for input in step.inputs:
-                if input not in outputs:
-                    unbound_inputs.append((input, step))
-            outputs += step.outputs
-        invalid_inputs = [(input, step) for input, step in unbound_inputs
-                          if input in outputs]
-
-        if len(invalid_inputs) > 0:
-            m = ''.join([f'{step.self_ref} has input {input} that is the '
-                         f'output of a later step\n'
-                         for input, step in invalid_inputs])
-            raise AssertionError(m)
 
     @staticmethod
     def _import_graphviz():
