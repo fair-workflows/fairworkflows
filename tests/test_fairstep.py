@@ -1,3 +1,4 @@
+from typing import Tuple
 from unittest.mock import patch
 
 import pytest
@@ -6,6 +7,7 @@ from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairStep, namespaces, FairVariable, mark_as_fairstep
+from fairworkflows.fairstep import _extract_outputs_from_function
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
@@ -277,3 +279,16 @@ def test_mark_as_fairstep_validation_fails():
             Computational step adding two ints together.
             """
             return a + b
+
+
+def test_extract_outputs_from_function_multiple_outputs():
+    # Note this function returns a tuple, and thus has multiple outputs
+    def divmod(a: int, b: int) -> Tuple[int, int]:
+        """
+        Computational step dividing a with b, additionaly returning the modulo.
+        """
+        return int(a / b), a % b
+
+    result = _extract_outputs_from_function(divmod)
+    assert set(result) == {FairVariable('divmod_output1', 'int'),
+                           FairVariable('divmod_output2', 'int')}

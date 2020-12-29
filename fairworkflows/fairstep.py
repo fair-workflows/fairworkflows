@@ -1,7 +1,7 @@
 import inspect
 import time
 from copy import deepcopy
-from typing import List, Callable
+from typing import List, Callable, Tuple, TupleMeta
 
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
@@ -361,20 +361,23 @@ def _extract_inputs_from_function(func) -> List[FairVariable]:
         return [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
                 for arg in argspec.args]
     except KeyError:
-        raise ValueError('The input arguments do not have type hints,'
+        raise ValueError('Not all input arguments have type hinting,'
                          'see https://docs.python.org/3/library/typing.html')
 
 
 def _extract_outputs_from_function(func) -> List[FairVariable]:
     """
-    Extract outputs from function using inspection. The name will be {function_name}_output. the
-    return t type hint will be the type of the variable.
+    Extract outputs from function using inspection. The name will be {function_name}_output{
+    output_number}. The corresponding return type hint will be the type of the variable.
     """
     argspec = inspect.getfullargspec(func)
     try:
-        return [FairVariable(name=func.__name__ + '_output',
-                             type=argspec.annotations['return'].__name__)]
+        return_annotation = argspec.annotations['return']
     except KeyError:
         raise ValueError('The return of the function does not have type hinting,'
                          'see https://docs.python.org/3/library/typing.html')
-
+    if isinstance(return_annotation, TupleMeta):
+        return [FairVariable(name=func.__name__ + '_output' + str(i + 1), type=annotation.__name__)
+                for i, annotation in enumerate(return_annotation.__args__)]
+    else:
+        return [FairVariable(name=func.__name__ + '_output1', type=return_annotation.__name__)]
