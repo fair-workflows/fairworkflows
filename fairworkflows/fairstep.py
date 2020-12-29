@@ -337,28 +337,44 @@ def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_ta
             return func(*args, **kwargs)
         # Description of step is the raw function code
         description = inspect.getsource(func)
-        argspec = inspect.getfullargspec(func)
-        try:
-            inputs = [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
-                      for arg in argspec.args]
-        except KeyError:
-            raise ValueError('The input arguments do not have type hints,'
-                             'see https://docs.python.org/3/library/typing.html')
-        try:
-            output = FairVariable(name=func.__name__ + '_output',
-                                  type=argspec.annotations['return'].__name__)
-        except KeyError:
-            raise ValueError('The return of the function does not have type hinting,'
-                             'see https://docs.python.org/3/library/typing.html')
-
+        inputs = _extract_inputs_from_function(func)
+        outputs = _extract_outputs_from_function(func)
         wrapper._fairstep = FairStep(label=label,
                                      description=description,
                                      is_pplan_step=is_pplan_step,
                                      is_manual_task=is_manual_task,
                                      is_script_task=is_script_task,
                                      inputs=inputs,
-                                     outputs=[output]
-                                     )
+                                     outputs=outputs)
         wrapper._fairstep.validate()
         return wrapper
     return modify_function
+
+
+def _extract_inputs_from_function(func) -> List[FairVariable]:
+    """
+    Extract inputs from function using inspection. The name of the argument will be the name of
+    the fair variable, the corresponding type hint will be the type of the variable.
+    """
+    argspec = inspect.getfullargspec(func)
+    try:
+        return [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
+                for arg in argspec.args]
+    except KeyError:
+        raise ValueError('The input arguments do not have type hints,'
+                         'see https://docs.python.org/3/library/typing.html')
+
+
+def _extract_outputs_from_function(func) -> List[FairVariable]:
+    """
+    Extract outputs from function using inspection. The name will be {function_name}_output. the
+    return t type hint will be the type of the variable.
+    """
+    argspec = inspect.getfullargspec(func)
+    try:
+        return [FairVariable(name=func.__name__ + '_output',
+                             type=argspec.annotations['return'].__name__)]
+    except KeyError:
+        raise ValueError('The return of the function does not have type hinting,'
+                         'see https://docs.python.org/3/library/typing.html')
+
