@@ -1,7 +1,7 @@
 import inspect
-import time
 from copy import deepcopy
-from typing import List, Callable, Tuple, TupleMeta, Union
+from typing import Callable, TupleMeta, Union
+from typing import List
 from urllib.parse import urldefrag
 
 import rdflib
