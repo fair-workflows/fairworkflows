@@ -29,7 +29,7 @@ class FairVariable:
             variable from rdf)
         type: The type of the variable (i.e. int, str, float etc.)
     """
-    def __init__(self, name: str = None, uri: str = None, type: str = None):
+    def __init__(self, name: str = None, type: str = None, uri: str = None):
         if uri and name is None:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
