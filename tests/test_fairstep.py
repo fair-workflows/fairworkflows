@@ -9,6 +9,13 @@ from fairworkflows import FairStep, namespaces, FairVariable
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
+def test_construct_fair_variable_get_name_from_uri():
+    variable = FairVariable(name=None, uri='http:example.org#input1', type='int')
+    assert variable.name == 'input1'
+    assert variable.uri == 'http:example.org#input1'
+    assert variable.type == 'int'
+
+
 class TestFairStep:
     def test_inputs(self):
         test_inputs = [FairVariable('input1', 'int'), FairVariable('input2', 'str')]

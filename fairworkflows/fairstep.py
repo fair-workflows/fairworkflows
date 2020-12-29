@@ -2,6 +2,7 @@ import inspect
 import time
 from copy import deepcopy
 from typing import List
+from urllib.parse import urldefrag
 
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
@@ -24,10 +25,16 @@ class FairVariable:
 
     Attributes:
         name: The name of the variable (and of the blank node in rdf)
+        uri: The uri that the variable is referred to (usually only set when we extract a
+            variable from rdf)
         type: The type of the variable (i.e. int, str, float etc.)
     """
-    def __init__(self, name: str = None, type: str = None):
+    def __init__(self, name: str = None, uri: str = None, type: str = None):
+        if uri and name is None:
+            # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
+            _, name = urldefrag(uri)
         self.name = name
+        self.uri = uri
         self.type = type
 
     def __eq__(self, other):
