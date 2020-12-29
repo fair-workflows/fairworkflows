@@ -1,7 +1,7 @@
 import inspect
 import time
 from copy import deepcopy
-from typing import List
+from typing import List, Callable
 
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
@@ -129,15 +129,16 @@ class FairStep(RdfWrapper):
         return g
 
     @classmethod
-    def from_function(cls, function):
+    def from_function(cls, func: Callable):
         """
-            Generates a plex rdf decription for the given python function, and makes this FairStep object a bpmn:ScriptTask.
+        Generates a plex rdf decription for the given python function,
+        and makes this FairStep object a bpmn:ScriptTask.
         """
-        name = function.__name__ + str(time.time())
-        uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
-        code = inspect.getsource(function)
-        return cls(label=function.__name__, description=code, uri=uri, is_pplan_step=True,
-                   is_script_task=True)
+        try:
+            return func._fairstep
+        except AttributeError:
+            raise ValueError('The function was not marked as a fair step,'
+                             'use mark_as_fairstep decorator to mark it.')
 
     @property
     def is_pplan_step(self):

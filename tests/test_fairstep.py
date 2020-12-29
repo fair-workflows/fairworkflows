@@ -138,23 +138,14 @@ class TestFairStep:
             assert step.is_manual_task
             assert not step.is_script_task
 
-    def test_construction_from_function(self):
-        def add(a: int, b: int):
+    def test_construction_from_non_marked_function(self):
+        def add(a: int, b: int) -> int:
             """
             Computational step adding two ints together.
             """
             return a + b
-
-        step = FairStep.from_function(function=add)
-
-        assert step is not None
-        step.validate()
-        assert not step.is_manual_task
-        assert step.is_script_task
-
-        assert step.__str__() is not None
-        assert len(step.__str__()) > 0
-        assert step.rdf is not None
+        with pytest.raises(ValueError):
+            FairStep.from_function(add)
 
     def test_validation(self):
         step = FairStep(uri='http://www.example.org/step')
@@ -247,15 +238,16 @@ def test_mark_as_fairstep():
         return a + b
 
     assert add(40, 2) == 42, 'Function execution does not work as expected'
-    assert str(add._fairstep.label) == 'test_label'
-    assert add._fairstep.is_manual_task
-    assert add._fairstep.is_pplan_step
-    assert not add._fairstep.is_script_task
-    assert 'def add(a: int, b: int) -> int:' in str(add._fairstep.description)
-    assert 'Computational step adding two ints together.' in str(add._fairstep.description)
-    assert isinstance(add._fairstep, FairStep)
-    assert set(add._fairstep.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
-    assert add._fairstep.outputs[0] == FairVariable('add_output', 'int')
+    step = FairStep.from_function(add)
+    assert str(step.label) == 'test_label'
+    assert step.is_manual_task
+    assert step.is_pplan_step
+    assert not step.is_script_task
+    assert 'def add(a: int, b: int) -> int:' in str(step.description)
+    assert 'Computational step adding two ints together.' in str(step.description)
+    assert isinstance(step, FairStep)
+    assert set(step.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
+    assert step.outputs[0] == FairVariable('add_output', 'int')
 
 
 def test_mark_as_fairstep_arguments_no_type_hinting():
