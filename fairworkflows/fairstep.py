@@ -51,6 +51,18 @@ class FairStep(RdfWrapper):
 
     Fair Steps may be fetched from Nanopublications, created from rdflib
     graphs or python functions.
+
+    Attributes:
+        label (str): Label of the fair step (corresponds to rdfs:label predicate)
+        description (str): Description of the fair step (corresponding to dcterms:description)
+        uri (str): URI depicting the step.
+        is_pplan_step (str): Denotes whether this step is a pplan:Step
+        is_manual_task (str): Denotes whether this step is a bpmn.ManualTask
+        is_script_task (str): Denotes whether this step is a bpmn.ScriptTask
+        inputs (list of FairVariable objects): The inputs of the step (corresponding to
+            pplan:hasInputVar).
+        outputs (list of FairVariable objects): The outputs of the step (corresponding to
+            pplan:hasOutputVar).
     """
 
     def __init__(self, label: str = None, description: str = None, uri=None,
@@ -332,23 +344,44 @@ class FairStep(RdfWrapper):
 
 def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: bool = None,
                      is_script_task: bool = None):
-    def modify_function(func):
-        def wrapper(*args, **kwargs):
+    """Mark a function as a FAIR step.
+
+    Use as decorator to mark a function as a FAIR step. Set properties of the fair step using
+    arguments to the decorator.
+
+    The raw code of the function will be used to set the description of the fair step.
+
+    The type annotations of the input arguments and return statement will be used to
+    automatically set inputs and outputs of the FAIR step.
+
+    Args:
+        label (str): Label of the fair step (corresponds to rdfs:label predicate)
+        is_pplan_step (str): Denotes whether this step is a pplan:Step
+        is_manual_task (str): Denotes whether this step is a bpmn.ManualTask
+        is_script_task (str): Denotes whether this step is a bpmn.ScriptTask
+
+    """
+    def _modify_function(func):
+        """
+        Store FairStep object as _fairstep attribute of the function. Use inspection to get the
+        description, inputs, and outputs of the step based on the function specification.
+        """
+        def _wrapper(*args, **kwargs):
             return func(*args, **kwargs)
         # Description of step is the raw function code
         description = inspect.getsource(func)
         inputs = _extract_inputs_from_function(func)
         outputs = _extract_outputs_from_function(func)
-        wrapper._fairstep = FairStep(label=label,
-                                     description=description,
-                                     is_pplan_step=is_pplan_step,
-                                     is_manual_task=is_manual_task,
-                                     is_script_task=is_script_task,
-                                     inputs=inputs,
-                                     outputs=outputs)
-        wrapper._fairstep.validate()
-        return wrapper
-    return modify_function
+        _wrapper._fairstep = FairStep(label=label,
+                                      description=description,
+                                      is_pplan_step=is_pplan_step,
+                                      is_manual_task=is_manual_task,
+                                      is_script_task=is_script_task,
+                                      inputs=inputs,
+                                      outputs=outputs)
+        _wrapper._fairstep.validate()
+        return _wrapper
+    return _modify_function
 
 
 def _extract_inputs_from_function(func) -> List[FairVariable]:
