@@ -287,7 +287,7 @@ def test_extract_outputs_from_function_multiple_outputs():
         """
         Computational step dividing a with b, additionaly returning the modulo.
         """
-        return int(a / b), a % b
+        return a // b, a % b
 
     result = _extract_outputs_from_function(divmod)
     assert set(result) == {FairVariable('divmod_output1', 'int'),
