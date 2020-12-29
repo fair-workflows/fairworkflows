@@ -117,14 +117,14 @@ class FairWorkflow(RdfWrapper):
 
     @staticmethod
     def _extract_step_from_rdf(uri, rdf: rdflib.Graph()) -> Optional[FairStep]:
+        relevant_triples = FairStep._get_relevant_triples(uri, rdf)
         step_rdf = rdflib.Graph()
-        for s, p, o in rdf.triples((rdflib.URIRef(uri), None, None)):
-            if p in FAIRSTEP_PREDICATES:
-                step_rdf.add((s, p, o))
-                rdf.remove((s, p, o))
+        for triple in relevant_triples:
+            step_rdf.add(triple)
+            rdf.remove(triple)
 
         if len(step_rdf) > 0:
-            return FairStep.from_rdf(step_rdf, uri=uri)
+            return FairStep.from_rdf(step_rdf, uri=uri, remove_irrelevant_triples=True)
         else:
             return None
 
@@ -209,7 +209,7 @@ class FairWorkflow(RdfWrapper):
             if len(G) == len(self._steps):
                 ordered_steps = nx.topological_sort(G)
             else:
-                raise RuntimeError('Cannot sort steps based on precedes'
+                raise RuntimeError('Cannot sort steps based on precedes '
                                    'predicate')
         for step_uri in ordered_steps:
             yield self.get_step(str(step_uri))

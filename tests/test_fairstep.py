@@ -69,13 +69,16 @@ class TestFairStep:
         """
         rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
-        test_namespace = rdflib.Namespace('http://example.com#')
+        test_namespace = rdflib.Namespace(
+            'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#')
         test_irrelevant_triples = [
             # A random test statement that has nothing to do with this step
             (test_namespace.test, test_namespace.test, test_namespace.test),
             # A precedes relation with another step that is part of the workflow RDF, not this
             # step RDF.
-            (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step)
+            (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step),
+            # A triple about a different step
+            (test_namespace.other_step, rdflib.RDF.type, namespaces.BPMN.ManualTask)
         ]
         test_relevant_triples = [
             # An input variable of the step

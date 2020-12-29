@@ -7,7 +7,7 @@ from rdflib.compare import isomorphic
 from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairWorkflow, FairStep, namespaces
+from fairworkflows import FairWorkflow, FairStep, namespaces, FairVariable
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
@@ -99,6 +99,11 @@ class TestFairWorkflow:
         for step in steps:
             step.validate()
             assert step.uri in valid_step_uris
+
+        # Step 1 has input and output variables defined (See test_workflow_including_steps.trig)
+        step1 = workflow.get_step(uri + '#step1')
+        assert step1.inputs == [FairVariable(name='input1', type='int')]
+        assert step1.outputs == [FairVariable(name='output1', type='str')]
 
         workflow.validate()
 
