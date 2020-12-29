@@ -35,22 +35,14 @@ class TestRdfWrapper:
         with pytest.raises(ValueError):
             wrapper._publish_as_nanopub(assertion_rdf='test')
 
+    def test_publish_as_nanopub_double_derived_from(self):
+        wrapper = RdfWrapper(uri='test', derived_from=['http:example.nl/workflow1'])
+        with pytest.raises(ValueError):
+            wrapper._publish_as_nanopub(derived_from=['http:example.nl/workflow2'])
+
     @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
     def test_publish_as_nanopub_with_kwargs(self, nanopub_wrapper_publish_mock):
-        wrapper = RdfWrapper(uri='test')
+        wrapper = RdfWrapper(uri='test', derived_from=['http:example.nl/workflow1'])
         wrapper.rdf.add((rdflib.Literal('test'), rdflib.Literal('test'), rdflib.Literal('test')))
-        # These are kwargs for nanopub.Publication.from_assertion()
-        wrapper._publish_as_nanopub(attribute_assertion_to_profile=True,
-                                    derived_from=rdflib.Literal('test'))
-
-    def test_merge_derived_from(self):
-        wrapper = RdfWrapper(uri='test')
-        result = wrapper._merge_derived_from(user_derived_from='test1', our_derived_from=['test2'])
-        assert result == ['test1', 'test2']
-
-        result = wrapper._merge_derived_from(user_derived_from=['test1', 'test2'],
-                                             our_derived_from=['test3'])
-        assert result == ['test1', 'test2', 'test3']
-
-        result = wrapper._merge_derived_from(user_derived_from='test1', our_derived_from=None)
-        assert result == 'test1'
+        # attribute_asseriton_to_profile is kwarg for nanopub.Publication.from_assertion()
+        wrapper._publish_as_nanopub(attribute_assertion_to_profile=True)

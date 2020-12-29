@@ -220,9 +220,12 @@ class RdfWrapper:
                                  f'library, you cannot set it.')
 
         if 'derived_from' in kwargs:
-            self._derived_from = self._merge_derived_from(user_derived_from=kwargs['derived_from'],
-                                                          our_derived_from=self._derived_from)
-            del kwargs['derived_from']  # We do not want to pass derived_from multiple times.
+            if self._derived_from is None:
+                self._derived_from = kwargs.pop('derived_from')
+            if self._derived_from is not None:
+                raise ValueError('You are trying to set derived_from for the nanopublication, '
+                                 'but there is already a value specified as .derived_from'
+                                 f'property of this object: {self._derived_from}')
 
         # Publish the rdf of this step as a nanopublication
         nanopub = Publication.from_assertion(assertion_rdf=self.rdf,
@@ -241,20 +244,6 @@ class RdfWrapper:
         self._is_modified = False
 
         return publication_info
-
-    @staticmethod
-    def _merge_derived_from(user_derived_from, our_derived_from):
-        """
-        Merge user-provided `derived_from` with `derived_from` property of RdfWrapper.
-
-        Returns:
-             A list of derived_from URIRefs.
-        """
-        if our_derived_from is None:
-            return user_derived_from
-        if not isinstance(user_derived_from, list):
-            user_derived_from = [user_derived_from]
-        return user_derived_from + our_derived_from
 
 
 def replace_in_rdf(rdf: rdflib.Graph, oldvalue, newvalue):
