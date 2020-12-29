@@ -337,10 +337,18 @@ def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_ta
         # Description of step is the raw function code
         description = inspect.getsource(func)
         argspec = inspect.getfullargspec(func)
-        inputs = [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
-                  for arg in argspec.args]
-        output = FairVariable(name=func.__name__ + '_output',
-                              type=argspec.annotations['return'].__name__)
+        try:
+            inputs = [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
+                      for arg in argspec.args]
+        except KeyError:
+            raise ValueError('The input arguments do not have type hints,'
+                             'see https://docs.python.org/3/library/typing.html')
+        try:
+            output = FairVariable(name=func.__name__ + '_output',
+                                  type=argspec.annotations['return'].__name__)
+        except KeyError:
+            raise ValueError('The return of the function does not have type hinting,'
+                             'see https://docs.python.org/3/library/typing.html')
 
         wrapper._fairstep = FairStep(label=label,
                                      description=description,

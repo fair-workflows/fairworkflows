@@ -256,3 +256,23 @@ def test_mark_as_fairstep():
     assert isinstance(add._fairstep, FairStep)
     assert set(add._fairstep.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
     assert add._fairstep.outputs[0] == FairVariable('add_output', 'int')
+
+
+def test_mark_as_fairstep_arguments_no_type_hinting():
+    with pytest.raises(ValueError):
+        @mark_as_fairstep(label='test_label', is_manual_task=True)
+        def add(a, b) -> int:  # Note the missing type hinting for arguments
+            """
+            Computational step adding two ints together.
+            """
+            return a + b
+
+
+def test_mark_as_fairstep_return_no_type_hinting():
+    with pytest.raises(ValueError):
+        @mark_as_fairstep(label='test_label', is_manual_task=True)
+        def add(a: int, b: int):  # Note the missing type hinting for return
+            """
+            Computational step adding two ints together.
+            """
+            return a + b
