@@ -5,8 +5,7 @@ import rdflib
 from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows.fairstep import mark_as_fairstep
-from fairworkflows import FairStep, namespaces, FairVariable
+from fairworkflows import FairStep, namespaces, FairVariable, mark_as_fairstep
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
