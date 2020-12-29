@@ -267,3 +267,13 @@ def test_mark_as_fairstep_return_no_type_hinting():
             Computational step adding two ints together.
             """
             return a + b
+
+
+def test_mark_as_fairstep_validation_fails():
+    with pytest.raises(AssertionError):
+        @mark_as_fairstep(is_manual_task=True)  # There is no label, so it won't validate
+        def add(a: int, b: int) -> int:
+            """
+            Computational step adding two ints together.
+            """
+            return a + b

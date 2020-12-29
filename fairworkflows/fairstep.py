@@ -359,5 +359,6 @@ def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_ta
                                      inputs=inputs,
                                      outputs=[output]
                                      )
+        wrapper._fairstep.validate()
         return wrapper
     return modify_function
