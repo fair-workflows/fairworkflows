@@ -7,7 +7,7 @@ from rdflib.compare import isomorphic
 from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairWorkflow, FairStep, add_step, namespaces
+from fairworkflows import FairWorkflow, FairStep, namespaces
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
@@ -247,18 +247,6 @@ class TestFairWorkflow:
         Test (mock) publishing of workflow
         """
         test_workflow.publish_as_nanopub()
-
-    def test_decorator(self):
-        test_workflow = FairWorkflow(description=self.test_description, label=self.test_label)
-
-        @add_step(test_workflow)
-        def test_fn(x, y):
-            return x * y
-
-        with pytest.raises(AssertionError):
-            test_workflow.validate()
-        test_fn(1, 2)
-        test_workflow.validate()
 
     @mock.patch.dict('sys.modules', {'graphviz': None})
     def test_draw_without_graphviz_module(self, tmp_path, test_workflow):
