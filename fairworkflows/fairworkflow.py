@@ -24,9 +24,8 @@ class FairWorkflow(RdfWrapper):
 
         Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
     """
-
-    def __init__(self, description=None, label=None, uri=None):
-        super().__init__(uri=uri, ref_name='plan')
+    def __init__(self, description=None, label=None, uri=None, derived_from=None):
+        super().__init__(uri=uri, ref_name='plan', derived_from=derived_from)
 
         self._is_published = False
 

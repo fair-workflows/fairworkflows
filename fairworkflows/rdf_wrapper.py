@@ -1,5 +1,5 @@
 import warnings
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from urllib.parse import urldefrag
 
 import rdflib
@@ -11,12 +11,13 @@ from nanopub import Publication, NanopubClient
 
 
 class RdfWrapper:
-    def __init__(self, uri, ref_name='fairobject'):
+    def __init__(self, uri, ref_name='fairobject', derived_from: List[str] = None):
         self._rdf = rdflib.Graph()
         self._uri = str(uri)
         self.self_ref = rdflib.term.BNode(ref_name)
         self._is_modified = False
         self._is_published = False
+        self.derived_from = derived_from
         self._bind_namespaces()
 
     def _bind_namespaces(self):
@@ -44,6 +45,17 @@ class RdfWrapper:
     def is_modified(self) -> bool:
         """Returns true if the RDF has been modified since initialisation"""
         return self._is_modified
+
+    @property
+    def derived_from(self) -> List[str]:
+        """
+        Denotes where this RdfWrapper object was derived from
+        """
+        return self._derived_from
+
+    @derived_from.setter
+    def derived_from(self, uris: List[str]):
+        self._derived_from = uris
 
     def add_triple(self, s, p, o):
         """ Add any general triple to the rdf i.e. that does not have the self_ref (step, or plan) as subject """
@@ -174,6 +186,7 @@ class RdfWrapper:
             raise ValueError('This nanopub does not introduce any concepts. Please provide URI to '
                              'the FAIR object itself (not just the nanopub).')
         self = cls.from_rdf(rdf=nanopub.assertion, uri=uri, fetch_references=True)
+        self._derived_from = [uri]
         # Record that this RDF originates from a published source
         self._is_published = True
         return self
@@ -195,13 +208,11 @@ class RdfWrapper:
 
         # If this RDF has been modified from something that was previously published,
         # include the original URI in the derived_from PROV (if applicable)
-        derived_from = None
-        if self._is_published:
-            if self.is_modified:
-                derived_from = self._uri
-            else:
-                warnings.warn(f'Cannot publish() this Fair object. This rdf is already published (at {self._uri}) and has not been modified locally.')
-                return {'nanopub_uri': None, 'concept_uri': None}
+        if self._is_published and not self._is_modified:
+            warnings.warn(f'Cannot publish() this Fair object. '
+                          f'This rdf is already published (at {self._uri}) '
+                          f'and has not been modified locally.')
+            return {'nanopub_uri': None, 'concept_uri': None}
 
         for invalid_kwarg in ['introduces_concept', 'assertion_rdf']:
             if invalid_kwarg in kwargs:
@@ -209,14 +220,14 @@ class RdfWrapper:
                                  f'library, you cannot set it.')
 
         if 'derived_from' in kwargs:
-            derived_from = self._merge_derived_from(user_derived_from=kwargs['derived_from'],
-                                                    our_derived_from=derived_from)
+            self._derived_from = self._merge_derived_from(user_derived_from=kwargs['derived_from'],
+                                                          our_derived_from=self._derived_from)
             del kwargs['derived_from']  # We do not want to pass derived_from multiple times.
 
         # Publish the rdf of this step as a nanopublication
         nanopub = Publication.from_assertion(assertion_rdf=self.rdf,
                                              introduces_concept=self.self_ref,
-                                             derived_from=derived_from,
+                                             derived_from=self._derived_from,
                                              **kwargs)
         client = NanopubClient(use_test_server=use_test_server)
         publication_info = client.publish(nanopub)
@@ -234,7 +245,7 @@ class RdfWrapper:
     @staticmethod
     def _merge_derived_from(user_derived_from, our_derived_from):
         """
-        Merge user-provided `derived_from` with `derived_from` that is based on self.uri .
+        Merge user-provided `derived_from` with `derived_from` property of RdfWrapper.
 
         Returns:
              A list of derived_from URIRefs.
@@ -243,7 +254,7 @@ class RdfWrapper:
             return user_derived_from
         if not isinstance(user_derived_from, list):
             user_derived_from = [user_derived_from]
-        return user_derived_from + [our_derived_from]
+        return user_derived_from + our_derived_from
 
 
 def replace_in_rdf(rdf: rdflib.Graph, oldvalue, newvalue):

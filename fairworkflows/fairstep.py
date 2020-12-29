@@ -26,8 +26,8 @@ class FairStep(RdfWrapper):
     graphs or python functions.
     """
 
-    def __init__(self, uri=None):
-        super().__init__(uri=uri, ref_name='step')
+    def __init__(self, uri=None, derived_from=None):
+        super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
 
     @classmethod
     def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False,
