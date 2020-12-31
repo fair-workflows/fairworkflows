@@ -2,7 +2,7 @@ import warnings
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator, Tuple, List, Optional
+from typing import Iterator, Optional
 
 import networkx as nx
 import rdflib
@@ -11,7 +11,7 @@ from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
 from fairworkflows import namespaces
-from fairworkflows.fairstep import FairStep, FAIRSTEP_PREDICATES
+from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 
