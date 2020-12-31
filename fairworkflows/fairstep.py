@@ -1,7 +1,7 @@
 import inspect
 import time
 from copy import deepcopy
-from typing import List
+from typing import List, Union
 from urllib.parse import urldefrag
 
 import rdflib
@@ -189,13 +189,20 @@ class FairStep(RdfWrapper):
         else:
             self.remove_attribute(RDF.type, object=namespaces.BPMN.ScriptTask)
 
-    def _get_variable(self, var_ref: rdflib.term.BNode) -> FairVariable:
+    def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""
-        var_types = self._rdf.objects(var_ref, RDF.type)
-        var_type = [var_type for var_type in var_types
-                    if isinstance(var_type, rdflib.term.Literal)][0]
-        return FairVariable(name=str(var_ref),
-                            type=str(var_type))
+        var_type_objs = self._rdf.objects(var_ref, RDF.type)
+        var_types = [var_type for var_type in var_type_objs
+                     if isinstance(var_type, rdflib.term.Literal)]
+        if len(var_types) > 0:
+            var_type = str(var_types[0])
+        else:
+            var_type = None
+
+        if isinstance(var_ref, rdflib.term.BNode):
+            return FairVariable(name=str(var_ref), type=var_type)
+        else:
+            return FairVariable(uri=str(var_ref), type=var_type)
 
     def _add_variable(self, variable: FairVariable, relation_to_step):
         """Add triples describing FairVariable to rdf."""
