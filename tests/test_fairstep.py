@@ -21,7 +21,7 @@ def test_construct_fair_variable_get_name_from_uri():
 class TestFairStep:
     def test_inputs(self):
         test_inputs = [FairVariable('input1', 'int'), FairVariable('input2', 'str')]
-        step = FairStep(label='test step', description='test step')
+        step = FairStep()
         step.inputs = test_inputs
         assert len(step.inputs) == 2
         assert (rdflib.term.BNode('input1'), rdflib.RDF.type, namespaces.PPLAN.Variable) in step.rdf
@@ -36,7 +36,7 @@ class TestFairStep:
 
     def test_outputs(self):
         test_outputs = [FairVariable('output1', 'int'), FairVariable('output2', 'str')]
-        step = FairStep(label='test step', description='test step')
+        step = FairStep()
         step.outputs = test_outputs
         assert len(step.outputs) == 2
         assert (rdflib.term.BNode('output1'),
@@ -51,7 +51,7 @@ class TestFairStep:
         assert(len(step.outputs)) == 1
 
     def test_setters(self):
-        step = FairStep(label='test step', description='test step')
+        step = FairStep()
         step.is_pplan_step = True
         assert step.is_pplan_step
         step.is_manual_task = True
