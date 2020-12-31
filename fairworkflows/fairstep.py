@@ -128,15 +128,14 @@ class FairStep(RdfWrapper):
         * Match all triples that are through an arbitrary-length property path related to the
             step uri. So if 'URI predicate Something', then all triples 'Something predicate
             object' are selected, and so forth.
-
-
         """
-        # TODO: We first remove the dul:precedes triples from the graph, this would be neater
-        #  to do in a subquery.
+        # Remove workflow-related triples from the graph, they effectively make other steps or
+        # the whole workflow 'children' of a step so it is important to to this before the query
+        # TODO:  This would be neater to do in a subquery.
         rdf = deepcopy(rdf)
         rdf.remove((None, namespaces.DUL.precedes, None))
+        rdf.remove((None, namespaces.PPLAN.isStepOfPlan, None))
         q = """
-        PREFIX dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>
         CONSTRUCT { ?s ?p ?o }
         WHERE {
             ?s ?p ?o .

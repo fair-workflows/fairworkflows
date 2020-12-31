@@ -76,6 +76,7 @@ class TestFairStep:
         """
         rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        this = rdflib.URIRef(uri)
         test_namespace = rdflib.Namespace(
             'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#')
         test_irrelevant_triples = [
@@ -83,13 +84,16 @@ class TestFairStep:
             (test_namespace.test, test_namespace.test, test_namespace.test),
             # A precedes relation with another step that is part of the workflow RDF, not this
             # step RDF.
-            (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step),
-            # A triple about a different step that is also a manual task
+            (this, namespaces.DUL.precedes, test_namespace.other_step),
+            # The workflow that it is part of
+            (this, namespaces.PPLAN.isStepOfPlan, test_namespace.workflow1),
+            # A different step that is also a manual task
             (test_namespace.other_step, rdflib.RDF.type, namespaces.BPMN.ManualTask)
+
         ]
         test_relevant_triples = [
             # An input variable of the step
-            (rdflib.URIRef(uri), namespaces.PPLAN.hasInputVar, test_namespace.input1),
+            (this, namespaces.PPLAN.hasInputVar, test_namespace.input1),
             # A triple saying something about the input of the step, therefore relevant!
             (test_namespace.input1, rdflib.RDF.type, namespaces.PPLAN.Variable)
         ]
