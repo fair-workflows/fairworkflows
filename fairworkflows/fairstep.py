@@ -123,8 +123,8 @@ class FairStep(RdfWrapper):
     def _get_relevant_triples(uri, rdf):
         """
         Select only relevant triples from RDF using the following heuristics:
-        * Filter out the DUL:precedes predicate triples, because they are part of a workflow and
-            not of a step.
+        * Filter out the DUL:precedes and PPLAN:isStepOfPlan predicate triples, because they are
+            part of a workflow and not of a step.
         * Match all triples that are through an arbitrary-length property path related to the
             step uri. So if 'URI predicate Something', then all triples 'Something predicate
             object' are selected, and so forth.
