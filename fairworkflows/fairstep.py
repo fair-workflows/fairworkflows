@@ -1,6 +1,6 @@
 import inspect
 from copy import deepcopy
-from typing import Callable, TupleMeta, Union
+from typing import Callable, Union, get_type_hints
 from typing import List
 from urllib.parse import urldefrag
 
@@ -419,13 +419,14 @@ def _extract_outputs_from_function(func) -> List[FairVariable]:
     Extract outputs from function using inspection. The name will be {function_name}_output{
     output_number}. The corresponding return type hint will be the type of the variable.
     """
-    argspec = inspect.getfullargspec(func)
+    annotations = get_type_hints(func)
     try:
-        return_annotation = argspec.annotations['return']
+        return_annotation = annotations['return']
     except KeyError:
         raise ValueError('The return of the function does not have type hinting,'
                          'see https://docs.python.org/3/library/typing.html')
-    if isinstance(return_annotation, TupleMeta):
+    # TODO: How to properly check that the return is annotated as Tuple?
+    if hasattr(return_annotation, '__args__'):  # A typing.Tuple as output
         return [FairVariable(name=func.__name__ + '_output' + str(i + 1), type=annotation.__name__)
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
