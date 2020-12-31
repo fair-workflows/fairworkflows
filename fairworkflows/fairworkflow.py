@@ -123,7 +123,7 @@ class FairWorkflow(RdfWrapper):
             rdf.remove(triple)
 
         if len(step_rdf) > 0:
-            return FairStep.from_rdf(step_rdf, uri=uri, remove_irrelevant_triples=True)
+            return FairStep.from_rdf(step_rdf, uri=uri, remove_irrelevant_triples=False)
         else:
             return None
 
