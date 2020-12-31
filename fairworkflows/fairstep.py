@@ -123,23 +123,26 @@ class FairStep(RdfWrapper):
     def _get_relevant_triples(uri, rdf):
         """
         Select only relevant triples from RDF using the following heuristics:
+        * Filter out the DUL:precedes predicate triples, because they are part of a workflow and
+            not of a step.
         * Match all triples that are through an arbitrary-length property path related to the
             step uri. So if 'URI predicate Something', then all triples 'Something predicate
             object' are selected, and so forth.
-        * Filter out the DUL:precedes predicate triples, because they are part of a workflow and
-            not of a step.
+
 
         """
+        # TODO: We first remove the dul:precedes triples from the graph, this would be neater
+        #  to do in a subquery.
+        rdf = deepcopy(rdf)
+        rdf.remove((None, namespaces.DUL.precedes, None))
         q = """
         PREFIX dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>
-        SELECT ?s ?p ?o
+        CONSTRUCT { ?s ?p ?o }
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # step uri. (a|!a) matches all predicates. Binding to step_uri is done when executing.
-            ?step_uri (a|!a)+ ?o .
-            # Filter out precedes relations
-            ?s !dul:precedes ?o .
+            # step uri. (<>|!<>) matches all predicates. Binding to step_uri is done when executing.
+            ?step_uri (<>|!<>)* ?s .
         }
         """
         g = rdflib.Graph(namespace_manager=rdf.namespace_manager)

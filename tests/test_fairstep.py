@@ -85,11 +85,6 @@ class TestFairStep:
             # step RDF.
             (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step),
             # A triple about a different step that is also a manual task
-            # TODO: This fails for 2 reasons:
-            #  1. is described in https://stackoverflow.com/questions/65493413
-            #  2. Because of the DUL.precedes relationship there is actually a path between
-            #  #step and this bpmn:ManualTask of #other_step. This might be fixed in the query, or
-            #  by first removing the dul:precedes triples from the graph.
             (test_namespace.other_step, rdflib.RDF.type, namespaces.BPMN.ManualTask)
         ]
         test_relevant_triples = [
