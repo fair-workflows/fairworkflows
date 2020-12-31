@@ -21,7 +21,7 @@ def test_construct_fair_variable_get_name_from_uri():
 class TestFairStep:
     def test_inputs(self):
         test_inputs = [FairVariable('input1', 'int'), FairVariable('input2', 'str')]
-        step = FairStep(label='test step', description='test step')
+        step = FairStep()
         step.inputs = test_inputs
         assert len(step.inputs) == 2
         assert (rdflib.term.BNode('input1'), rdflib.RDF.type, namespaces.PPLAN.Variable) in step.rdf
@@ -36,7 +36,7 @@ class TestFairStep:
 
     def test_outputs(self):
         test_outputs = [FairVariable('output1', 'int'), FairVariable('output2', 'str')]
-        step = FairStep(label='test step', description='test step')
+        step = FairStep()
         step.outputs = test_outputs
         assert len(step.outputs) == 2
         assert (rdflib.term.BNode('output1'),
@@ -51,7 +51,7 @@ class TestFairStep:
         assert(len(step.outputs)) == 1
 
     def test_setters(self):
-        step = FairStep(label='test step', description='test step')
+        step = FairStep()
         step.is_pplan_step = True
         assert step.is_pplan_step
         step.is_manual_task = True
@@ -76,6 +76,7 @@ class TestFairStep:
         """
         rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        this = rdflib.URIRef(uri)
         test_namespace = rdflib.Namespace(
             'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#')
         test_irrelevant_triples = [
@@ -83,18 +84,16 @@ class TestFairStep:
             (test_namespace.test, test_namespace.test, test_namespace.test),
             # A precedes relation with another step that is part of the workflow RDF, not this
             # step RDF.
-            (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step),
-            # A triple about a different step that is also a manual task
-            # TODO: This fails for 2 reasons:
-            #  1. is described in https://stackoverflow.com/questions/65493413
-            #  2. Because of the DUL.precedes relationship there is actually a path between
-            #  #step and this bpmn:ManualTask of #other_step. This might be fixed in the query, or
-            #  by first removing the dul:precedes triples from the graph.
+            (this, namespaces.DUL.precedes, test_namespace.other_step),
+            # The workflow that it is part of
+            (this, namespaces.PPLAN.isStepOfPlan, test_namespace.workflow1),
+            # A different step that is also a manual task
             (test_namespace.other_step, rdflib.RDF.type, namespaces.BPMN.ManualTask)
+
         ]
         test_relevant_triples = [
             # An input variable of the step
-            (rdflib.URIRef(uri), namespaces.PPLAN.hasInputVar, test_namespace.input1),
+            (this, namespaces.PPLAN.hasInputVar, test_namespace.input1),
             # A triple saying something about the input of the step, therefore relevant!
             (test_namespace.input1, rdflib.RDF.type, namespaces.PPLAN.Variable)
         ]
@@ -263,7 +262,7 @@ def test_mark_as_fairstep():
     assert 'Computational step adding two ints together.' in str(step.description)
     assert isinstance(step, FairStep)
     assert set(step.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
-    assert step.outputs[0] == FairVariable('add_output', 'int')
+    assert step.outputs[0] == FairVariable('add_output1', 'int')
 
 
 def test_mark_as_fairstep_arguments_no_type_hinting():

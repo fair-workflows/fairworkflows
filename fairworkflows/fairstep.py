@@ -1,7 +1,6 @@
 import inspect
 from copy import deepcopy
-from typing import Callable, TupleMeta, Union
-from typing import List
+from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
 
 import rdflib
@@ -29,7 +28,7 @@ class FairVariable:
             variable from rdf)
         type: The type of the variable (i.e. int, str, float etc.)
     """
-    def __init__(self, name: str = None, uri: str = None, type: str = None):
+    def __init__(self, name: str = None, type: str = None, uri: str = None):
         if uri and name is None:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
@@ -123,23 +122,25 @@ class FairStep(RdfWrapper):
     def _get_relevant_triples(uri, rdf):
         """
         Select only relevant triples from RDF using the following heuristics:
+        * Filter out the DUL:precedes and PPLAN:isStepOfPlan predicate triples, because they are
+            part of a workflow and not of a step.
         * Match all triples that are through an arbitrary-length property path related to the
             step uri. So if 'URI predicate Something', then all triples 'Something predicate
             object' are selected, and so forth.
-        * Filter out the DUL:precedes predicate triples, because they are part of a workflow and
-            not of a step.
-
         """
+        # Remove workflow-related triples from the graph, they effectively make other steps or
+        # the whole workflow 'children' of a step so it is important to to this before the query
+        # TODO:  This would be neater to do in a subquery.
+        rdf = deepcopy(rdf)
+        rdf.remove((None, namespaces.DUL.precedes, None))
+        rdf.remove((None, namespaces.PPLAN.isStepOfPlan, None))
         q = """
-        PREFIX dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>
-        SELECT ?s ?p ?o
+        CONSTRUCT { ?s ?p ?o }
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # step uri. (a|!a) matches all predicates. Binding to step_uri is done when executing.
-            ?step_uri (a|!a)+ ?o .
-            # Filter out precedes relations
-            ?s !dul:precedes ?o .
+            # step uri. (<>|!<>) matches all predicates. Binding to step_uri is done when executing.
+            ?step_uri (<>|!<>)* ?s .
         }
         """
         g = rdflib.Graph(namespace_manager=rdf.namespace_manager)
@@ -417,13 +418,14 @@ def _extract_outputs_from_function(func) -> List[FairVariable]:
     Extract outputs from function using inspection. The name will be {function_name}_output{
     output_number}. The corresponding return type hint will be the type of the variable.
     """
-    argspec = inspect.getfullargspec(func)
+    annotations = get_type_hints(func)
     try:
-        return_annotation = argspec.annotations['return']
+        return_annotation = annotations['return']
     except KeyError:
         raise ValueError('The return of the function does not have type hinting,'
                          'see https://docs.python.org/3/library/typing.html')
-    if isinstance(return_annotation, TupleMeta):
+    # TODO: How to properly check that the return is annotated as Tuple?
+    if hasattr(return_annotation, '__args__'):  # A typing.Tuple as output
         return [FairVariable(name=func.__name__ + '_output' + str(i + 1), type=annotation.__name__)
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:

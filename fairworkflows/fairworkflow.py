@@ -2,7 +2,7 @@ import warnings
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator, Tuple, List, Optional
+from typing import Iterator, Optional
 
 import networkx as nx
 import rdflib
@@ -11,7 +11,7 @@ from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
 from fairworkflows import namespaces
-from fairworkflows.fairstep import FairStep, FAIRSTEP_PREDICATES
+from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 
@@ -101,13 +101,12 @@ class FairWorkflow(RdfWrapper):
         method
         """
         q = """
-        SELECT ?s ?p ?o
+        CONSTRUCT { ?s ?p ?o }
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # workflow uri. (a|!a) matches all predicates. Binding to workflow_uri is done when
-            # executing.
-            ?workflow_uri (a|!a)+ ?o .
+            # step uri. (<>|!<>) matches all predicates. Binding to step_uri is done when executing.
+            ?workflow_uri (<>|!<>)* ?s .
         }
         """
         g = rdflib.Graph(namespace_manager=rdf.namespace_manager)
@@ -124,7 +123,7 @@ class FairWorkflow(RdfWrapper):
             rdf.remove(triple)
 
         if len(step_rdf) > 0:
-            return FairStep.from_rdf(step_rdf, uri=uri, remove_irrelevant_triples=True)
+            return FairStep.from_rdf(step_rdf, uri=uri, remove_irrelevant_triples=False)
         else:
             return None
 

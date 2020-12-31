@@ -1,13 +1,12 @@
 import warnings
-from typing import List, Tuple
 from urllib.parse import urldefrag
 
-import rdflib
 import pyshacl
+import rdflib
+from nanopub import Publication, NanopubClient
 
 from fairworkflows import namespaces
 from fairworkflows.config import ROOT_DIR
-from nanopub import Publication, NanopubClient
 
 
 class RdfWrapper:
