@@ -1,7 +1,6 @@
 import inspect
 from copy import deepcopy
-from typing import Callable, Union, get_type_hints
-from typing import List
+from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
 
 import rdflib
