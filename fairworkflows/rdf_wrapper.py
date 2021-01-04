@@ -101,9 +101,7 @@ class RdfWrapper:
     def shacl_validate(self):
         sg = rdflib.Graph()
         sg.parse(PLEX_SHAPES_SHACL_FILEPATH, format='ttl')
-        conforms, results_graph, results_text = pyshacl.validate(
-            self._rdf, shacl_graph=sg, inference='rdfs', abort_on_error=False,
-            meta_shacl=False, advanced=False, js=False, debug=False)
+        conforms, _, results_text = pyshacl.validate(self._rdf, shacl_graph=sg, inference='rdfs')
         assert conforms, results_text
 
     def anonymise_rdf(self):
