@@ -1,4 +1,3 @@
-import copy
 import warnings
 from urllib.parse import urldefrag
 
