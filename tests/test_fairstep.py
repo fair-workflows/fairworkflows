@@ -224,9 +224,11 @@ class TestFairStep:
 
         g = rdflib.Graph()
         g.parse(data=plex_rdf_trig, format='trig')
-
         step = FairStep.from_rdf(rdf=g,  uri='http://www.example.org/step1',
                                  remove_irrelevant_triples=False)
 
+        n_triples_before = len(step.rdf)
         with pytest.raises(AssertionError):
             step.shacl_validate()
+
+        assert len(step.rdf) == n_triples_before, 'shacl_validate mutated RDF'
