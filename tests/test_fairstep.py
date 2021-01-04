@@ -1,3 +1,4 @@
+import inspect
 from typing import Tuple
 from unittest.mock import patch
 
@@ -242,6 +243,17 @@ class TestFairStep:
 
         with pytest.raises(AssertionError):
             step.shacl_validate()
+
+    def test_execution(self):
+        step = FairStep(description=inspect.getsource(subtract))
+        step.execute(a=42, b=30)
+
+
+def subtract(a: int, b: int) -> int:
+    """
+    Computational step subtracting two ints.
+    """
+    return a - b
 
 
 def test_mark_as_fairstep():

@@ -1,4 +1,5 @@
 import inspect
+from ast import literal_eval
 from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
@@ -347,6 +348,16 @@ class FairStep(RdfWrapper):
             a dictionary with publication info, including 'nanopub_uri', and 'concept_uri'
         """
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
+
+    def execute(self, *args, **kwargs):
+        def create_func_obj(func_code_str):
+            g = dict()
+            l = dict()
+            exec(func_code_str, g, l)
+            if l:
+                return list(l.values())[0]
+        function = create_func_obj(str(self.description))
+        return function(*args, **kwargs)
 
     def __str__(self):
         """
