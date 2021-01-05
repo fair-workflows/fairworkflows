@@ -1,4 +1,5 @@
 import inspect
+import typing
 from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
@@ -424,9 +425,28 @@ def _extract_outputs_from_function(func) -> List[FairVariable]:
     except KeyError:
         raise ValueError('The return of the function does not have type hinting,'
                          'see https://docs.python.org/3/library/typing.html')
-    # TODO: How to properly check that the return is annotated as Tuple?
-    if hasattr(return_annotation, '__args__'):  # A typing.Tuple as output
+    if _is_generic_tuple(return_annotation):
         return [FairVariable(name=func.__name__ + '_output' + str(i + 1), type=annotation.__name__)
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
         return [FairVariable(name=func.__name__ + '_output1', type=return_annotation.__name__)]
+
+
+def _is_generic_tuple(type_):
+    """
+    Check whether a type annotation is Tuple
+    """
+    if hasattr(typing, '_GenericAlias'):
+        # 3.7
+        # _GenericAlias cannot be imported from typing, because it doesn't
+        # exist in all versions, and it will fail the type check in those
+        # versions as well, so we ignore it.
+        return (isinstance(type_, typing._GenericAlias)
+                and type_.__origin__ is tuple)
+    else:
+        # 3.6 and earlier
+        # GenericMeta cannot be imported from typing, because it doesn't
+        # exist in all versions, and it will fail the type check in those
+        # versions as well, so we ignore it.
+        return (isinstance(type_, typing.GenericMeta)
+                and type_.__origin__ is typing.Tuple)
