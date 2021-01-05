@@ -1,7 +1,7 @@
 import inspect
-import time
+import typing
 from copy import deepcopy
-from typing import List, Union
+from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
 
 import rdflib
@@ -60,10 +60,42 @@ class FairStep(RdfWrapper):
 
     Fair Steps may be fetched from Nanopublications, created from rdflib
     graphs or python functions.
+
+    Attributes:
+        label (str): Label of the fair step (corresponds to rdfs:label predicate)
+        description (str): Description of the fair step (corresponding to dcterms:description)
+        uri (str): URI depicting the step.
+        is_pplan_step (str): Denotes whether this step is a pplan:Step
+        is_manual_task (str): Denotes whether this step is a bpmn.ManualTask
+        is_script_task (str): Denotes whether this step is a bpmn.ScriptTask
+        inputs (list of FairVariable objects): The inputs of the step (corresponding to
+            pplan:hasInputVar).
+        outputs (list of FairVariable objects): The outputs of the step (corresponding to
+            pplan:hasOutputVar).
     """
 
-    def __init__(self, uri=None):
+    def __init__(self, label: str = None, description: str = None, uri=None,
+                 is_pplan_step: bool = True, is_manual_task: bool = None,
+                 is_script_task: bool = None, inputs: List[FairVariable] = None,
+                 outputs: List[FairVariable] = None):
         super().__init__(uri=uri, ref_name='step')
+        if label is not None:
+            self.label = label
+        if description is not None:
+            self.description = description
+        self.is_pplan_step = is_pplan_step
+        if is_script_task and is_manual_task:
+            ValueError('A fair step cannot be both a manual and a script task, at least one of'
+                       'is_fair_step and is_script_task must be False')
+        if is_manual_task is not None:
+            self.is_manual_task = is_manual_task
+        if is_script_task is not None:
+            self.is_script_task = is_script_task
+        if inputs is not None:
+            self.inputs = inputs
+        if outputs is not None:
+            self.outputs = outputs
+        self._is_modified = False
 
     @classmethod
     def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False,
@@ -81,7 +113,7 @@ class FairStep(RdfWrapper):
                 uses heuristics that might not work for all passed RDF graphs.
         """
         cls._uri_is_subject_in_rdf(uri, rdf, force=force)
-        self = cls(uri)
+        self = cls(uri=uri)
         if remove_irrelevant_triples:
             self._rdf = self._get_relevant_triples(uri, rdf)
         else:
@@ -93,23 +125,25 @@ class FairStep(RdfWrapper):
     def _get_relevant_triples(uri, rdf):
         """
         Select only relevant triples from RDF using the following heuristics:
+        * Filter out the DUL:precedes and PPLAN:isStepOfPlan predicate triples, because they are
+            part of a workflow and not of a step.
         * Match all triples that are through an arbitrary-length property path related to the
             step uri. So if 'URI predicate Something', then all triples 'Something predicate
             object' are selected, and so forth.
-        * Filter out the DUL:precedes predicate triples, because they are part of a workflow and
-            not of a step.
-
         """
+        # Remove workflow-related triples from the graph, they effectively make other steps or
+        # the whole workflow 'children' of a step so it is important to to this before the query
+        # TODO:  This would be neater to do in a subquery.
+        rdf = deepcopy(rdf)
+        rdf.remove((None, namespaces.DUL.precedes, None))
+        rdf.remove((None, namespaces.PPLAN.isStepOfPlan, None))
         q = """
-        PREFIX dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>
-        SELECT ?s ?p ?o
+        CONSTRUCT { ?s ?p ?o }
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # step uri. (a|!a) matches all predicates. Binding to step_uri is done when executing.
-            ?step_uri (a|!a)+ ?o .
-            # Filter out precedes relations
-            ?s !dul:precedes ?o .
+            # step uri. (<>|!<>) matches all predicates. Binding to step_uri is done when executing.
+            ?step_uri (<>|!<>)* ?s .
         }
         """
         g = rdflib.Graph(namespace_manager=rdf.namespace_manager)
@@ -118,28 +152,16 @@ class FairStep(RdfWrapper):
         return g
 
     @classmethod
-    def from_function(cls, function):
+    def from_function(cls, func: Callable):
         """
-            Generates a plex rdf decription for the given python function, and makes this FairStep object a bpmn:ScriptTask.
+        Generates a plex rdf decription for the given python function,
+        and makes this FairStep object a bpmn:ScriptTask.
         """
-        name = function.__name__ + str(time.time())
-        uri = 'http://purl.org/nanopub/temp/mynanopub#function' + name
-        self = cls(uri=uri)
-        code = inspect.getsource(function)
-
-        # Set description of step to the raw function code
-        self.description = code
-
-        # Set a label for this step
-        self.label = function.__name__
-
-        # Specify that step is a pplan:Step
-        self.set_attribute(RDF.type, namespaces.PPLAN.Step, overwrite=False)
-
-        # Specify that step is a ScriptTask
-        self.set_attribute(RDF.type, namespaces.BPMN.ScriptTask, overwrite=False)
-
-        return self
+        try:
+            return func._fairstep
+        except AttributeError:
+            raise ValueError('The function was not marked as a fair step,'
+                             'use mark_as_fairstep decorator to mark it.')
 
     @property
     def is_pplan_step(self):
@@ -336,3 +358,99 @@ class FairStep(RdfWrapper):
         s = f'Step URI = {self._uri}\n'
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
+
+
+def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: bool = None,
+                     is_script_task: bool = None):
+    """Mark a function as a FAIR step.
+
+    Use as decorator to mark a function as a FAIR step. Set properties of the fair step using
+    arguments to the decorator.
+
+    The raw code of the function will be used to set the description of the fair step.
+
+    The type annotations of the input arguments and return statement will be used to
+    automatically set inputs and outputs of the FAIR step.
+
+    Args:
+        label (str): Label of the fair step (corresponds to rdfs:label predicate)
+        is_pplan_step (str): Denotes whether this step is a pplan:Step
+        is_manual_task (str): Denotes whether this step is a bpmn.ManualTask
+        is_script_task (str): Denotes whether this step is a bpmn.ScriptTask
+
+    """
+    def _modify_function(func):
+        """
+        Store FairStep object as _fairstep attribute of the function. Use inspection to get the
+        description, inputs, and outputs of the step based on the function specification.
+        """
+        def _wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        # Description of step is the raw function code
+        description = inspect.getsource(func)
+        inputs = _extract_inputs_from_function(func)
+        outputs = _extract_outputs_from_function(func)
+        _wrapper._fairstep = FairStep(label=label,
+                                      description=description,
+                                      is_pplan_step=is_pplan_step,
+                                      is_manual_task=is_manual_task,
+                                      is_script_task=is_script_task,
+                                      inputs=inputs,
+                                      outputs=outputs)
+        _wrapper._fairstep.validate()
+        return _wrapper
+    return _modify_function
+
+
+def _extract_inputs_from_function(func) -> List[FairVariable]:
+    """
+    Extract inputs from function using inspection. The name of the argument will be the name of
+    the fair variable, the corresponding type hint will be the type of the variable.
+    """
+    argspec = inspect.getfullargspec(func)
+    try:
+        return [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
+                for arg in argspec.args]
+    except KeyError:
+        raise ValueError('Not all input arguments have type hinting, '
+                         'FAIR step functions MUST have type hinting, '
+                         'see https://docs.python.org/3/library/typing.html')
+
+
+def _extract_outputs_from_function(func) -> List[FairVariable]:
+    """
+    Extract outputs from function using inspection. The name will be {function_name}_output{
+    output_number}. The corresponding return type hint will be the type of the variable.
+    """
+    annotations = get_type_hints(func)
+    try:
+        return_annotation = annotations['return']
+    except KeyError:
+        raise ValueError('The return of the function does not have type hinting, '
+                         'FAIR step functions MUST have type hinting, '
+                         'see https://docs.python.org/3/library/typing.html')
+    if _is_generic_tuple(return_annotation):
+        return [FairVariable(name=func.__name__ + '_output' + str(i + 1), type=annotation.__name__)
+                for i, annotation in enumerate(return_annotation.__args__)]
+    else:
+        return [FairVariable(name=func.__name__ + '_output1', type=return_annotation.__name__)]
+
+
+def _is_generic_tuple(type_):
+    """
+    Check whether a type annotation is Tuple
+    """
+    if hasattr(typing, '_GenericAlias'):
+        # 3.7
+        # _GenericAlias cannot be imported from typing, because it doesn't
+        # exist in all versions, and it will fail the type check in those
+        # versions as well, so we ignore it.
+        return (isinstance(type_, typing._GenericAlias)
+                and type_.__origin__ is tuple)
+    else:
+        # 3.6 and earlier
+        # GenericMeta cannot be imported from typing, because it doesn't
+        # exist in all versions, and it will fail the type check in those
+        # versions as well, so we ignore it.
+        return (isinstance(type_, typing.GenericMeta)
+                and type_.__origin__ is typing.Tuple)

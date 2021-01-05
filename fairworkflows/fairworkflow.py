@@ -2,7 +2,7 @@ import warnings
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator, Tuple, List, Optional
+from typing import Iterator, Optional
 
 import networkx as nx
 import rdflib
@@ -11,7 +11,7 @@ from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
 from fairworkflows import namespaces
-from fairworkflows.fairstep import FairStep, FAIRSTEP_PREDICATES
+from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 
@@ -25,21 +25,20 @@ class FairWorkflow(RdfWrapper):
         Fair Workflows may be fetched from Nanopublications, or created through the addition of FairStep's.
     """
 
-    def __init__(self, description=None, label=None, uri=None):
+    def __init__(self, description: str = None, label: str = None, uri=None,
+                 is_pplan_plan: bool = True, first_step: FairStep = None):
         super().__init__(uri=uri, ref_name='plan')
-
         self._is_published = False
-
-        self.is_pplan_plan = True
-
-        if description:
+        self.is_pplan_plan = is_pplan_plan
+        if description is not None:
             self.description = description
-
-        if label:
+        if label is not None:
             self.label = label
-
         self._steps = {}
         self._last_step_added = None
+        if first_step is not None:
+            self.first_step = first_step
+        self._is_modified = False
 
     @classmethod
     def from_rdf(cls, rdf: rdflib.Graph, uri: str,
@@ -102,13 +101,13 @@ class FairWorkflow(RdfWrapper):
         method
         """
         q = """
-        SELECT ?s ?p ?o
+        CONSTRUCT { ?s ?p ?o }
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # workflow uri. (a|!a) matches all predicates. Binding to workflow_uri is done when
+            # workflow uri. (<>|!<>) matches all predicates. Binding to workflow_uri is done when
             # executing.
-            ?workflow_uri (a|!a)+ ?o .
+            ?workflow_uri (<>|!<>)* ?s .
         }
         """
         g = rdflib.Graph(namespace_manager=rdf.namespace_manager)
@@ -118,14 +117,14 @@ class FairWorkflow(RdfWrapper):
 
     @staticmethod
     def _extract_step_from_rdf(uri, rdf: rdflib.Graph()) -> Optional[FairStep]:
+        relevant_triples = FairStep._get_relevant_triples(uri, rdf)
         step_rdf = rdflib.Graph()
-        for s, p, o in rdf.triples((rdflib.URIRef(uri), None, None)):
-            if p in FAIRSTEP_PREDICATES:
-                step_rdf.add((s, p, o))
-                rdf.remove((s, p, o))
+        for triple in relevant_triples:
+            step_rdf.add(triple)
+            rdf.remove(triple)
 
         if len(step_rdf) > 0:
-            return FairStep.from_rdf(step_rdf, uri=uri)
+            return FairStep.from_rdf(step_rdf, uri=uri, remove_irrelevant_triples=False)
         else:
             return None
 
@@ -210,7 +209,7 @@ class FairWorkflow(RdfWrapper):
             if len(G) == len(self._steps):
                 ordered_steps = nx.topological_sort(G)
             else:
-                raise RuntimeError('Cannot sort steps based on precedes'
+                raise RuntimeError('Cannot sort steps based on precedes '
                                    'predicate')
         for step_uri in ordered_steps:
             yield self.get_step(str(step_uri))
@@ -386,19 +385,3 @@ class FairWorkflow(RdfWrapper):
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
 
-
-def add_step(fw: FairWorkflow):
-    """
-    Decorator that, upon execution, will convert a function to a FairStep, and add it to the
-    given FairWorkflow, 'fw'
-    """
-
-    def decorated_step(function):
-
-        def wrapped_step(*args, **kwargs):
-            fw.add(FairStep.from_function(function=function))
-            function(*args, **kwargs)
-
-        return wrapped_step
-
-    return decorated_step

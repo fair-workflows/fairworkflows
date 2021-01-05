@@ -19,7 +19,15 @@
         a pplan:Step;
         terms:description "Step 1";
         rdfs:label "Step 1" ;
-        a bpmn:ManualTask .
+        a bpmn:ManualTask ;
+        pplan:hasInputVar sub:input1 ;
+        pplan:hasOutputVar sub:output1.
+
+    sub:input1 a pplan:Variable ;
+        a "int" .
+
+    sub:output1 a pplan:Variable ;
+        a "str" .
 
     sub:step2 pplan:isStepOfPlan this:;
         a pplan:Step;
