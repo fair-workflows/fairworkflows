@@ -77,8 +77,8 @@ class FairStep(RdfWrapper):
     def __init__(self, label: str = None, description: str = None, uri=None,
                  is_pplan_step: bool = True, is_manual_task: bool = None,
                  is_script_task: bool = None, inputs: List[FairVariable] = None,
-                 outputs: List[FairVariable] = None):
-        super().__init__(uri=uri, ref_name='step')
+                 outputs: List[FairVariable] = None, derived_from=None):
+        super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
         if label is not None:
             self.label = label
         if description is not None:
