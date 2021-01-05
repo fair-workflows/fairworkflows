@@ -1,3 +1,4 @@
+from typing import Tuple
 from unittest.mock import patch
 
 import pytest
@@ -5,36 +6,48 @@ import rdflib
 from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairStep, namespaces
+from fairworkflows import FairStep, namespaces, FairVariable, mark_as_fairstep
+from fairworkflows.fairstep import _extract_outputs_from_function
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
-class TestFairStep:
+def test_construct_fair_variable_get_name_from_uri():
+    variable = FairVariable(name=None, uri='http:example.org#input1', type='int')
+    assert variable.name == 'input1'
+    assert variable.type == 'int'
 
-    def test_inputs_outputs(self):
-        test_inputs = ['test.org#input1', 'test.org#input2']
-        test_outputs = ['test.org#output1', 'test.org#output2']
+
+class TestFairStep:
+    def test_inputs(self):
+        test_inputs = [FairVariable('input1', 'int'), FairVariable('input2', 'str')]
         step = FairStep()
         step.inputs = test_inputs
-        step.outputs = test_outputs
         assert len(step.inputs) == 2
-        assert len(step.outputs) == 2
+        assert (rdflib.term.BNode('input1'), rdflib.RDF.type, namespaces.PPLAN.Variable) in step.rdf
         for input in step.inputs:
-            assert str(input) in test_inputs
-        for output in step.outputs:
-            assert str(output) in test_outputs
+            assert str(input.name) in [test_input.name for test_input in test_inputs]
+            assert str(input.type) in [test_input.type for test_input in test_inputs]
 
         # test overwriting
-        new_input = 'test.org#input3'
-        new_output = 'test.org#output3'
+        new_input = FairVariable('input3', 'int')
         step.inputs = [new_input]
-        step.outputs = [new_output]
         assert len(step.inputs) == 1
-        assert len(step.outputs) == 1
-        for input in step.inputs:
-            assert str(input) == new_input
+
+    def test_outputs(self):
+        test_outputs = [FairVariable('output1', 'int'), FairVariable('output2', 'str')]
+        step = FairStep()
+        step.outputs = test_outputs
+        assert len(step.outputs) == 2
+        assert (rdflib.term.BNode('output1'),
+                rdflib.RDF.type, namespaces.PPLAN.Variable) in step.rdf
         for output in step.outputs:
-            assert str(output) == new_output
+            assert str(output.name) in [test_output.name for test_output in test_outputs]
+            assert str(output.type) in [test_output.type for test_output in test_outputs]
+
+        # test overwriting
+        outputs = FairVariable('output3', 'int')
+        step.outputs = [outputs]
+        assert len(step.outputs) == 1
 
     def test_setters(self):
         step = FairStep()
@@ -62,17 +75,24 @@ class TestFairStep:
         """
         rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
-        test_namespace = rdflib.Namespace('http://example.com#')
+        this = rdflib.URIRef(uri)
+        test_namespace = rdflib.Namespace(
+            'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#')
         test_irrelevant_triples = [
             # A random test statement that has nothing to do with this step
             (test_namespace.test, test_namespace.test, test_namespace.test),
             # A precedes relation with another step that is part of the workflow RDF, not this
             # step RDF.
-            (rdflib.URIRef(uri), namespaces.DUL.precedes, test_namespace.other_step)
+            (this, namespaces.DUL.precedes, test_namespace.other_step),
+            # The workflow that it is part of
+            (this, namespaces.PPLAN.isStepOfPlan, test_namespace.workflow1),
+            # A different step that is also a manual task
+            (test_namespace.other_step, rdflib.RDF.type, namespaces.BPMN.ManualTask)
+
         ]
         test_relevant_triples = [
             # An input variable of the step
-            (rdflib.URIRef(uri), namespaces.PPLAN.hasInputVar, test_namespace.input1),
+            (this, namespaces.PPLAN.hasInputVar, test_namespace.input1),
             # A triple saying something about the input of the step, therefore relevant!
             (test_namespace.input1, rdflib.RDF.type, namespaces.PPLAN.Variable)
         ]
@@ -132,23 +152,14 @@ class TestFairStep:
             assert step.is_manual_task
             assert not step.is_script_task
 
-    def test_construction_from_function(self):
-        def add(a: int, b: int):
+    def test_construction_from_non_marked_function(self):
+        def add(a: int, b: int) -> int:
             """
             Computational step adding two ints together.
             """
             return a + b
-
-        step = FairStep.from_function(function=add)
-
-        assert step is not None
-        step.validate()
-        assert not step.is_manual_task
-        assert step.is_script_task
-
-        assert step.__str__() is not None
-        assert len(step.__str__()) > 0
-        assert step.rdf is not None
+        with pytest.raises(ValueError):
+            FairStep.from_function(add)
 
     def test_validation(self):
         step = FairStep(uri='http://www.example.org/step')
@@ -232,3 +243,67 @@ class TestFairStep:
             step.shacl_validate()
 
         assert len(step.rdf) == n_triples_before, 'shacl_validate mutated RDF'
+
+
+def test_mark_as_fairstep():
+    @mark_as_fairstep(label='test_label', is_manual_task=True)
+    def add(a: int, b: int) -> int:
+        """
+        Computational step adding two ints together.
+        """
+        return a + b
+
+    assert add(40, 2) == 42, 'Function execution does not work as expected'
+    step = FairStep.from_function(add)
+    assert str(step.label) == 'test_label'
+    assert step.is_manual_task
+    assert step.is_pplan_step
+    assert not step.is_script_task
+    assert 'def add(a: int, b: int) -> int:' in str(step.description)
+    assert 'Computational step adding two ints together.' in str(step.description)
+    assert isinstance(step, FairStep)
+    assert set(step.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
+    assert step.outputs[0] == FairVariable('add_output1', 'int')
+
+
+def test_mark_as_fairstep_arguments_no_type_hinting():
+    with pytest.raises(ValueError):
+        @mark_as_fairstep(label='test_label', is_manual_task=True)
+        def add(a, b) -> int:  # Note the missing type hinting for arguments
+            """
+            Computational step adding two ints together.
+            """
+            return a + b
+
+
+def test_mark_as_fairstep_return_no_type_hinting():
+    with pytest.raises(ValueError):
+        @mark_as_fairstep(label='test_label', is_manual_task=True)
+        def add(a: int, b: int):  # Note the missing type hinting for return
+            """
+            Computational step adding two ints together.
+            """
+            return a + b
+
+
+def test_mark_as_fairstep_validation_fails():
+    with pytest.raises(AssertionError):
+        @mark_as_fairstep(is_manual_task=True)  # There is no label, so it won't validate
+        def add(a: int, b: int) -> int:
+            """
+            Computational step adding two ints together.
+            """
+            return a + b
+
+
+def test_extract_outputs_from_function_multiple_outputs():
+    # Note this function returns a tuple, and thus has multiple outputs
+    def divmod(a: int, b: int) -> Tuple[int, int]:
+        """
+        Computational step dividing a with b, additionaly returning the modulo.
+        """
+        return a // b, a % b
+
+    result = _extract_outputs_from_function(divmod)
+    assert set(result) == {FairVariable('divmod_output1', 'int'),
+                           FairVariable('divmod_output2', 'int')}

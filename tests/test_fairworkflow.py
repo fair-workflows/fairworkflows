@@ -7,7 +7,7 @@ from rdflib.compare import isomorphic
 from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairWorkflow, FairStep, add_step, namespaces
+from fairworkflows import FairWorkflow, FairStep, namespaces, FairVariable
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
@@ -40,8 +40,8 @@ class TestFairWorkflow:
 
     @pytest.fixture()
     def test_workflow(self, test_step1, test_step2, test_step3):
-        workflow = FairWorkflow(description=self.test_description, label=self.test_label)
-        workflow.first_step = test_step1
+        workflow = FairWorkflow(description=self.test_description, label=self.test_label,
+                                first_step=test_step1)
         workflow.add(test_step2, follows=test_step1)
         workflow.add(test_step3, follows=test_step2)
         return workflow
@@ -99,6 +99,11 @@ class TestFairWorkflow:
         for step in steps:
             step.validate()
             assert step.uri in valid_step_uris
+
+        # Step 1 has input and output variables defined (See test_workflow_including_steps.trig)
+        step1 = workflow.get_step(uri + '#step1')
+        assert step1.inputs == [FairVariable(name='input1', type='int')]
+        assert step1.outputs == [FairVariable(name='output1', type='str')]
 
         workflow.validate()
 
@@ -241,52 +246,12 @@ class TestFairWorkflow:
         with pytest.raises(RuntimeError):
             list(workflow)
 
-    def test_validate_inputs_outputs(self, test_step1, test_step2, test_workflow):
-        # Step 1 precedes step 2, so valid if input of 2 is output of 1
-        test_step1.outputs = ['var1']
-        test_step2.inputs = ['var1']
-        test_workflow.validate()
-
-        # Step 1 precedes step 2, so invalid if input of 1 is output of 2
-        test_step1.inputs = ['var1']
-        test_step2.outputs = ['var1']
-        with pytest.raises(AssertionError):
-            test_workflow.validate()
-
-    def test_unbound_inputs(self, test_step1, test_step2, test_workflow):
-        test_step1.inputs = ['var1']
-        test_step1.outputs = ['var2']
-        test_step2.inputs = ['var2', 'var3']
-        test_step2.outputs = []
-        unbound_input_uris = [str(input) for input, step in test_workflow.unbound_inputs]
-        assert sorted(unbound_input_uris) == sorted(['var1', 'var3'])
-
-    def test_unbound_outputs(self, test_step1, test_step2, test_workflow):
-        test_step1.inputs = []
-        test_step1.outputs = ['var1', 'var2']
-        test_step2.inputs = ['var2']
-        test_step2.outputs = ['var3']
-        unbound_output_uris = [str(output) for output, step in test_workflow.unbound_outputs]
-        assert sorted(unbound_output_uris) == sorted(['var1', 'var3'])
-
     @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
     def test_publish(self, nanopub_wrapper_publish_mock, test_workflow):
         """
         Test (mock) publishing of workflow
         """
         test_workflow.publish_as_nanopub()
-
-    def test_decorator(self):
-        test_workflow = FairWorkflow(description=self.test_description, label=self.test_label)
-
-        @add_step(test_workflow)
-        def test_fn(x, y):
-            return x * y
-
-        with pytest.raises(AssertionError):
-            test_workflow.validate()
-        test_fn(1, 2)
-        test_workflow.validate()
 
     @mock.patch.dict('sys.modules', {'graphviz': None})
     def test_draw_without_graphviz_module(self, tmp_path, test_workflow):
