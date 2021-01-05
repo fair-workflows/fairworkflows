@@ -105,7 +105,8 @@ class FairWorkflow(RdfWrapper):
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # step uri. (<>|!<>) matches all predicates. Binding to step_uri is done when executing.
+            # workflow uri. (<>|!<>) matches all predicates. Binding to workflow_uri is done when
+            # executing.
             ?workflow_uri (<>|!<>)* ?s .
         }
         """

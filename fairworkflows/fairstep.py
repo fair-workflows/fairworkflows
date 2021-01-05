@@ -410,7 +410,8 @@ def _extract_inputs_from_function(func) -> List[FairVariable]:
         return [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
                 for arg in argspec.args]
     except KeyError:
-        raise ValueError('Not all input arguments have type hinting,'
+        raise ValueError('Not all input arguments have type hinting, '
+                         'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
 
 
@@ -423,7 +424,8 @@ def _extract_outputs_from_function(func) -> List[FairVariable]:
     try:
         return_annotation = annotations['return']
     except KeyError:
-        raise ValueError('The return of the function does not have type hinting,'
+        raise ValueError('The return of the function does not have type hinting, '
+                         'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
     if _is_generic_tuple(return_annotation):
         return [FairVariable(name=func.__name__ + '_output' + str(i + 1), type=annotation.__name__)
