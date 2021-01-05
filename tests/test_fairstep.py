@@ -29,7 +29,7 @@ class TestFairStep:
         # test overwriting
         new_input = FairVariable('input3', 'int')
         step.inputs = [new_input]
-        assert(len(step.inputs)) == 1
+        assert len(step.inputs) == 1
 
     def test_outputs(self):
         test_outputs = [FairVariable('output1', 'int'), FairVariable('output2', 'str')]
@@ -45,7 +45,7 @@ class TestFairStep:
         # test overwriting
         outputs = FairVariable('output3', 'int')
         step.outputs = [outputs]
-        assert(len(step.outputs)) == 1
+        assert len(step.outputs) == 1
 
     def test_setters(self):
         step = FairStep()
