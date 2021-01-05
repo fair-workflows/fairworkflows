@@ -1,7 +1,8 @@
 import inspect
 import time
 from copy import deepcopy
-from typing import List
+from typing import List, Union
+from urllib.parse import urldefrag
 
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
@@ -11,6 +12,41 @@ from fairworkflows.rdf_wrapper import RdfWrapper
 
 FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
                        namespaces.PPLAN.hasOutputVar, DCTERMS.description, RDFS.label]
+
+
+class FairVariable:
+    """Represents a variable.
+
+    The variable corresponds to a RDF blank node with the same name that has 2 RDF:type relations:
+    (1) PPLAN:Variable, and (2) a string literal representing the type (i.e. int, str, float) of
+    the variable.
+
+    The FairVariable is normally associated with a FairStep by a PPLAN:hasInputVar or
+    PPLAN:hasOutputVar predicate.
+
+    Args:
+        name: The name of the variable (and of the blank node in RDF that this variable is
+            represented with)
+        uri: Optionally pass a uri that the variable is referred to, the variable name will be
+            automatically extracted from it. This argument is usually only used when we extract a
+            variable from rdf)
+        type: The type of the variable (i.e. int, str, float etc.)
+    """
+    def __init__(self, name: str = None, type: str = None, uri: str = None):
+        if uri and name is None:
+            # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
+            _, name = urldefrag(uri)
+        self.name = name
+        self.type = type
+
+    def __eq__(self, other):
+        return self.name == other.name and self.type == other.type
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __str__(self):
+        return f'FairVariable {self.name} of type: {self.type}'
 
 
 class FairStep(RdfWrapper):
@@ -155,43 +191,63 @@ class FairStep(RdfWrapper):
         else:
             self.remove_attribute(RDF.type, object=namespaces.BPMN.ScriptTask)
 
+    def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
+        """Retrieve a specific FairVariable from the RDF triples."""
+        var_type_objs = self._rdf.objects(var_ref, RDF.type)
+        var_types = [var_type for var_type in var_type_objs
+                     if isinstance(var_type, rdflib.term.Literal)]
+        if len(var_types) > 0:
+            var_type = str(var_types[0])
+        else:
+            var_type = None
+
+        if isinstance(var_ref, rdflib.term.BNode):
+            return FairVariable(name=str(var_ref), type=var_type)
+        else:
+            return FairVariable(uri=str(var_ref), type=var_type)
+
+    def _add_variable(self, variable: FairVariable, relation_to_step):
+        """Add triples describing FairVariable to rdf."""
+        var_ref = rdflib.term.BNode(variable.name)
+        self.set_attribute(relation_to_step, var_ref, overwrite=False)
+        self._rdf.add((var_ref, RDF.type, rdflib.term.Literal(variable.type)))
+        self._rdf.add((var_ref, RDF.type, namespaces.PPLAN.Variable))
+
     @property
-    def inputs(self) -> List[rdflib.URIRef]:
+    def inputs(self) -> List[FairVariable]:
         """Inputs for this step.
 
-        Inputs are a list of URIRef's. The URIs should point to
-        a pplan.Variable, for example: www.purl.org/stepuri#inputvarname.
-        Set inputs by passing a list of strings depicting URIs. This
-        overwrites old inputs.
+        Inputs are a list of FairVariable objects. They correspond to triples in the RDF:
+        The name is stored as a blanknode with a hasInputVar relation to the step.
+        This blanknode has 2 RDF:type relations: (1) PPLAN:Variable, and (2) a string literal
+        representing the type (i.e. int, str, float) of the variable.
         """
-        return self.get_attribute(namespaces.PPLAN.hasInputVar,
-                                  return_list=True)
+        return [self._get_variable(var_ref) for var_ref
+                in self.get_attribute(namespaces.PPLAN.hasInputVar, return_list=True)]
 
     @inputs.setter
-    def inputs(self, uris: List[str]):
+    def inputs(self, variables: List[FairVariable]):
         self.remove_attribute(namespaces.PPLAN.hasInputVar)
-        for uri in uris:
-            self.set_attribute(namespaces.PPLAN.hasInputVar, rdflib.URIRef(uri),
-                               overwrite=False)
+        for variable in variables:
+            self._add_variable(variable, namespaces.PPLAN.hasInputVar)
 
     @property
-    def outputs(self) -> List[rdflib.URIRef]:
-        """Get inputs for this step.
+    def outputs(self) -> List[FairVariable]:
+        """Outputs for this step.
 
-        Outputs are a list of URIRef's. The URIs should point to
-        a pplan.Variable, for example: www.purl.org/stepuri#outputvarname.
-        Set outputs by passing a list of strings depicting URIs. This
-        overwrites old outputs.
+        Outputs are a list of FairVariable objects. They correspond to triples in the RDF:
+        The name is stored as a blanknode with a hasOutputVar relation to the step.
+        This blanknode has 2 RDF:type relations: (1) PPLAN:Variable, and (2) a string literal
+        representing the type (i.e. int, str, float) of the variable.
         """
-        return self.get_attribute(namespaces.PPLAN.hasOutputVar,
-                                  return_list=True)
+        return [self._get_variable(var_ref) for var_ref
+                in self.get_attribute(namespaces.PPLAN.hasOutputVar, return_list=True)]
 
     @outputs.setter
-    def outputs(self, uris: List[str]):
+    def outputs(self, variables: List[FairVariable]):
         self.remove_attribute(namespaces.PPLAN.hasOutputVar)
-        for uri in uris:
-            self.set_attribute(namespaces.PPLAN.hasOutputVar, rdflib.URIRef(uri),
-                               overwrite=False)
+        for variable in variables:
+            self._add_variable(variable, namespaces.PPLAN.hasOutputVar)
 
     @property
     def label(self):

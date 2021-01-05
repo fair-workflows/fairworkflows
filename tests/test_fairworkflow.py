@@ -241,34 +241,6 @@ class TestFairWorkflow:
         with pytest.raises(RuntimeError):
             list(workflow)
 
-    def test_validate_inputs_outputs(self, test_step1, test_step2, test_workflow):
-        # Step 1 precedes step 2, so valid if input of 2 is output of 1
-        test_step1.outputs = ['var1']
-        test_step2.inputs = ['var1']
-        test_workflow.validate()
-
-        # Step 1 precedes step 2, so invalid if input of 1 is output of 2
-        test_step1.inputs = ['var1']
-        test_step2.outputs = ['var1']
-        with pytest.raises(AssertionError):
-            test_workflow.validate()
-
-    def test_unbound_inputs(self, test_step1, test_step2, test_workflow):
-        test_step1.inputs = ['var1']
-        test_step1.outputs = ['var2']
-        test_step2.inputs = ['var2', 'var3']
-        test_step2.outputs = []
-        unbound_input_uris = [str(input) for input, step in test_workflow.unbound_inputs]
-        assert sorted(unbound_input_uris) == sorted(['var1', 'var3'])
-
-    def test_unbound_outputs(self, test_step1, test_step2, test_workflow):
-        test_step1.inputs = []
-        test_step1.outputs = ['var1', 'var2']
-        test_step2.inputs = ['var2']
-        test_step2.outputs = ['var3']
-        unbound_output_uris = [str(output) for output, step in test_workflow.unbound_outputs]
-        assert sorted(unbound_output_uris) == sorted(['var1', 'var3'])
-
     @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
     def test_publish(self, nanopub_wrapper_publish_mock, test_workflow):
         """

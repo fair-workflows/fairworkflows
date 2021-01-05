@@ -5,36 +5,47 @@ import rdflib
 from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairStep, namespaces
+from fairworkflows import FairStep, namespaces, FairVariable
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
-class TestFairStep:
+def test_construct_fair_variable_get_name_from_uri():
+    variable = FairVariable(name=None, uri='http:example.org#input1', type='int')
+    assert variable.name == 'input1'
+    assert variable.type == 'int'
 
-    def test_inputs_outputs(self):
-        test_inputs = ['test.org#input1', 'test.org#input2']
-        test_outputs = ['test.org#output1', 'test.org#output2']
+
+class TestFairStep:
+    def test_inputs(self):
+        test_inputs = [FairVariable('input1', 'int'), FairVariable('input2', 'str')]
         step = FairStep()
         step.inputs = test_inputs
-        step.outputs = test_outputs
         assert len(step.inputs) == 2
-        assert len(step.outputs) == 2
+        assert (rdflib.term.BNode('input1'), rdflib.RDF.type, namespaces.PPLAN.Variable) in step.rdf
         for input in step.inputs:
-            assert str(input) in test_inputs
-        for output in step.outputs:
-            assert str(output) in test_outputs
+            assert str(input.name) in [test_input.name for test_input in test_inputs]
+            assert str(input.type) in [test_input.type for test_input in test_inputs]
 
         # test overwriting
-        new_input = 'test.org#input3'
-        new_output = 'test.org#output3'
+        new_input = FairVariable('input3', 'int')
         step.inputs = [new_input]
-        step.outputs = [new_output]
         assert len(step.inputs) == 1
-        assert len(step.outputs) == 1
-        for input in step.inputs:
-            assert str(input) == new_input
+
+    def test_outputs(self):
+        test_outputs = [FairVariable('output1', 'int'), FairVariable('output2', 'str')]
+        step = FairStep()
+        step.outputs = test_outputs
+        assert len(step.outputs) == 2
+        assert (rdflib.term.BNode('output1'),
+                rdflib.RDF.type, namespaces.PPLAN.Variable) in step.rdf
         for output in step.outputs:
-            assert str(output) == new_output
+            assert str(output.name) in [test_output.name for test_output in test_outputs]
+            assert str(output.type) in [test_output.type for test_output in test_outputs]
+
+        # test overwriting
+        outputs = FairVariable('output3', 'int')
+        step.outputs = [outputs]
+        assert len(step.outputs) == 1
 
     def test_setters(self):
         step = FairStep()
