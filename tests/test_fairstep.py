@@ -12,7 +12,6 @@ from fairworkflows.rdf_wrapper import replace_in_rdf
 def test_construct_fair_variable_get_name_from_uri():
     variable = FairVariable(name=None, uri='http:example.org#input1', type='int')
     assert variable.name == 'input1'
-    assert variable.uri == 'http:example.org#input1'
     assert variable.type == 'int'
 
 

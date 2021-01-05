@@ -17,15 +17,18 @@ FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
 class FairVariable:
     """Represents a variable.
 
-    The variable corresponds to a blank node that has 2 RDF:type relations: (1) PPLAN:Variable,
-    and (2) a string literal representing the type (i.e. int, str, float) of the variable.
+    The variable corresponds to a RDF blank node with the same name that has 2 RDF:type relations:
+    (1) PPLAN:Variable, and (2) a string literal representing the type (i.e. int, str, float) of
+    the variable.
 
     The FairVariable is normally associated with a FairStep by a PPLAN:hasInputVar or
     PPLAN:hasOutputVar predicate.
 
-    Attributes:
-        name: The name of the variable (and of the blank node in rdf)
-        uri: The uri that the variable is referred to (usually only set when we extract a
+    Args:
+        name: The name of the variable (and of the blank node in RDF that this variable is
+            represented with)
+        uri: Optionally pass a uri that the variable is referred to, the variable name will be
+            automatically extracted from it. This argument is usually only used when we extract a
             variable from rdf)
         type: The type of the variable (i.e. int, str, float etc.)
     """
@@ -34,7 +37,6 @@ class FairVariable:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
         self.name = name
-        self.uri = uri
         self.type = type
 
     def __eq__(self, other):
