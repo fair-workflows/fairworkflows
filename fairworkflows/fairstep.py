@@ -1,4 +1,5 @@
 import inspect
+import typing
 from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
@@ -16,15 +17,18 @@ FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
 class FairVariable:
     """Represents a variable.
 
-    The variable corresponds to a blank node that has 2 RDF:type relations: (1) PPLAN:Variable,
-    and (2) a string literal representing the type (i.e. int, str, float) of the variable.
+    The variable corresponds to a RDF blank node with the same name that has 2 RDF:type relations:
+    (1) PPLAN:Variable, and (2) a string literal representing the type (i.e. int, str, float) of
+    the variable.
 
     The FairVariable is normally associated with a FairStep by a PPLAN:hasInputVar or
     PPLAN:hasOutputVar predicate.
 
-    Attributes:
-        name: The name of the variable (and of the blank node in rdf)
-        uri: The uri that the variable is referred to (usually only set when we extract a
+    Args:
+        name: The name of the variable (and of the blank node in RDF that this variable is
+            represented with)
+        uri: Optionally pass a uri that the variable is referred to, the variable name will be
+            automatically extracted from it. This argument is usually only used when we extract a
             variable from rdf)
         type: The type of the variable (i.e. int, str, float etc.)
     """
@@ -33,7 +37,6 @@ class FairVariable:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
         self.name = name
-        self.uri = uri
         self.type = type
 
     def __eq__(self, other):
@@ -74,8 +77,8 @@ class FairStep(RdfWrapper):
     def __init__(self, label: str = None, description: str = None, uri=None,
                  is_pplan_step: bool = True, is_manual_task: bool = None,
                  is_script_task: bool = None, inputs: List[FairVariable] = None,
-                 outputs: List[FairVariable] = None):
-        super().__init__(uri=uri, ref_name='step')
+                 outputs: List[FairVariable] = None, derived_from=None):
+        super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
         if label is not None:
             self.label = label
         if description is not None:
@@ -409,7 +412,8 @@ def _extract_inputs_from_function(func) -> List[FairVariable]:
         return [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
                 for arg in argspec.args]
     except KeyError:
-        raise ValueError('Not all input arguments have type hinting,'
+        raise ValueError('Not all input arguments have type hinting, '
+                         'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
 
 
@@ -422,11 +426,31 @@ def _extract_outputs_from_function(func) -> List[FairVariable]:
     try:
         return_annotation = annotations['return']
     except KeyError:
-        raise ValueError('The return of the function does not have type hinting,'
+        raise ValueError('The return of the function does not have type hinting, '
+                         'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
-    # TODO: How to properly check that the return is annotated as Tuple?
-    if hasattr(return_annotation, '__args__'):  # A typing.Tuple as output
+    if _is_generic_tuple(return_annotation):
         return [FairVariable(name=func.__name__ + '_output' + str(i + 1), type=annotation.__name__)
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
         return [FairVariable(name=func.__name__ + '_output1', type=return_annotation.__name__)]
+
+
+def _is_generic_tuple(type_):
+    """
+    Check whether a type annotation is Tuple
+    """
+    if hasattr(typing, '_GenericAlias'):
+        # 3.7
+        # _GenericAlias cannot be imported from typing, because it doesn't
+        # exist in all versions, and it will fail the type check in those
+        # versions as well, so we ignore it.
+        return (isinstance(type_, typing._GenericAlias)
+                and type_.__origin__ is tuple)
+    else:
+        # 3.6 and earlier
+        # GenericMeta cannot be imported from typing, because it doesn't
+        # exist in all versions, and it will fail the type check in those
+        # versions as well, so we ignore it.
+        return (isinstance(type_, typing.GenericMeta)
+                and type_.__origin__ is typing.Tuple)
