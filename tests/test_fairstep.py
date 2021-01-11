@@ -256,7 +256,6 @@ def subtract(a: int, b: int) -> int:
     return a - b
 
 
-
 def test_mark_as_fairstep():
     @mark_as_fairstep(label='test_label', is_manual_task=True)
     def add(a: int, b: int) -> int:
