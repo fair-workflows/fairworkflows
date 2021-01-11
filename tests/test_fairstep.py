@@ -15,7 +15,6 @@ from fairworkflows.rdf_wrapper import replace_in_rdf
 def test_construct_fair_variable_get_name_from_uri():
     variable = FairVariable(name=None, uri='http:example.org#input1', type='int')
     assert variable.name == 'input1'
-    assert variable.uri == 'http:example.org#input1'
     assert variable.type == 'int'
 
 
@@ -33,7 +32,7 @@ class TestFairStep:
         # test overwriting
         new_input = FairVariable('input3', 'int')
         step.inputs = [new_input]
-        assert(len(step.inputs)) == 1
+        assert len(step.inputs) == 1
 
     def test_outputs(self):
         test_outputs = [FairVariable('output1', 'int'), FairVariable('output2', 'str')]
@@ -49,7 +48,7 @@ class TestFairStep:
         # test overwriting
         outputs = FairVariable('output3', 'int')
         step.outputs = [outputs]
-        assert(len(step.outputs)) == 1
+        assert len(step.outputs) == 1
 
     def test_setters(self):
         step = FairStep()
@@ -237,12 +236,13 @@ class TestFairStep:
 
         g = rdflib.Graph()
         g.parse(data=plex_rdf_trig, format='trig')
-
         step = FairStep.from_rdf(rdf=g,  uri='http://www.example.org/step1',
                                  remove_irrelevant_triples=False)
 
+        n_triples_before = len(step.rdf)
         with pytest.raises(AssertionError):
             step.shacl_validate()
+        assert len(step.rdf) == n_triples_before, 'shacl_validate mutated RDF'
 
     def test_execution(self):
         step = FairStep(description=inspect.getsource(subtract))
@@ -254,6 +254,7 @@ def subtract(a: int, b: int) -> int:
     Computational step subtracting two ints.
     """
     return a - b
+
 
 
 def test_mark_as_fairstep():

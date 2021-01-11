@@ -26,8 +26,8 @@ class FairWorkflow(RdfWrapper):
     """
 
     def __init__(self, description: str = None, label: str = None, uri=None,
-                 is_pplan_plan: bool = True, first_step: FairStep = None):
-        super().__init__(uri=uri, ref_name='plan')
+                 is_pplan_plan: bool = True, first_step: FairStep = None, derived_from=None):
+        super().__init__(uri=uri, ref_name='plan', derived_from=derived_from)
         self._is_published = False
         self.is_pplan_plan = is_pplan_plan
         if description is not None:
@@ -105,7 +105,8 @@ class FairWorkflow(RdfWrapper):
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # step uri. (<>|!<>) matches all predicates. Binding to step_uri is done when executing.
+            # workflow uri. (<>|!<>) matches all predicates. Binding to workflow_uri is done when
+            # executing.
             ?workflow_uri (<>|!<>)* ?s .
         }
         """
