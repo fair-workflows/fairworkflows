@@ -1,5 +1,4 @@
 import inspect
-from argparse import Namespace
 from ast import literal_eval
 from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
@@ -7,8 +6,6 @@ from urllib.parse import urldefrag
 
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
-from toil.common import Toil
-from toil.job import Job
 
 from fairworkflows import namespaces
 from fairworkflows.rdf_wrapper import RdfWrapper
@@ -360,12 +357,7 @@ class FairStep(RdfWrapper):
             if l:
                 return list(l.values())[0]
         function = create_func_obj(str(self.description))
-        options = Namespace(logLevel='debug',
-                            logFile='test.txt',
-                            logRotating=False)
-        with Toil(options) as toil:
-            output = toil.start(Job.wrapFn(function), args)
-        return output
+        return function(*args, **kwargs)
 
     def __str__(self):
         """
