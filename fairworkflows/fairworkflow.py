@@ -68,6 +68,10 @@ class FairWorkflow(RdfWrapper):
         self.anonymise_rdf()
         return self
 
+    @classmethod
+    def from_noodles_promise(cls, noodles_promise):
+        self.noodles_promise = noodles_promise
+
     def _extract_steps(self, rdf, uri, fetch_steps=False):
         """Extract FairStep objects from rdf.
 
@@ -326,6 +330,12 @@ class FairWorkflow(RdfWrapper):
             with open(filename, 'w') as f:
                 rdf2dot(self._rdf, f)
             return graphviz.Source.from_file(filename)
+
+    def execute(self, num_threads=1):
+        if num_threads==1:
+            return run_single(self.noodles_promise)
+        elif num_threads>1:
+            return run_parallel(self.noodles_promise, num_threads)
 
     def draw(self, filepath):
         """Visualize workflow.
