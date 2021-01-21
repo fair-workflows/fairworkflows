@@ -11,6 +11,7 @@ from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
+
 from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
@@ -74,6 +75,7 @@ class FairWorkflow(RdfWrapper):
                  is_pplan_plan: bool = True, derived_from=None):
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
         self.noodles_promise = noodles_promise
+        return self
 
     def _extract_steps(self, rdf, uri, fetch_steps=False):
         """Extract FairStep objects from rdf.
@@ -324,8 +326,16 @@ class FairWorkflow(RdfWrapper):
                               'to install graphviz python package. '
                               'Version 0.14.1 is known to work well.')
 
-    def display(self):
+    def display(self, full_rdf=False):
         """Visualize workflow directly in notebook."""
+
+        if full_rdf:
+            return self.display_full_rdf()
+        else:
+            import noodles.tutorial
+            noodles.tutorial.display_workflows(prefix='control', workflow=self.noodles_promise)
+
+    def display_full_rdf(self):
         graphviz = self._import_graphviz()
 
         with TemporaryDirectory() as td:
@@ -335,10 +345,13 @@ class FairWorkflow(RdfWrapper):
             return graphviz.Source.from_file(filename)
 
     def execute(self, num_threads=1):
+        if not hasattr(self, 'noodles_promise'):
+            raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
+        import noodles
         if num_threads==1:
-            return run_single(self.noodles_promise)
+            return noodles.run_single(self.noodles_promise)
         elif num_threads>1:
-            return run_parallel(self.noodles_promise, num_threads)
+            return noodles.run_parallel(self.noodles_promise, num_threads)
 
     def draw(self, filepath):
         """Visualize workflow.
