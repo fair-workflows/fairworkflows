@@ -3,6 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Optional
+import inspect
 
 import networkx as nx
 import rdflib
@@ -69,7 +70,9 @@ class FairWorkflow(RdfWrapper):
         return self
 
     @classmethod
-    def from_noodles_promise(cls, noodles_promise):
+    def from_noodles_promise(cls, noodles_promise, description: str = None, label: str = None,
+                 is_pplan_plan: bool = True, derived_from=None):
+        self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
         self.noodles_promise = noodles_promise
 
     def _extract_steps(self, rdf, uri, fetch_steps=False):
@@ -395,3 +398,35 @@ class FairWorkflow(RdfWrapper):
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
 
+
+def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
+    """Mark a function as returning a FAIR workflow.
+
+    Use as decorator to mark a function as a FAIR workflow. Set properties of the fair workflow using
+    arguments to the decorator.
+
+    The raw code of the function will be used to set the description of the fair workflow.
+
+    The type annotations of the input arguments and return statement will be used to
+    automatically set inputs and outputs of the FAIR workflow.
+
+    Args:
+        label (str): Label of the fair workflow (corresponds to rdfs:label predicate)
+        is_pplan_plan (str): Denotes whether this workflow is a pplan:Plan
+
+    """
+    def _modify_function(func):
+        """
+        Store FairStep object as _fairstep attribute of the function. Use inspection to get the
+        description, inputs, and outputs of the step based on the function specification.
+        """
+        def _wrapper(*args, **kwargs):
+            promise = func(*args, **kwargs)
+
+            # Description of workflow is the raw function code
+            description = inspect.getsource(func)
+
+            return FairWorkflow.from_noodles_promise(promise, description=description, label=label,
+                 is_pplan_plan=is_pplan_plan, derived_from=None)
+        return _wrapper
+    return _modify_function
