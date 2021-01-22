@@ -332,6 +332,8 @@ class FairWorkflow(RdfWrapper):
         if full_rdf:
             return self.display_full_rdf()
         else:
+            if not hasattr(self, 'noodles_promise'):
+                raise ValueError('Cannot display workflow as no noodles promise has been constructed.')
             import noodles.tutorial
             noodles.tutorial.display_workflows(prefix='control', workflow=self.noodles_promise)
 
