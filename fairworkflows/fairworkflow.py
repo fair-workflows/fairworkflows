@@ -3,12 +3,14 @@ from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Optional
+import inspect
 
 import networkx as nx
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
+
 
 from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep
@@ -66,6 +68,13 @@ class FairWorkflow(RdfWrapper):
         else:
             self._rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         self.anonymise_rdf()
+        return self
+
+    @classmethod
+    def from_noodles_promise(cls, noodles_promise, description: str = None, label: str = None,
+                 is_pplan_plan: bool = True, derived_from=None):
+        self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
+        self.noodles_promise = noodles_promise
         return self
 
     def _extract_steps(self, rdf, uri, fetch_steps=False):
@@ -317,8 +326,18 @@ class FairWorkflow(RdfWrapper):
                               'to install graphviz python package. '
                               'Version 0.14.1 is known to work well.')
 
-    def display(self):
+    def display(self, full_rdf=False):
         """Visualize workflow directly in notebook."""
+
+        if full_rdf:
+            return self.display_full_rdf()
+        else:
+            if not hasattr(self, 'noodles_promise'):
+                raise ValueError('Cannot display workflow as no noodles promise has been constructed.')
+            import noodles.tutorial
+            noodles.tutorial.display_workflows(prefix='control', workflow=self.noodles_promise)
+
+    def display_full_rdf(self):
         graphviz = self._import_graphviz()
 
         with TemporaryDirectory() as td:
@@ -326,6 +345,15 @@ class FairWorkflow(RdfWrapper):
             with open(filename, 'w') as f:
                 rdf2dot(self._rdf, f)
             return graphviz.Source.from_file(filename)
+
+    def execute(self, num_threads=1):
+        if not hasattr(self, 'noodles_promise'):
+            raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
+        import noodles
+        if num_threads==1:
+            return noodles.run_single(self.noodles_promise)
+        elif num_threads>1:
+            return noodles.run_parallel(self.noodles_promise, num_threads)
 
     def draw(self, filepath):
         """Visualize workflow.
@@ -385,3 +413,35 @@ class FairWorkflow(RdfWrapper):
         s += self._rdf.serialize(format='trig').decode('utf-8')
         return s
 
+
+def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
+    """Mark a function as returning a FAIR workflow.
+
+    Use as decorator to mark a function as a FAIR workflow. Set properties of the fair workflow using
+    arguments to the decorator.
+
+    The raw code of the function will be used to set the description of the fair workflow.
+
+    The type annotations of the input arguments and return statement will be used to
+    automatically set inputs and outputs of the FAIR workflow.
+
+    Args:
+        label (str): Label of the fair workflow (corresponds to rdfs:label predicate)
+        is_pplan_plan (str): Denotes whether this workflow is a pplan:Plan
+
+    """
+    def _modify_function(func):
+        """
+        Store FairStep object as _fairstep attribute of the function. Use inspection to get the
+        description, inputs, and outputs of the step based on the function specification.
+        """
+        def _wrapper(*args, **kwargs):
+            promise = func(*args, **kwargs)
+
+            # Description of workflow is the raw function code
+            description = inspect.getsource(func)
+
+            return FairWorkflow.from_noodles_promise(promise, description=description, label=label,
+                 is_pplan_plan=is_pplan_plan, derived_from=None)
+        return _wrapper
+    return _modify_function
