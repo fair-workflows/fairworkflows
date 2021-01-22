@@ -25,7 +25,7 @@ jobs:
           sudo apt-get install -y graphviz
       - name: Create RSA key for nanopubs
         run: |
-          printf '\n' | setup_profile --orcid_id 'https://orcid.org/0000-0000-0000-0000' --no-publish --name 'test'
+          printf '\n' | setup_nanopub_profile --orcid_id 'https://orcid.org/0000-0000-0000-0000' --no-publish --name 'test'
 
       - name: Lint with flake8
         run: |
