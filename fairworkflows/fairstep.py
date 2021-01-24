@@ -236,6 +236,7 @@ class FairStep(RdfWrapper):
         self.set_attribute(relation_to_step, var_ref, overwrite=False)
         self._rdf.add((var_ref, RDF.type, rdflib.term.Literal(variable.type)))
         self._rdf.add((var_ref, RDF.type, namespaces.PPLAN.Variable))
+        self._rdf.add((var_ref, RDFS.label, rdflib.term.Literal(variable.name)))
 
     @property
     def inputs(self) -> List[FairVariable]:
@@ -362,46 +363,46 @@ class FairStep(RdfWrapper):
         return s
 
 
-def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: bool = None,
-                     is_script_task: bool = None):
-    """Mark a function as a FAIR step.
-
-    Use as decorator to mark a function as a FAIR step. Set properties of the fair step using
-    arguments to the decorator.
-
-    The raw code of the function will be used to set the description of the fair step.
-
-    The type annotations of the input arguments and return statement will be used to
-    automatically set inputs and outputs of the FAIR step.
-
-    Args:
-        label (str): Label of the fair step (corresponds to rdfs:label predicate)
-        is_pplan_step (str): Denotes whether this step is a pplan:Step
-        is_manual_task (str): Denotes whether this step is a bpmn.ManualTask
-        is_script_task (str): Denotes whether this step is a bpmn.ScriptTask
-
-    """
-    def _modify_function(func):
-        """
-        Store FairStep object as _fairstep attribute of the function. Use inspection to get the
-        description, inputs, and outputs of the step based on the function specification.
-        """
-        def _wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-        # Description of step is the raw function code
-        description = inspect.getsource(func)
-        inputs = _extract_inputs_from_function(func)
-        outputs = _extract_outputs_from_function(func)
-        _wrapper._fairstep = FairStep(label=label,
-                                      description=description,
-                                      is_pplan_step=is_pplan_step,
-                                      is_manual_task=is_manual_task,
-                                      is_script_task=is_script_task,
-                                      inputs=inputs,
-                                      outputs=outputs)
-        _wrapper._fairstep.validate()
-        return _wrapper
-    return _modify_function
+#def mark_as_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: bool = None,
+#                     is_script_task: bool = None):
+#    """Mark a function as a FAIR step.
+#
+#    Use as decorator to mark a function as a FAIR step. Set properties of the fair step using
+#    arguments to the decorator.
+#
+#    The raw code of the function will be used to set the description of the fair step.
+#
+#    The type annotations of the input arguments and return statement will be used to
+#    automatically set inputs and outputs of the FAIR step.
+#
+#    Args:
+#        label (str): Label of the fair step (corresponds to rdfs:label predicate)
+#        is_pplan_step (str): Denotes whether this step is a pplan:Step
+#        is_manual_task (str): Denotes whether this step is a bpmn.ManualTask
+#        is_script_task (str): Denotes whether this step is a bpmn.ScriptTask
+#
+#    """
+#    def _modify_function(func):
+#        """
+#        Store FairStep object as _fairstep attribute of the function. Use inspection to get the
+#        description, inputs, and outputs of the step based on the function specification.
+#        """
+#        def _wrapper(*args, **kwargs):
+#            return func(*args, **kwargs)
+#        # Description of step is the raw function code
+#        description = inspect.getsource(func)
+#        inputs = _extract_inputs_from_function(func)
+#        outputs = _extract_outputs_from_function(func)
+#        _wrapper._fairstep = FairStep(label=label,
+#                                      description=description,
+#                                      is_pplan_step=is_pplan_step,
+#                                      is_manual_task=is_manual_task,
+#                                      is_script_task=is_script_task,
+#                                      inputs=inputs,
+#                                      outputs=outputs)
+#        _wrapper._fairstep.validate()
+#        return _wrapper
+#    return _modify_function
 
 
 def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: bool = False,
@@ -431,15 +432,13 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
 
         Returns this function decorated with the noodles schedule decorator.
         """
-        def _wrapper(*args, **kwargs):
-            return noodles.schedule(func)(*args, **kwargs)
-
         # Description of step is the raw function code
         description = inspect.getsource(func)
         inputs = _extract_inputs_from_function(func)
         outputs = _extract_outputs_from_function(func)
 
-        _wrapper._fairstep = FairStep(label=label,
+        func._fairstep = FairStep(uri='www.example.org/unpublished-'+func.__name__,
+                                  label=label,
                                   description=description,
                                   is_pplan_step=is_pplan_step,
                                   is_manual_task=is_manual_task,
@@ -447,7 +446,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                                   inputs=inputs,
                                   outputs=outputs)
 
-        return _wrapper
+        return noodles.schedule(func)
 
     return _modify_function
 
@@ -480,10 +479,10 @@ def _extract_outputs_from_function(func) -> List[FairVariable]:
                          'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
     if _is_generic_tuple(return_annotation):
-        return [FairVariable(name=func.__name__ + '_output' + str(i + 1), type=annotation.__name__)
+        return [FairVariable(name=func.__name__ + '-output' + str(i + 1), type=annotation.__name__)
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
-        return [FairVariable(name=func.__name__ + '_output1', type=return_annotation.__name__)]
+        return [FairVariable(name=func.__name__ + '-output1', type=return_annotation.__name__)]
 
 
 def _is_generic_tuple(type_):
