@@ -4,6 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Optional
 import inspect
+from urllib.parse import urldefrag
 
 import networkx as nx
 import rdflib
@@ -444,10 +445,22 @@ class FairWorkflow(RdfWrapper):
             if step.is_modified or not step._is_published:
                 self._is_modified = True  # If one of the steps is modified the workflow is too.
                 old_uri = step.uri
+                var_names = [var.name for var in (step.inputs + step.outputs)]
+
                 step.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
                 published_step_uri = step.uri
+
                 replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_uri),
                                newvalue=rdflib.URIRef(published_step_uri))
+
+                # Similarly replace old URIs for variable name bindings
+                published_step_uri_defrag, _ = urldefrag(published_step_uri)
+                for var_name in var_names:
+                    old_var_uri = old_uri + '#' + var_name
+                    new_var_uri = published_step_uri_defrag + '#' + var_name
+                    replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_var_uri),
+                                  newvalue=rdflib.URIRef(new_var_uri))
+
                 del self._steps[old_uri]
                 self._steps[published_step_uri] = step
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
