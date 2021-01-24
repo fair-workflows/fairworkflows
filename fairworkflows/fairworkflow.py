@@ -350,10 +350,16 @@ class FairWorkflow(RdfWrapper):
         if not hasattr(self, 'noodles_promise'):
             raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
         import noodles
-        if num_threads==1:
-            return noodles.run_single(self.noodles_promise)
-        elif num_threads>1:
-            return noodles.run_parallel(self.noodles_promise, num_threads)
+        result = noodles.run_parallel(self.noodles_promise, num_threads)
+        retroprov = """Not implemented yet. The sort of info we have looks like
+                        2021-01-19 13:16:44,750 - job      217: mul(22, -3) -> -66
+                        2021-01-19 13:16:44,750 - job      218: weird(5, 3) -> 22
+                        2021-01-19 13:16:44,750 - job      219: add(1, 4) -> 5
+                        2021-01-19 13:16:44,750 - job      220: sub(1, 4) -> -3
+                        2021-01-19 13:16:44,755 - result   mul(22, -3) -> -66]: -66
+                        2021-01-19 13:16:44,755 - -end-of-queue-"""
+
+        return result, retroprov
 
     def draw(self, filepath):
         """Visualize workflow.
