@@ -75,6 +75,30 @@ class FairWorkflow(RdfWrapper):
                  is_pplan_plan: bool = True, derived_from=None):
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
         self.noodles_promise = noodles_promise
+
+        from noodles import get_workflow
+        workflow = get_workflow(self.noodles_promise)
+
+        steps_dict = {}
+        for i, n in workflow.nodes.items():
+            steps_dict[i] = n.foo._fairstep
+
+        for i, step in steps_dict.items():
+            self._add_step(step)
+
+        for i in workflow.links:
+            current_step = steps_dict[i]
+            from_uri = rdflib.URIRef(steps_dict[i].uri + '#' + current_step.outputs[0].name)
+            for j in workflow.links[i]:
+                linked_step = steps_dict[j[0]]
+                linked_var_name = str(j[1].name)
+                to_uri = rdflib.URIRef(linked_step.uri + '#' + linked_var_name)
+                self._rdf.add((from_uri, namespaces.PPLAN.bindsTo, to_uri))
+
+            if len(workflow.links[i]) == 0:
+                to_uri = rdflib.BNode('result')
+                self._rdf.add((from_uri, namespaces.PPLAN.bindsTo, to_uri))
+
         return self
 
     def _extract_steps(self, rdf, uri, fetch_steps=False):
@@ -172,7 +196,9 @@ class FairWorkflow(RdfWrapper):
 
     def _add_step(self, step: FairStep):
         """Add a step to workflow (low-level method)."""
+
         self._steps[step.uri] = step
+
         self._rdf.add((rdflib.URIRef(step.uri), namespaces.PPLAN.isStepOfPlan,
                        self.self_ref))
         self._last_step_added = step
