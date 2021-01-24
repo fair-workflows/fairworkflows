@@ -6,8 +6,8 @@ import rdflib
 from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairStep, namespaces, FairVariable, mark_as_fairstep
-from fairworkflows.fairstep import _extract_outputs_from_function
+from fairworkflows import FairStep, namespaces, FairVariable, is_fairworkflow
+from fairworkflows.fairstep import _extract_outputs_from_function, is_fairstep
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
@@ -245,55 +245,26 @@ class TestFairStep:
         assert len(step.rdf) == n_triples_before, 'shacl_validate mutated RDF'
 
 
-def test_mark_as_fairstep():
-    @mark_as_fairstep(label='test_label', is_manual_task=True)
+def test_is_fairstep_decorator():
+    @is_fairstep(label='test_label')
     def add(a: int, b: int) -> int:
         """
         Computational step adding two ints together.
         """
         return a + b
 
-    assert add(40, 2) == 42, 'Function execution does not work as expected'
-    step = FairStep.from_function(add)
-    assert str(step.label) == 'test_label'
-    assert step.is_manual_task
-    assert step.is_pplan_step
-    assert not step.is_script_task
-    assert 'def add(a: int, b: int) -> int:' in str(step.description)
-    assert 'Computational step adding two ints together.' in str(step.description)
-    assert isinstance(step, FairStep)
-    assert set(step.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
-    assert step.outputs[0] == FairVariable('add_output1', 'int')
+    assert hasattr(add(1,2), '_fairstep')
 
-
-def test_mark_as_fairstep_arguments_no_type_hinting():
-    with pytest.raises(ValueError):
-        @mark_as_fairstep(label='test_label', is_manual_task=True)
-        def add(a, b) -> int:  # Note the missing type hinting for arguments
-            """
-            Computational step adding two ints together.
-            """
-            return a + b
-
-
-def test_mark_as_fairstep_return_no_type_hinting():
-    with pytest.raises(ValueError):
-        @mark_as_fairstep(label='test_label', is_manual_task=True)
-        def add(a: int, b: int):  # Note the missing type hinting for return
-            """
-            Computational step adding two ints together.
-            """
-            return a + b
-
-
-def test_mark_as_fairstep_validation_fails():
-    with pytest.raises(AssertionError):
-        @mark_as_fairstep(is_manual_task=True)  # There is no label, so it won't validate
-        def add(a: int, b: int) -> int:
-            """
-            Computational step adding two ints together.
-            """
-            return a + b
+#    step = FairStep.from_function(add)
+#    assert str(step.label) == 'test_label'
+#    assert step.is_manual_task
+#    assert step.is_pplan_step
+#    assert not step.is_script_task
+#    assert 'def add(a: int, b: int) -> int:' in str(step.description)
+#    assert 'Computational step adding two ints together.' in str(step.description)
+#    assert isinstance(step, FairStep)
+#    assert set(step.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
+#    assert step.outputs[0] == FairVariable('add_output1', 'int')
 
 
 def test_extract_outputs_from_function_multiple_outputs():
@@ -305,5 +276,5 @@ def test_extract_outputs_from_function_multiple_outputs():
         return a // b, a % b
 
     result = _extract_outputs_from_function(divmod)
-    assert set(result) == {FairVariable('divmod_output1', 'int'),
-                           FairVariable('divmod_output2', 'int')}
+    assert set(result) == {FairVariable('divmod-output1', 'int'),
+                           FairVariable('divmod-output2', 'int')}

@@ -4,6 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Optional
 import inspect
+from urllib.parse import urldefrag
 
 import networkx as nx
 import rdflib
@@ -75,6 +76,34 @@ class FairWorkflow(RdfWrapper):
                  is_pplan_plan: bool = True, derived_from=None):
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
         self.noodles_promise = noodles_promise
+
+        from noodles import get_workflow
+        workflow = get_workflow(self.noodles_promise)
+
+        steps_dict = {}
+        for i, n in workflow.nodes.items():
+            steps_dict[i] = n.foo._fairstep
+
+        for i, step in steps_dict.items():
+            self._add_step(step)
+
+        for i in workflow.links:
+            current_step = steps_dict[i]
+            from_uri = rdflib.URIRef(steps_dict[i].uri + '#' + current_step.outputs[0].name)
+            for j in workflow.links[i]:
+                linked_step = steps_dict[j[0]]
+                linked_var_name = str(j[1].name)
+                to_uri = rdflib.URIRef(linked_step.uri + '#' + linked_var_name)
+                self._rdf.add((from_uri, namespaces.PPLAN.bindsTo, to_uri))
+
+                precedes_triple = (rdflib.URIRef(current_step.uri), namespaces.DUL.precedes, rdflib.URIRef(linked_step.uri))
+                if precedes_triple not in self._rdf:
+                    self._rdf.add(precedes_triple)
+
+            if len(workflow.links[i]) == 0:
+                to_uri = rdflib.BNode('result')
+                self._rdf.add((from_uri, namespaces.PPLAN.bindsTo, to_uri))
+
         return self
 
     def _extract_steps(self, rdf, uri, fetch_steps=False):
@@ -172,7 +201,9 @@ class FairWorkflow(RdfWrapper):
 
     def _add_step(self, step: FairStep):
         """Add a step to workflow (low-level method)."""
+
         self._steps[step.uri] = step
+
         self._rdf.add((rdflib.URIRef(step.uri), namespaces.PPLAN.isStepOfPlan,
                        self.self_ref))
         self._last_step_added = step
@@ -349,11 +380,28 @@ class FairWorkflow(RdfWrapper):
     def execute(self, num_threads=1):
         if not hasattr(self, 'noodles_promise'):
             raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
-        import noodles
-        if num_threads==1:
-            return noodles.run_single(self.noodles_promise)
-        elif num_threads>1:
-            return noodles.run_parallel(self.noodles_promise, num_threads)
+
+        from noodles.run.threading.sqlite3 import run_parallel
+        from noodles import serial
+        import io
+        import logging
+
+        log = io.StringIO()
+        log_handler = logging.StreamHandler(log)
+        formatter = logging.Formatter('%(asctime)s - %(message)s')
+        log_handler.setFormatter(formatter)
+
+        logger = logging.getLogger('noodles')
+        logger.setLevel(logging.INFO)
+        logger.handlers = [log_handler]
+
+        result = run_parallel(
+            self.noodles_promise, n_threads=num_threads, registry=serial.base, db_file='temp_prov_fw.db',
+            always_cache=True, echo_log=False)
+
+        retroprov = log.getvalue()
+
+        return result, retroprov
 
     def draw(self, filepath):
         """Visualize workflow.
@@ -397,10 +445,22 @@ class FairWorkflow(RdfWrapper):
             if step.is_modified or not step._is_published:
                 self._is_modified = True  # If one of the steps is modified the workflow is too.
                 old_uri = step.uri
+                var_names = [var.name for var in (step.inputs + step.outputs)]
+
                 step.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
                 published_step_uri = step.uri
+
                 replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_uri),
                                newvalue=rdflib.URIRef(published_step_uri))
+
+                # Similarly replace old URIs for variable name bindings
+                published_step_uri_defrag, _ = urldefrag(published_step_uri)
+                for var_name in var_names:
+                    old_var_uri = old_uri + '#' + var_name
+                    new_var_uri = published_step_uri_defrag + '#' + var_name
+                    replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_var_uri),
+                                  newvalue=rdflib.URIRef(new_var_uri))
+
                 del self._steps[old_uri]
                 self._steps[published_step_uri] = step
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
