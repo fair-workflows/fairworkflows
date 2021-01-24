@@ -95,6 +95,10 @@ class FairWorkflow(RdfWrapper):
                 to_uri = rdflib.URIRef(linked_step.uri + '#' + linked_var_name)
                 self._rdf.add((from_uri, namespaces.PPLAN.bindsTo, to_uri))
 
+                precedes_triple = (rdflib.URIRef(current_step.uri), namespaces.DUL.precedes, rdflib.URIRef(linked_step.uri))
+                if precedes_triple not in self._rdf:
+                    self._rdf.add(precedes_triple)
+
             if len(workflow.links[i]) == 0:
                 to_uri = rdflib.BNode('result')
                 self._rdf.add((from_uri, namespaces.PPLAN.bindsTo, to_uri))
