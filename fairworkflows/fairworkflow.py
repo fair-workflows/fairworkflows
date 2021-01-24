@@ -375,15 +375,26 @@ class FairWorkflow(RdfWrapper):
     def execute(self, num_threads=1):
         if not hasattr(self, 'noodles_promise'):
             raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
-        import noodles
-        result = noodles.run_parallel(self.noodles_promise, num_threads)
-        retroprov = """Not implemented yet. The sort of info we have looks like
-                        2021-01-19 13:16:44,750 - job      217: mul(22, -3) -> -66
-                        2021-01-19 13:16:44,750 - job      218: weird(5, 3) -> 22
-                        2021-01-19 13:16:44,750 - job      219: add(1, 4) -> 5
-                        2021-01-19 13:16:44,750 - job      220: sub(1, 4) -> -3
-                        2021-01-19 13:16:44,755 - result   mul(22, -3) -> -66]: -66
-                        2021-01-19 13:16:44,755 - -end-of-queue-"""
+
+        from noodles.run.threading.sqlite3 import run_parallel
+        from noodles import serial
+        import io
+        import logging
+
+        log = io.StringIO()
+        log_handler = logging.StreamHandler(log)
+        formatter = logging.Formatter('%(asctime)s - %(message)s')
+        log_handler.setFormatter(formatter)
+
+        logger = logging.getLogger('noodles')
+        logger.setLevel(logging.INFO)
+        logger.handlers = [log_handler]
+
+        result = run_parallel(
+            self.noodles_promise, n_threads=num_threads, registry=serial.base, db_file='temp_prov_fw.db',
+            always_cache=True, echo_log=False)
+
+        retroprov = log.getvalue()
 
         return result, retroprov
 
