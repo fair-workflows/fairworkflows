@@ -1,3 +1,4 @@
+import uuid
 import warnings
 
 from typing import List
@@ -14,14 +15,21 @@ PLEX_SHAPES_SHACL_FILEPATH = str(PACKAGE_DIR / 'resources' / 'plex-shapes.ttl')
 
 
 class RdfWrapper:
-    def __init__(self, uri, ref_name='fairobject', derived_from: List[str] = None):
+    def __init__(self, uri, id=None, derived_from: List[str] = None):
+        if id is None:
+            id = self._generate_uuid()
+        self.id = id
         self._rdf = rdflib.Graph()
         self._uri = str(uri)
-        self.self_ref = rdflib.term.BNode(ref_name)
+        self.self_ref = rdflib.term.BNode(id)
         self._is_modified = False
         self._is_published = False
         self.derived_from = derived_from
         self._bind_namespaces()
+
+    @staticmethod
+    def _generate_uuid():
+        return uuid.uuid4()
 
     def _bind_namespaces(self):
         """Bind namespaces used often in fair step and fair workflow.
@@ -33,6 +41,16 @@ class RdfWrapper:
         self.rdf.bind("dul", namespaces.DUL)
         self.rdf.bind("bpmn", namespaces.BPMN)
         self.rdf.bind("pwo", namespaces.PWO)
+
+    @property
+    def id(self) -> str:
+        """Identifier"""
+        return self._id
+
+    @id.setter
+    def id(self, value: str):
+        self._id = value
+        self.self_ref = rdflib.term.BNode(value)
 
     @property
     def rdf(self) -> rdflib.Graph:
@@ -120,7 +138,7 @@ class RdfWrapper:
 
     def anonymise_rdf(self):
         """
-        Replace any subjects or objects referring directly to the rdf uri, with a blank node
+        Replace any subjects or objects referring directly to the rdf step_ref, with a blank node
         """
         replace_in_rdf(self._rdf, oldvalue=rdflib.URIRef(self.uri), newvalue=self.self_ref)
 
@@ -142,7 +160,7 @@ class RdfWrapper:
 
     @staticmethod
     def _uri_is_subject_in_rdf(uri: str, rdf: rdflib.Graph, force: bool):
-        """Check whether uri is a subject in the rdf.
+        """Check whether step_ref is a subject in the rdf.
 
         Args:
             rdf: The RDF graph

@@ -30,7 +30,7 @@ class FairWorkflow(RdfWrapper):
 
     def __init__(self, description: str = None, label: str = None, uri=None,
                  is_pplan_plan: bool = True, first_step: FairStep = None, derived_from=None):
-        super().__init__(uri=uri, ref_name='plan', derived_from=derived_from)
+        super().__init__(uri=uri, id='plan', derived_from=derived_from)
         self._is_published = False
         self.is_pplan_plan = is_pplan_plan
         if description is not None:
@@ -133,7 +133,7 @@ class FairWorkflow(RdfWrapper):
         """
         Select only relevant triples from RDF using the following heuristics:
         * Match all triples that are through an arbitrary-length property path related to the
-            workflow uri. So if 'URI predicate Something', then all triples 'Something predicate
+            workflow step_ref. So if 'URI predicate Something', then all triples 'Something predicate
             object' are selected, and so forth.
         NB: We assume that all step-related triples are already extracted by the _extract_steps
         method
@@ -143,7 +143,7 @@ class FairWorkflow(RdfWrapper):
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # workflow uri. (<>|!<>) matches all predicates. Binding to workflow_uri is done when
+            # workflow step_ref. (<>|!<>) matches all predicates. Binding to workflow_uri is done when
             # executing.
             ?workflow_uri (<>|!<>)* ?s .
         }
@@ -196,15 +196,15 @@ class FairWorkflow(RdfWrapper):
         """
         Sets the first step of this plex workflow to the given FairStep
         """
-        self.set_attribute(namespaces.PWO.hasFirstStep, rdflib.URIRef(step.uri))
+        self.set_attribute(namespaces.PWO.hasFirstStep, rdflib.URIRef(step.self_ref))
         self._add_step(step)
 
     def _add_step(self, step: FairStep):
         """Add a step to workflow (low-level method)."""
 
-        self._steps[step.uri] = step
+        self._steps[step.self_ref] = step
 
-        self._rdf.add((rdflib.URIRef(step.uri), namespaces.PPLAN.isStepOfPlan,
+        self._rdf.add((rdflib.URIRef(step.self_ref), namespaces.PPLAN.isStepOfPlan,
                        self.self_ref))
         self._last_step_added = step
 
@@ -222,7 +222,9 @@ class FairWorkflow(RdfWrapper):
             else:
                 self.add(step, follows=self._last_step_added)
         else:
-            self._rdf.add((rdflib.URIRef(follows.uri), namespaces.DUL.precedes, rdflib.URIRef(step.uri)))
+            self._rdf.add((rdflib.URIRef(follows.self_ref),
+                           namespaces.DUL.precedes,
+                           rdflib.URIRef(step.self_ref)))
             self._add_step(follows)
             self._add_step(step)
 
@@ -240,7 +242,7 @@ class FairWorkflow(RdfWrapper):
         """
         if len(self._steps) == 1:
             # In case of only one step we do not need to sort
-            ordered_steps = [step.uri for step in self._steps.values()]
+            ordered_steps = [step.self_ref for step in self._steps.values()]
         else:
             G = nx.MultiDiGraph()
             for s, p, o in self._rdf:
@@ -251,8 +253,8 @@ class FairWorkflow(RdfWrapper):
             else:
                 raise RuntimeError('Cannot sort steps based on precedes '
                                    'predicate')
-        for step_uri in ordered_steps:
-            yield self.get_step(str(step_uri))
+        for step_ref in ordered_steps:
+            yield self.get_step(str(step_ref))
 
     @property
     def is_pplan_plan(self):
@@ -273,11 +275,15 @@ class FairWorkflow(RdfWrapper):
             if self.is_pplan_plan is True:
                 self.remove_attribute(RDF.type, object=namespaces.PPLAN.Plan)
 
-    def get_step(self, uri):
+    def get_step(self, step_ref):
         """
-            Returns the FairStep instance associated with the given step URI (if such a step was added to this workflow)
+        Returns the FairStep instance associated with the given step referemce (can be URI or
+        blanknode with ID.
+
+        Raises:
+            KeyError if no such step was added to the workflow
         """
-        return self._steps[uri]
+        return self._steps[step_ref]
 
     @property
     def label(self):

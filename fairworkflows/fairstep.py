@@ -29,14 +29,14 @@ class FairVariable:
     Args:
         name: The name of the variable (and of the blank node in RDF that this variable is
             represented with)
-        uri: Optionally pass a uri that the variable is referred to, the variable name will be
+        step_ref: Optionally pass a step_ref that the variable is referred to, the variable name will be
             automatically extracted from it. This argument is usually only used when we extract a
             variable from rdf)
         type: The type of the variable (i.e. int, str, float etc.)
     """
     def __init__(self, name: str = None, type: str = None, uri: str = None):
         if uri and name is None:
-            # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
+            # Get the name from the step_ref (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
         self.name = name
         self.type = type
@@ -77,10 +77,10 @@ class FairStep(RdfWrapper):
     """
 
     def __init__(self, label: str = None, description: str = None, uri=None,
-                 is_pplan_step: bool = True, is_manual_task: bool = None,
+                 id: str = None, is_pplan_step: bool = True, is_manual_task: bool = None,
                  is_script_task: bool = None, inputs: List[FairVariable] = None,
                  outputs: List[FairVariable] = None, derived_from=None):
-        super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
+        super().__init__(uri=uri, id=id, derived_from=derived_from)
         if label is not None:
             self.label = label
         if description is not None:
@@ -130,7 +130,7 @@ class FairStep(RdfWrapper):
         * Filter out the DUL:precedes and PPLAN:isStepOfPlan predicate triples, because they are
             part of a workflow and not of a step.
         * Match all triples that are through an arbitrary-length property path related to the
-            step uri. So if 'URI predicate Something', then all triples 'Something predicate
+            step step_ref. So if 'URI predicate Something', then all triples 'Something predicate
             object' are selected, and so forth.
         """
         # Remove workflow-related triples from the graph, they effectively make other steps or
@@ -144,7 +144,7 @@ class FairStep(RdfWrapper):
         WHERE {
             ?s ?p ?o .
             # Match all triples that are through an arbitrary-length property path related to the
-            # step uri. (<>|!<>) matches all predicates. Binding to step_uri is done when executing.
+            # step step_ref. (<>|!<>) matches all predicates. Binding to step_uri is done when executing.
             ?step_uri (<>|!<>)* ?s .
         }
         """

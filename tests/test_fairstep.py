@@ -62,6 +62,12 @@ class TestFairStep:
         step.is_script_task = False  # Test setting to current value
         assert not step.is_script_task
 
+    def test_unique_step_identifiers(self):
+        step1 = FairStep()
+        step2 = FairStep()
+        assert step1.id != step2.id
+        assert step1.self_ref != step2.self_ref
+
     def test_construction_from_rdf(self):
         rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
         uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'

@@ -69,6 +69,13 @@ class TestFairWorkflow:
         assert len(workflow.__str__()) > 0
         assert workflow.rdf is not None
 
+    def test_build_workflow_including_step_without_uri(self):
+        step1 = FairStep()
+        workflow = FairWorkflow()
+        workflow.add(step1)
+        assert (rdflib.URIRef(step1.self_ref), None, None) in workflow.rdf
+        assert (None, None, rdflib.URIRef(step1.self_ref)) in workflow.rdf
+
     def test_construct_from_rdf_uri_not_in_subjects(self):
         rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
         # This URI is not in the subject of this RDF:
@@ -128,7 +135,7 @@ class TestFairWorkflow:
         """
         Construct FairWorkflow from RDF that only includes URIs that point to
         steps. We choose not to fetch these steps and have empty fair steps
-        pointing to the uri.
+        pointing to the step_ref.
         """
         rdf = read_rdf_test_resource('test_workflow_excluding_steps.trig')
         uri = 'http://www.example.org/workflow1'
