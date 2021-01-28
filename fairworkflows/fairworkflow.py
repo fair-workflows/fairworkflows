@@ -16,7 +16,7 @@ from requests import HTTPError
 from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
-
+import nanopub
 
 class FairWorkflow(RdfWrapper):
 
@@ -378,6 +378,15 @@ class FairWorkflow(RdfWrapper):
             return graphviz.Source.from_file(filename)
 
     def execute(self, num_threads=1):
+        """
+        Executes the workflow on the specified number of threads. Noodles is used as the execution
+        engine. If a noodles workflow has not been generated for this fairworkflow object, then
+        it cannot be executed and an exception will be raised.
+
+        Returns a tuple (result, retroprov), where result is the final output of the executed
+        workflow and retroprov is the retrospective provenance logged during execution.
+        """
+
         if not hasattr(self, 'noodles_promise'):
             raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
 
@@ -395,13 +404,49 @@ class FairWorkflow(RdfWrapper):
         logger.setLevel(logging.INFO)
         logger.handlers = [log_handler]
 
-        result = run_parallel(
-            self.noodles_promise, n_threads=num_threads, registry=serial.base, db_file='temp_prov_fw.db',
-            always_cache=True, echo_log=False)
+        # A local function defining the serializers in the registry
+        # If we want to allow remote execution with noodles, we will
+        # need to define this function differently, but for multithreaded
+        # execution (most likely what we'll stick with) this is fine.
+        def registry():
+            return serial.pickle() + serial.base()
 
-        retroprov = log.getvalue()
+        # TODO: Currently we are dumping a lot to an sqlite db, that will slow the
+        # execution down a bit. In future we will either write our own version of
+        # the runner, to grab that extra prov without any db writing, or we will
+        # read it from the database and convert it to RDF then.
+        with TemporaryDirectory() as td:
+            temp_db_fname = Path(td) / 'retro_prov.db'
+            result = run_parallel(self.noodles_promise, n_threads=num_threads,
+                                  registry=registry, db_file=temp_db_fname,
+                                  always_cache=True, echo_log=False)
+
+        # Generate the retrospective provenance as a (nano-) Publication object
+        retroprov = self._generate_retrospective_prov_publication(log.getvalue())
 
         return result, retroprov
+
+    def _generate_retrospective_prov_publication(self, log:str) -> nanopub.Publication:
+        """
+        Utility method for generating a Publication object for the retrospective
+        provenance of this workflow. Uses the given 'log' string as the actual
+        provenance for now.
+        """
+        log_message = rdflib.Literal(log)
+        this_retroprov = rdflib.BNode('retroprov')
+        if self.uri is None or self.uri == 'None': # TODO: This is horrific
+            this_workflow = rdflib.URIRef('http://www.example.org/unpublishedworkflow')
+        else:
+            this_workflow = rdflib.URIRef(self.uri)
+
+        retroprov_assertion = rdflib.Graph()
+        retroprov_assertion.add((this_retroprov, rdflib.RDF.type, namespaces.PROV.Activity))
+        retroprov_assertion.add((this_retroprov, namespaces.PROV.wasDerivedFrom, this_workflow))
+        retroprov_assertion.add((this_retroprov, RDFS.label, log_message))
+        retroprov = nanopub.Publication.from_assertion(assertion_rdf=retroprov_assertion)
+
+        return retroprov
+
 
     def draw(self, filepath):
         """Visualize workflow.
