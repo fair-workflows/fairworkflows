@@ -69,6 +69,13 @@ class TestFairWorkflow:
         assert len(workflow.__str__()) > 0
         assert workflow.rdf is not None
 
+    def test_build_including_step_without_uri(self):
+        step1 = FairStep()
+        workflow = FairWorkflow()
+        workflow.add(step1)
+        assert (rdflib.URIRef('None'), None, None) not in workflow.rdf
+        assert (None, None, rdflib.URIRef('None')) not in workflow.rdf
+
     def test_construct_from_rdf_uri_not_in_subjects(self):
         rdf = read_rdf_test_resource('test_workflow.trig')
         # This URI is not in the subject of this RDF:

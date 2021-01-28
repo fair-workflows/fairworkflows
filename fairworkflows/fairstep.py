@@ -9,6 +9,7 @@ import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 
 from fairworkflows import namespaces
+from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 
@@ -93,6 +94,11 @@ class FairStep(RdfWrapper):
             self.inputs = inputs
         if outputs is not None:
             self.outputs = outputs
+        # Set temporary URI to refer to this step in workflows
+        # (i.e. 'http://fairworkflows.org#8769029329049')
+        if uri is None:
+            self._uri = DUMMY_FAIRWORKFLOWS_URI + '#step' + str(hash(self))
+
         self._is_modified = False
         self._workflows = set()
 
