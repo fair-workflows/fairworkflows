@@ -6,9 +6,9 @@ import rdflib
 from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairWorkflow, FairStep, namespaces
+from fairworkflows import FairWorkflow, FairStep, namespaces, FairVariable, is_fairstep, is_fairworkflow
 from fairworkflows.rdf_wrapper import replace_in_rdf
-
+from nanopub import Publication
 
 class TestFairWorkflow:
     test_description = 'This is a test workflow.'
@@ -298,3 +298,68 @@ class TestFairWorkflow:
         pubinfo = test_workflow.publish_as_nanopub()
         assert mock_publish.call_count == 0
         assert pubinfo['nanopub_uri'] is None
+
+    def test_workflow_construction_and_execution(self):
+        """
+        Construct a workflow using the is_fairstep and is_fairworkflow decorators
+        and check that execution and returned provenance is as expected.
+        """
+        @is_fairstep(label='Addition')
+        def add(a:float, b:float) -> float:
+            """Adding up numbers."""
+            return a + b
+
+        @is_fairstep(label='Subtraction')
+        def sub(a: float, b: float) -> float:
+            """Subtracting numbers."""
+            return a - b
+
+        @is_fairstep(label='Multiplication')
+        def mul(a: float, b: float) -> float:
+            """Multiplying numbers."""
+            return a * b
+
+        @is_fairstep(label='A strange step with little use')
+        def weird(a: float, b:float) -> float:
+            """A weird function"""
+            return a * 2 + b * 4
+
+        @is_fairworkflow(label='My Workflow')
+        def my_workflow(in1, in2, in3):
+            """
+            A simple addition, subtraction, multiplication workflow
+            """
+            t1 = add(in1, in2)
+            t2 = sub(in1, in2)
+            t3 = mul(weird(t1, in3), t2)
+            return t3
+
+        fw = my_workflow(1, 4, 3)
+        assert isinstance(fw, FairWorkflow)
+
+        # TODO: Find out why execution hangs only when running in pytest. May be to do with the threading.
+        #result, prov = fw.execute(num_threads=1)
+        #assert result == -66
+        #assert isinstance(prov, Publication)
+
+    def test_workflow_complex_serialization(self):
+        class OtherType:
+            def __init__(self, message):
+                self.message = message
+
+        @is_fairstep(label='Returns the thing it recieves...')
+        def return_that_object(im:OtherType) -> OtherType:
+            return im
+
+        @is_fairworkflow(label='A workflow that passes an object reference around.')
+        def process_image(im: OtherType):
+            return return_that_object(im)
+
+        obj = OtherType('I could be e.g. a PIL Image')
+        fw = process_image(obj)
+
+        # TODO: Find out why execution hangs only when running in pytest. May be to do with the threading.
+        #result, prov = fw.execute()
+        #assert isinstance(result, type(obj))
+        #assert result.message == obj.message
+        #assert isinstance(prov, Publication)
