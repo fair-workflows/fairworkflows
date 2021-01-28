@@ -426,7 +426,7 @@ class FairWorkflow(RdfWrapper):
 
         return result, retroprov
 
-    def _generate_retrospective_prov_publication(self, log:str) -> Publication:
+    def _generate_retrospective_prov_publication(self, log:str) -> nanopub.Publication:
         """
         Utility method for generating a Publication object for the retrospective
         provenance of this workflow. Uses the given 'log' string as the actual
