@@ -3,11 +3,10 @@ from unittest import mock
 
 import pytest
 import rdflib
-from rdflib.compare import isomorphic
 from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairWorkflow, FairStep, namespaces, FairVariable
+from fairworkflows import FairWorkflow, FairStep, namespaces
 from fairworkflows.rdf_wrapper import replace_in_rdf
 
 

@@ -1,10 +1,9 @@
+import inspect
 import warnings
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Optional
-import inspect
-from urllib.parse import urldefrag
 
 import networkx as nx
 import rdflib
@@ -12,10 +11,9 @@ from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
-
 from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep
-from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
+from fairworkflows.rdf_wrapper import RdfWrapper
 
 
 class FairWorkflow(RdfWrapper):
