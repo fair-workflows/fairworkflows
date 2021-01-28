@@ -422,7 +422,17 @@ class FairWorkflow(RdfWrapper):
                                   always_cache=True, echo_log=False)
 
         # Generate the retrospective provenance as a (nano-) Publication object
-        log_message = rdflib.Literal(log.getvalue())
+        retroprov = self._generate_retrospective_prov_publication(log.getvalue())
+
+        return result, retroprov
+
+    def _generate_retrospective_prov_publication(self, log:str) -> Publication:
+        """
+        Utility method for generating a Publication object for the retrospective
+        provenance of this workflow. Uses the given 'log' string as the actual
+        provenance for now.
+        """
+        log_message = rdflib.Literal(log)
         this_retroprov = rdflib.BNode('retroprov')
         if self.uri is None or self.uri == 'None': # TODO: This is horrific
             this_workflow = rdflib.URIRef('http://www.example.org/unpublishedworkflow')
@@ -435,7 +445,8 @@ class FairWorkflow(RdfWrapper):
         retroprov_assertion.add((this_retroprov, RDFS.label, log_message))
         retroprov = nanopub.Publication.from_assertion(assertion_rdf=retroprov_assertion)
 
-        return result, retroprov
+        return retroprov
+
 
     def draw(self, filepath):
         """Visualize workflow.
