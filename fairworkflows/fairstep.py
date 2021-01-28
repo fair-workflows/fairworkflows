@@ -11,9 +11,6 @@ from rdflib import RDF, RDFS, DCTERMS
 from fairworkflows import namespaces
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
-FAIRSTEP_PREDICATES = [RDF.type, namespaces.PPLAN.hasInputVar,
-                       namespaces.PPLAN.hasOutputVar, DCTERMS.description, RDFS.label]
-
 
 class FairVariable:
     """Represents a variable.
