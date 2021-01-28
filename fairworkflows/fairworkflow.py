@@ -192,6 +192,7 @@ class FairWorkflow(RdfWrapper):
         self._rdf.add((rdflib.URIRef(step.uri), namespaces.PPLAN.isStepOfPlan,
                        self.self_ref))
         self._last_step_added = step
+        step.register_workflow(self)
 
     def add(self, step: FairStep, follows: FairStep = None):
         """Add a step.

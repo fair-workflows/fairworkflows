@@ -216,13 +216,6 @@ class TestFairWorkflow:
         with pytest.raises(RuntimeError):
             list(workflow)
 
-    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
-    def test_publish(self, nanopub_wrapper_publish_mock, test_workflow):
-        """
-        Test (mock) publishing of workflow
-        """
-        test_workflow.publish_as_nanopub()
-
     @mock.patch.dict('sys.modules', {'graphviz': None})
     def test_draw_without_graphviz_module(self, tmp_path, test_workflow):
         """Test draw method without graphviz python module installed."""
