@@ -376,7 +376,7 @@ class TestFairWorkflow:
         #assert result == -66
         #assert isinstance(prov, Publication)
 
-    def test_workflow_serialization(self):
+    def test_workflow_complex_serialization(self):
         class OtherType:
             def __init__(self, message):
                 self.message = message
