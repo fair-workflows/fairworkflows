@@ -54,8 +54,7 @@ class FairWorkflow(RdfWrapper):
                 possibly it's associated steps. Should use plex ontology.
             uri: URI of the workflow
             fetch_references: toggles fetching steps. I.e. if we encounter steps
-                that are part of the workflow, but are not specified in the
-                RDF we try fetching them from nanopub
+                that are part of the workflow we try fetching them from nanopub
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
             remove_irrelevant_triples: Toggle removing irrelevant triples for this FairWorkflow.
@@ -106,19 +105,18 @@ class FairWorkflow(RdfWrapper):
 
         return self
 
-    def _extract_steps(self, rdf, uri, fetch_steps=False):
+    def _extract_steps(self, rdf, uri, fetch_steps=True):
         """Extract FairStep objects from rdf.
 
-        Create FairStep objects for all steps in the passed RDF. Removes
-        triples describing steps from rdf, those will be represented in
-        the separate step RDF. Optionally try to fetch steps from nanopub.
+        Create FairStep objects for all steps in the passed RDF.
+        Optionally try to fetch steps from nanopub.
         """
         step_refs = rdf.subjects(predicate=namespaces.PPLAN.isStepOfPlan,
                                  object=rdflib.URIRef(uri))
         for step_ref in step_refs:
             step_uri = str(step_ref)
-            step = self._extract_step_from_rdf(step_uri, rdf)
-            if step is None and fetch_steps:
+            step = None
+            if fetch_steps:
                 step = self._fetch_step(uri=step_uri)
             if step is None:
                 warnings.warn(f'Could not get detailed information for '
@@ -152,19 +150,6 @@ class FairWorkflow(RdfWrapper):
         for triple in rdf.query(q, initBindings={'workflow_uri': rdflib.URIRef(uri)}):
             g.add(triple)
         return g
-
-    @staticmethod
-    def _extract_step_from_rdf(uri, rdf: rdflib.Graph()) -> Optional[FairStep]:
-        relevant_triples = FairStep._get_relevant_triples(uri, rdf)
-        step_rdf = rdflib.Graph()
-        for triple in relevant_triples:
-            step_rdf.add(triple)
-            rdf.remove(triple)
-
-        if len(step_rdf) > 0:
-            return FairStep.from_rdf(step_rdf, uri=uri, remove_irrelevant_triples=False)
-        else:
-            return None
 
     @staticmethod
     def _fetch_step(uri: str) -> Optional[FairStep]:
