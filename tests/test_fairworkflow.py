@@ -274,8 +274,12 @@ class TestFairWorkflow:
             {'concept_uri': test_published_uris[2]},
             {'concept_uri': test_published_uris[3]}   # Last call
         ]
+        with pytest.raises(RuntimeError):
+            # 'Publishing a workflow with unpublished steps must raise RunTimeError'
+            test_workflow.publish_as_nanopub()
+        # First publish the steps
         for step in test_workflow:
-            assert step.is_modified
+            step.publish_as_nanopub()
         pubinfo = test_workflow.publish_as_nanopub()
         assert pubinfo['concept_uri'] == 'www.example.org/published_workflow#workflow'
         assert mock_publish.call_count == 4  # 1 workflow, 3 steps
