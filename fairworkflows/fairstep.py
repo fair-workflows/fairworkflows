@@ -408,7 +408,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         # Description of step is the raw function code
         description = inspect.getsource(func)
         inputs = _extract_inputs_from_function(func, kwargs)
-        outputs = _extract_outputs_from_function(func)
+        outputs = _extract_outputs_from_function(func, kwargs)
 
 
         func._fairstep = FairStep(uri='http://www.example.org/unpublished-'+func.__name__,
@@ -435,7 +435,7 @@ def _extract_inputs_from_function(func, additional_params) -> List[FairVariable]
         return [FairVariable(
                     name=arg,
                     computational_type=argspec.annotations[arg].__name__,
-                    types = additional_params.get(arg))
+                    types=additional_params.get(arg))
                     for arg in argspec.args]
     except KeyError:
         raise ValueError('Not all input arguments have type hinting, '
@@ -443,7 +443,7 @@ def _extract_inputs_from_function(func, additional_params) -> List[FairVariable]
                          'see https://docs.python.org/3/library/typing.html')
 
 
-def _extract_outputs_from_function(func) -> List[FairVariable]:
+def _extract_outputs_from_function(func, additional_params) -> List[FairVariable]:
     """
     Extract outputs from function using inspection. The name will be {function_name}_output{
     output_number}. The corresponding return type hint will be the type of the variable.
@@ -456,10 +456,16 @@ def _extract_outputs_from_function(func) -> List[FairVariable]:
                          'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
     if _is_generic_tuple(return_annotation):
-        return [FairVariable(name=func.__name__ + '-output' + str(i + 1), computational_type=annotation.__name__)
+        return [FairVariable(
+                    name='out' + str(i + 1),
+                    computational_type=annotation.__name__,
+                    types=additional_params.get('out' + str(i + 1)))
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
-        return [FairVariable(name=func.__name__ + '-output1', computational_type=return_annotation.__name__)]
+        return [FairVariable(
+                name='out1',
+                computational_type=return_annotation.__name__,
+                types=additional_params.get('out1'))]
 
 
 def _is_generic_tuple(type_):
