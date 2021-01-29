@@ -102,8 +102,8 @@ class TestFairWorkflow:
 
         # Step 1 has input and output variables defined (See test_workflow_including_steps.trig)
         step1 = workflow.get_step(uri + '#step1')
-        assert step1.inputs == [FairVariable(name='input1', type='int')]
-        assert step1.outputs == [FairVariable(name='output1', type='str')]
+        assert step1.inputs == [FairVariable(name='input1', computational_type='int')]
+        assert step1.outputs == [FairVariable(name='output1', computational_type='str')]
 
         workflow.validate()
 

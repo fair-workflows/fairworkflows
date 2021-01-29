@@ -225,21 +225,16 @@ class FairStep(RdfWrapper):
 
     def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""
-        var_type_objs = self._rdf.objects(var_ref, RDFS.comment)
-        var_types = [var_type for var_type in var_type_objs
-                     if isinstance(var_type, rdflib.term.Literal)]
-        if len(var_types) > 0:
-            var_type = str(var_types[0])
-        else:
-            var_type = None
+        rdfs_comment_objs = list(self._rdf.objects(var_ref, RDFS.comment))
+        computational_type = str(rdfs_comment_objs[0])
 
         sem_type_objs = self._rdf.objects(var_ref, RDF.type)
         sem_types = [sem_type for sem_type in sem_type_objs]
 
         if isinstance(var_ref, rdflib.term.BNode):
-            return FairVariable(name=str(var_ref), computational_type=var_type, types=sem_types)
+            return FairVariable(name=str(var_ref), computational_type=computational_type, types=sem_types)
         else:
-            return FairVariable(uri=str(var_ref), computational_type=var_type, types=sem_types)
+            return FairVariable(uri=str(var_ref), computational_type=computational_type, types=sem_types)
 
     def _add_variable(self, variable: FairVariable, relation_to_step):
         """Add triples describing FairVariable to rdf."""

@@ -24,10 +24,10 @@
         pplan:hasOutputVar sub:output1.
 
     sub:input1 a pplan:Variable ;
-        a "int" .
+        rdfs:comment "int" .
 
     sub:output1 a pplan:Variable ;
-        a "str" .
+        rdfs:comment "str" .
 
     sub:step2 pplan:isStepOfPlan this:;
         a pplan:Step;
