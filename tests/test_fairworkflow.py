@@ -3,7 +3,6 @@ from unittest import mock
 
 import pytest
 import rdflib
-from rdflib.compare import isomorphic
 from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
@@ -70,7 +69,7 @@ class TestFairWorkflow:
         assert workflow.rdf is not None
 
     def test_construct_from_rdf_uri_not_in_subjects(self):
-        rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow.trig')
         # This URI is not in the subject of this RDF:
         uri = 'http://www.example.org/some-random-uri'
         with pytest.raises(ValueError):
@@ -81,35 +80,6 @@ class TestFairWorkflow:
             FairWorkflow.from_rdf(rdf, uri, force=True)
             assert len(w) == 1
 
-    def test_construct_from_rdf_including_steps(self):
-        """
-        Construct FairWorkflow from RDF that includes detailed information
-        about steps.
-        """
-        rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
-        uri = 'http://www.example.org/workflow1'
-        workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=False)
-        new_rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
-        assert rdflib.compare.isomorphic(rdf, new_rdf),\
-            'The user RDF was altered after constructing a Fairworkflow ' \
-            'object from it'
-        valid_step_uris = [uri + '#step1', uri + '#step2', uri + '#step3']
-        steps = list(workflow)
-        assert len(steps) == 3
-        for step in steps:
-            step.validate()
-            assert step.uri in valid_step_uris
-
-        # Step 1 has input and output variables defined (See test_workflow_including_steps.trig)
-        step1 = workflow.get_step(uri + '#step1')
-        assert step1.inputs == [FairVariable(name='input1', type='int')]
-        assert step1.outputs == [FairVariable(name='output1', type='str')]
-
-        workflow.validate()
-
-        # Check that workflow rdf passes plex shacl validation
-        workflow.shacl_validate()
-
     @mock.patch('fairworkflows.fairworkflow.FairWorkflow._fetch_step')
     def test_construct_from_rdf_fetch_steps(self, mock_fetch_step, test_step1):
         """
@@ -117,7 +87,7 @@ class TestFairWorkflow:
         steps which we should fetch.
         """
         mock_fetch_step.return_value = test_step1
-        rdf = read_rdf_test_resource('test_workflow_excluding_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow.trig')
         uri = 'http://www.example.org/workflow1'
         workflow = FairWorkflow.from_rdf(rdf, uri, fetch_references=True)
         assert len(workflow._steps) == 1
@@ -130,7 +100,7 @@ class TestFairWorkflow:
         steps. We choose not to fetch these steps and have empty fair steps
         pointing to the uri.
         """
-        rdf = read_rdf_test_resource('test_workflow_excluding_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow.trig')
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -146,7 +116,7 @@ class TestFairWorkflow:
         steps. Fetching the step fails in this scenario.
         """
         mock_fetch_step.return_value = None
-        rdf = read_rdf_test_resource('test_workflow_excluding_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow.trig')
         uri = 'http://www.example.org/workflow1'
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -156,18 +126,17 @@ class TestFairWorkflow:
         assert len(workflow._steps) == 1
 
     def test_construct_from_rdf_remove_irrelevant_triples(self):
-        rdf = read_rdf_test_resource('test_workflow_including_steps.trig')
+        rdf = read_rdf_test_resource('test_workflow.trig')
         uri = 'http://www.example.org/workflow1'
         sub = rdflib.Namespace('http://www.example.org/workflow1#')
+        step1 = rdflib.URIRef('http://www.example.org/step1')
         test_irrelevant_triples = [
             # A random test statement that has nothing to do with this step
-            (sub.test, sub.test, sub.test),
-            # A statement about a step, this will be in the RDF of the related FairStep objects
-            (sub.step1, rdflib.RDFS.label, rdflib.Literal("Step 1"))
+            (sub.test, sub.test, sub.test)
         ]
         test_relevant_triples = [
             # Dul precedes statements are relevant
-            (sub.step1, namespaces.DUL.precedes, sub.step2),
+            (step1, namespaces.DUL.precedes, sub.step2),
             # Properties of the workflow are relevant
             (rdflib.URIRef(uri), sub.hasSecurityLevel, sub.highSecurity),
             # And the properties of those properties
@@ -246,13 +215,6 @@ class TestFairWorkflow:
         with pytest.raises(RuntimeError):
             list(workflow)
 
-    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
-    def test_publish(self, nanopub_wrapper_publish_mock, test_workflow):
-        """
-        Test (mock) publishing of workflow
-        """
-        test_workflow.publish_as_nanopub()
-
     @mock.patch.dict('sys.modules', {'graphviz': None})
     def test_draw_without_graphviz_module(self, tmp_path, test_workflow):
         """Test draw method without graphviz python module installed."""
@@ -304,8 +266,12 @@ class TestFairWorkflow:
             {'concept_uri': test_published_uris[2]},
             {'concept_uri': test_published_uris[3]}   # Last call
         ]
+        with pytest.raises(RuntimeError):
+            # 'Publishing a workflow with unpublished steps must raise RunTimeError'
+            test_workflow.publish_as_nanopub()
+        # First publish the steps
         for step in test_workflow:
-            assert step.is_modified
+            step.publish_as_nanopub()
         pubinfo = test_workflow.publish_as_nanopub()
         assert pubinfo['concept_uri'] == 'www.example.org/published_workflow#workflow'
         assert mock_publish.call_count == 4  # 1 workflow, 3 steps
