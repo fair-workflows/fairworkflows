@@ -456,8 +456,10 @@ class FairWorkflow(RdfWrapper):
     def publish_as_nanopub(self, use_test_server=False, **kwargs):
         """Publish to nanopub server.
 
-        First publish the steps, use the URIs of the published steps in the workflow. Then
-        publish the workflow.
+        Publish the workflow as nanopublication to the nanopub server.
+
+        Raises:
+            RuntimeError: If one of the steps of the workflow was not published yet.
 
         Args:
             use_test_server (bool): Toggle using the test nanopub server.
