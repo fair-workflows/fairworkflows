@@ -8,3 +8,5 @@ TESTS_RESOURCES = TESTS_ROOT / 'resources'
 # Generated workflow directory names
 PYTHON_DIR = 'scripts'
 PLEX_DIR = 'plex'
+
+DUMMY_FAIRWORKFLOWS_URI = 'http://fairworkflows.org'
