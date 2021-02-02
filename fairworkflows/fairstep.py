@@ -227,8 +227,9 @@ class FairStep(RdfWrapper):
         rdfs_comment_objs = list(self._rdf.objects(var_ref, RDFS.comment))
         computational_type = str(rdfs_comment_objs[0])
 
+        # Get all semantic types of this FairVariable, excluding PPLAN.Variable
         sem_type_objs = self._rdf.objects(var_ref, RDF.type)
-        sem_types = [sem_type for sem_type in sem_type_objs]
+        sem_types = [sem_type for sem_type in sem_type_objs if sem_type != namespaces.PPLAN.Variable]
 
         if isinstance(var_ref, rdflib.term.BNode):
             return FairVariable(name=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
