@@ -7,6 +7,7 @@ from typing import Iterator, Optional
 
 import networkx as nx
 import rdflib
+from noodles.interface import PromisedObject
 from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
@@ -511,6 +512,9 @@ def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
         """
         def _wrapper(*args, **kwargs):
             promise = func(*args, **kwargs)
+            if not isinstance(promise, PromisedObject):
+                raise TypeError("The workflow does not return a 'promise'. Did you use the "
+                                "is_fairstep decorator on all the steps?")
 
             # Description of workflow is the raw function code
             description = inspect.getsource(func)
