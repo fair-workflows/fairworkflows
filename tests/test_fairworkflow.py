@@ -385,23 +385,3 @@ class TestFairWorkflow:
         with pytest.raises(TypeError) as e:
             my_workflow(1, 2)
         assert "The workflow does not return a 'promise'" in str(e.value)
-
-    def test_workflow_mixed_decorated_steps(self):
-        def add(a: float, b: float) -> float:
-            """Adding up numbers. NB: no is_fairstep decorator!"""
-            return a + b
-
-        @is_fairstep(label='Subtraction')
-        def sub(a: float, b: float) -> float:
-            """Subtracting numbers."""
-            return a - b
-
-        @is_fairworkflow(label='My Workflow')
-        def my_workflow(in1, in2):
-            """
-            A simple addition, subtraction workflow
-            """
-            return add(in1, sub(in2, in2))
-
-        fw = my_workflow(1, 2)
-        assert isinstance(fw, FairWorkflow)
