@@ -264,6 +264,7 @@ def test_decorator_semantic_types():
 
     assert hasattr(test_step, '_fairstep')
     for var in test_step._fairstep.inputs:
+        assert namespaces.PPLAN.Variable not in var.semantic_types
         if var.name == 'a':
             assert var.computational_type == 'float'
             for sem_type in test_types_a:
