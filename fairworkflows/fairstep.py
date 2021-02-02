@@ -28,7 +28,10 @@ class FairVariable:
         uri: Optionally pass a uri that the variable is referred to, the variable name will be
             automatically extracted from it. This argument is usually only used when we extract a
             variable from rdf)
-        type: The type of the variable (i.e. int, str, float etc.
+        computational_type: The computational type of the variable (i.e. int, str, float etc.). For
+                            now these are just strings of the python type name, but in future should
+                            become mapped to e.g. XSD types.
+        types: One or more URIs that describe the semantic type(s) of this FairVariable.
     """
     def __init__(self, name: str = None, computational_type: str = None, types = None, uri: str = None):
         if uri and name is None:
