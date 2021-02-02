@@ -31,22 +31,22 @@ class FairVariable:
         computational_type: The computational type of the variable (i.e. int, str, float etc.). For
                             now these are just strings of the python type name, but in future should
                             become mapped to e.g. XSD types.
-        types: One or more URIs that describe the semantic type(s) of this FairVariable.
+        semantic_types: One or more URIs that describe the semantic type(s) of this FairVariable.
     """
-    def __init__(self, name: str = None, computational_type: str = None, types = None, uri: str = None):
+    def __init__(self, name: str = None, computational_type: str = None, semantic_types = None, uri: str = None):
         if uri and name is None:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
         self.name = name
         self.computational_type = computational_type
 
-        if types is None:
-            self.types = []
+        if semantic_types is None:
+            self.semantic_types = []
         else:
-            if isinstance(types, str) or isinstance(types, rdflib.URIRef):
-                self.types = [rdflib.URIRef(types)]
+            if isinstance(semantic_types, str) or isinstance(semantic_types, rdflib.URIRef):
+                self.semantic_types = [rdflib.URIRef(semantic_types)]
             else:
-                self.types = [rdflib.URIRef(t) for t in types]
+                self.semantic_types = [rdflib.URIRef(t) for t in semantic_types]
 
     def __eq__(self, other):
         return self.name == other.name and self.computational_type == other.computational_type
@@ -55,7 +55,7 @@ class FairVariable:
         return hash(str(self))
 
     def __str__(self):
-        return f'FairVariable {self.name} of computational type: {self.computational_type} and types: {self.types}'
+        return f'FairVariable {self.name} of computational type: {self.computational_type} and semantic types: {self.semantic_types}'
 
 
 class FairStep(RdfWrapper):
@@ -231,9 +231,9 @@ class FairStep(RdfWrapper):
         sem_types = [sem_type for sem_type in sem_type_objs]
 
         if isinstance(var_ref, rdflib.term.BNode):
-            return FairVariable(name=str(var_ref), computational_type=computational_type, types=sem_types)
+            return FairVariable(name=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
         else:
-            return FairVariable(uri=str(var_ref), computational_type=computational_type, types=sem_types)
+            return FairVariable(uri=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
 
     def _add_variable(self, variable: FairVariable, relation_to_step):
         """Add triples describing FairVariable to rdf."""
@@ -242,7 +242,7 @@ class FairStep(RdfWrapper):
         self._rdf.add((var_ref, RDFS.comment, rdflib.term.Literal(variable.computational_type)))
         self._rdf.add((var_ref, RDF.type, namespaces.PPLAN.Variable))
         self._rdf.add((var_ref, RDFS.label, rdflib.term.Literal(variable.name)))
-        for sem_var in variable.types:
+        for sem_var in variable.semantic_types:
             self._rdf.add((var_ref, RDF.type, sem_var))
 
     @property
@@ -429,7 +429,7 @@ def _extract_inputs_from_function(func, additional_params) -> List[FairVariable]
         return [FairVariable(
                     name=arg,
                     computational_type=argspec.annotations[arg].__name__,
-                    types=additional_params.get(arg))
+                    semantic_types=additional_params.get(arg))
                     for arg in argspec.args]
     except KeyError:
         raise ValueError('Not all input arguments have type hinting, '
@@ -453,13 +453,13 @@ def _extract_outputs_from_function(func, additional_params) -> List[FairVariable
         return [FairVariable(
                     name='out' + str(i + 1),
                     computational_type=annotation.__name__,
-                    types=additional_params.get('out' + str(i + 1)))
+                    semantic_types=additional_params.get('out' + str(i + 1)))
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
         return [FairVariable(
                 name='out1',
                 computational_type=return_annotation.__name__,
-                types=additional_params.get('out1'))]
+                semantic_types=additional_params.get('out1'))]
 
 
 def _is_generic_tuple(type_):
