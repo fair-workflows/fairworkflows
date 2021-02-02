@@ -1,10 +1,9 @@
+import inspect
 import warnings
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Optional
-import inspect
-from urllib.parse import urldefrag
 
 import networkx as nx
 import rdflib
@@ -12,10 +11,9 @@ from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
-
 from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep
-from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
+from fairworkflows.rdf_wrapper import RdfWrapper
 import nanopub
 
 class FairWorkflow(RdfWrapper):
@@ -54,8 +52,7 @@ class FairWorkflow(RdfWrapper):
                 possibly it's associated steps. Should use plex ontology.
             uri: URI of the workflow
             fetch_references: toggles fetching steps. I.e. if we encounter steps
-                that are part of the workflow, but are not specified in the
-                RDF we try fetching them from nanopub
+                that are part of the workflow we try fetching them from nanopub
             force: Toggle forcing creation of object even if url is not in any of the subjects of
                 the passed RDF
             remove_irrelevant_triples: Toggle removing irrelevant triples for this FairWorkflow.
@@ -106,19 +103,18 @@ class FairWorkflow(RdfWrapper):
 
         return self
 
-    def _extract_steps(self, rdf, uri, fetch_steps=False):
+    def _extract_steps(self, rdf, uri, fetch_steps=True):
         """Extract FairStep objects from rdf.
 
-        Create FairStep objects for all steps in the passed RDF. Removes
-        triples describing steps from rdf, those will be represented in
-        the separate step RDF. Optionally try to fetch steps from nanopub.
+        Create FairStep objects for all steps in the passed RDF.
+        Optionally try to fetch steps from nanopub.
         """
         step_refs = rdf.subjects(predicate=namespaces.PPLAN.isStepOfPlan,
                                  object=rdflib.URIRef(uri))
         for step_ref in step_refs:
             step_uri = str(step_ref)
-            step = self._extract_step_from_rdf(step_uri, rdf)
-            if step is None and fetch_steps:
+            step = None
+            if fetch_steps:
                 step = self._fetch_step(uri=step_uri)
             if step is None:
                 warnings.warn(f'Could not get detailed information for '
@@ -152,19 +148,6 @@ class FairWorkflow(RdfWrapper):
         for triple in rdf.query(q, initBindings={'workflow_uri': rdflib.URIRef(uri)}):
             g.add(triple)
         return g
-
-    @staticmethod
-    def _extract_step_from_rdf(uri, rdf: rdflib.Graph()) -> Optional[FairStep]:
-        relevant_triples = FairStep._get_relevant_triples(uri, rdf)
-        step_rdf = rdflib.Graph()
-        for triple in relevant_triples:
-            step_rdf.add(triple)
-            rdf.remove(triple)
-
-        if len(step_rdf) > 0:
-            return FairStep.from_rdf(step_rdf, uri=uri, remove_irrelevant_triples=False)
-        else:
-            return None
 
     @staticmethod
     def _fetch_step(uri: str) -> Optional[FairStep]:
@@ -207,6 +190,7 @@ class FairWorkflow(RdfWrapper):
         self._rdf.add((rdflib.URIRef(step.uri), namespaces.PPLAN.isStepOfPlan,
                        self.self_ref))
         self._last_step_added = step
+        step.register_workflow(self)
 
     def add(self, step: FairStep, follows: FairStep = None):
         """Add a step.
@@ -472,8 +456,10 @@ class FairWorkflow(RdfWrapper):
     def publish_as_nanopub(self, use_test_server=False, **kwargs):
         """Publish to nanopub server.
 
-        First publish the steps, use the URIs of the published steps in the workflow. Then
-        publish the workflow.
+        Publish the workflow as nanopublication to the nanopub server.
+
+        Raises:
+            RuntimeError: If one of the steps of the workflow was not published yet.
 
         Args:
             use_test_server (bool): Toggle using the test nanopub server.
@@ -489,25 +475,8 @@ class FairWorkflow(RdfWrapper):
         for step in self:
             if step.is_modified or not step._is_published:
                 self._is_modified = True  # If one of the steps is modified the workflow is too.
-                old_uri = step.uri
-                var_names = [var.name for var in (step.inputs + step.outputs)]
+                raise RuntimeError(f'{step} was not published yet, please publish steps first')
 
-                step.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
-                published_step_uri = step.uri
-
-                replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_uri),
-                               newvalue=rdflib.URIRef(published_step_uri))
-
-                # Similarly replace old URIs for variable name bindings
-                published_step_uri_defrag, _ = urldefrag(published_step_uri)
-                for var_name in var_names:
-                    old_var_uri = old_uri + '#' + var_name
-                    new_var_uri = published_step_uri_defrag + '#' + var_name
-                    replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_var_uri),
-                                  newvalue=rdflib.URIRef(new_var_uri))
-
-                del self._steps[old_uri]
-                self._steps[published_step_uri] = step
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
 
     def __str__(self):

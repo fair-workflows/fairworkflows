@@ -1,5 +1,4 @@
 import warnings
-
 from typing import List
 from urllib.parse import urldefrag
 
@@ -8,8 +7,8 @@ import rdflib
 from nanopub import Publication, NanopubClient
 
 from fairworkflows import namespaces
-
 from fairworkflows.config import PACKAGE_DIR
+
 PLEX_SHAPES_SHACL_FILEPATH = str(PACKAGE_DIR / 'resources' / 'plex-shapes.ttl')
 
 

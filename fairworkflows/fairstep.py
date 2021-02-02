@@ -4,13 +4,13 @@ from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
 
+import noodles
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 
-import noodles
-
 from fairworkflows import namespaces
-from fairworkflows.rdf_wrapper import RdfWrapper
+from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI
+from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 class FairVariable:
     """Represents a variable.
@@ -104,7 +104,13 @@ class FairStep(RdfWrapper):
             self.inputs = inputs
         if outputs is not None:
             self.outputs = outputs
+        # Set temporary URI to refer to this step in workflows
+        # (i.e. 'http://fairworkflows.org#8769029329049')
+        if uri is None:
+            self._uri = DUMMY_FAIRWORKFLOWS_URI + '#step' + str(hash(self))
+
         self._is_modified = False
+        self._workflows = set()
 
     @classmethod
     def from_rdf(cls, rdf, uri, fetch_references: bool = False, force: bool = False,
@@ -346,6 +352,17 @@ class FairStep(RdfWrapper):
         if shacl:
             self.shacl_validate()
 
+    def register_workflow(self, workflow):
+        """Register workflow that this step is part of."""
+        self._workflows.add(workflow)
+
+    def _update_registered_workflows(self):
+        """Update the workflows that this step is part of.
+        NB: it could be that a step was deleted from a workflow
+        """
+        self._workflows = {workflow for workflow in self._workflows
+                           if self in workflow}
+
     def publish_as_nanopub(self, use_test_server=False, **kwargs):
         """
         Publish this rdf as a nanopublication.
@@ -360,7 +377,23 @@ class FairStep(RdfWrapper):
         Returns:
             a dictionary with publication info, including 'nanopub_uri', and 'concept_uri'
         """
-        return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
+        self._update_registered_workflows()
+        old_uri = self.uri
+        self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
+        var_names = [var.name for var in (self.inputs + self.outputs)]
+        for workflow in self._workflows:
+            replace_in_rdf(workflow.rdf, oldvalue=rdflib.URIRef(old_uri),
+                           newvalue=rdflib.URIRef(self.uri))
+
+            # Similarly replace old URIs for variable name bindings
+            published_step_uri_defrag, _ = urldefrag(self.uri)
+            for var_name in var_names:
+                old_var_uri = old_uri + '#' + var_name
+                new_var_uri = published_step_uri_defrag + '#' + var_name
+                replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_var_uri),
+                               newvalue=rdflib.URIRef(new_var_uri))
+            del workflow._steps[old_uri]
+            workflow._steps[self.uri] = self
 
     def __str__(self):
         """
