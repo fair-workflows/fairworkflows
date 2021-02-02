@@ -386,7 +386,7 @@ class TestFairWorkflow:
             my_workflow(1, 2)
         assert "The workflow does not return a 'promise'" in str(e.value)
 
-    def test_workflow_non_decorated_steps(self):
+    def test_workflow_mixed_decorated_steps(self):
         def add(a: float, b: float) -> float:
             """Adding up numbers. NB: no is_fairstep decorator!"""
             return a + b
