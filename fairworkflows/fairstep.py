@@ -12,13 +12,12 @@ from fairworkflows import namespaces
 from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
-
 class FairVariable:
     """Represents a variable.
 
-    The variable corresponds to a RDF blank node with the same name that has 2 RDF:type relations:
-    (1) PPLAN:Variable, and (2) a string literal representing the type (i.e. int, str, float) of
-    the variable.
+    The variable corresponds to an RDF blank node of the same name, that has an RDF:type,
+    (PPLAN:Variable), and an RDFS:comment - a string literal representing the type (i.e.
+    int, str, float) of the variable.
 
     The FairVariable is normally associated with a FairStep by a PPLAN:hasInputVar or
     PPLAN:hasOutputVar predicate.
@@ -29,23 +28,34 @@ class FairVariable:
         uri: Optionally pass a uri that the variable is referred to, the variable name will be
             automatically extracted from it. This argument is usually only used when we extract a
             variable from rdf)
-        type: The type of the variable (i.e. int, str, float etc.)
+        computational_type: The computational type of the variable (i.e. int, str, float etc.). For
+                            now these are just strings of the python type name, but in future should
+                            become mapped to e.g. XSD types.
+        semantic_types: One or more URIs that describe the semantic type(s) of this FairVariable.
     """
-    def __init__(self, name: str = None, type: str = None, uri: str = None):
+    def __init__(self, name: str = None, computational_type: str = None, semantic_types = None, uri: str = None):
         if uri and name is None:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
         self.name = name
-        self.type = type
+        self.computational_type = computational_type
+
+        if semantic_types is None:
+            self.semantic_types = []
+        else:
+            if isinstance(semantic_types, str) or isinstance(semantic_types, rdflib.URIRef):
+                self.semantic_types = [rdflib.URIRef(semantic_types)]
+            else:
+                self.semantic_types = [rdflib.URIRef(t) for t in semantic_types]
 
     def __eq__(self, other):
-        return self.name == other.name and self.type == other.type
+        return self.name == other.name and self.computational_type == other.computational_type
 
     def __hash__(self):
         return hash(str(self))
 
     def __str__(self):
-        return f'FairVariable {self.name} of type: {self.type}'
+        return f'FairVariable {self.name} of computational type: {self.computational_type} and semantic types: {self.semantic_types}'
 
 
 class FairStep(RdfWrapper):
@@ -220,26 +230,27 @@ class FairStep(RdfWrapper):
 
     def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""
-        var_type_objs = self._rdf.objects(var_ref, RDF.type)
-        var_types = [var_type for var_type in var_type_objs
-                     if isinstance(var_type, rdflib.term.Literal)]
-        if len(var_types) > 0:
-            var_type = str(var_types[0])
-        else:
-            var_type = None
+        rdfs_comment_objs = list(self._rdf.objects(var_ref, RDFS.comment))
+        computational_type = str(rdfs_comment_objs[0])
+
+        # Get all semantic types of this FairVariable, excluding PPLAN.Variable
+        sem_type_objs = self._rdf.objects(var_ref, RDF.type)
+        sem_types = [sem_type for sem_type in sem_type_objs if sem_type != namespaces.PPLAN.Variable]
 
         if isinstance(var_ref, rdflib.term.BNode):
-            return FairVariable(name=str(var_ref), type=var_type)
+            return FairVariable(name=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
         else:
-            return FairVariable(uri=str(var_ref), type=var_type)
+            return FairVariable(uri=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
 
     def _add_variable(self, variable: FairVariable, relation_to_step):
         """Add triples describing FairVariable to rdf."""
         var_ref = rdflib.term.BNode(variable.name)
         self.set_attribute(relation_to_step, var_ref, overwrite=False)
-        self._rdf.add((var_ref, RDF.type, rdflib.term.Literal(variable.type)))
+        self._rdf.add((var_ref, RDFS.comment, rdflib.term.Literal(variable.computational_type)))
         self._rdf.add((var_ref, RDF.type, namespaces.PPLAN.Variable))
         self._rdf.add((var_ref, RDFS.label, rdflib.term.Literal(variable.name)))
+        for sem_var in variable.semantic_types:
+            self._rdf.add((var_ref, RDF.type, sem_var))
 
     @property
     def inputs(self) -> List[FairVariable]:
@@ -247,7 +258,7 @@ class FairStep(RdfWrapper):
 
         Inputs are a list of FairVariable objects. They correspond to triples in the RDF:
         The name is stored as a blanknode with a hasInputVar relation to the step.
-        This blanknode has 2 RDF:type relations: (1) PPLAN:Variable, and (2) a string literal
+        This blanknode has an RDF:type, PPLAN:Variable; and an RDFS:comment, a string literal
         representing the type (i.e. int, str, float) of the variable.
         """
         return [self._get_variable(var_ref) for var_ref
@@ -265,7 +276,7 @@ class FairStep(RdfWrapper):
 
         Outputs are a list of FairVariable objects. They correspond to triples in the RDF:
         The name is stored as a blanknode with a hasOutputVar relation to the step.
-        This blanknode has 2 RDF:type relations: (1) PPLAN:Variable, and (2) a string literal
+        This blanknode has an RDF:type, PPLAN:Variable; and an RDFS:comment, a string literal
         representing the type (i.e. int, str, float) of the variable.
         """
         return [self._get_variable(var_ref) for var_ref
@@ -394,7 +405,7 @@ class FairStep(RdfWrapper):
 
 
 def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: bool = False,
-                     is_script_task: bool = True):
+                     is_script_task: bool = True, **kwargs):
     """Mark a function as a FAIR step to be used in a fair workflow.
 
     Use as decorator to mark a function as a FAIR step. Set properties of the fair step using
@@ -411,6 +422,18 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         is_manual_task (str): Denotes whether this step is a bpmn.ManualTask
         is_script_task (str): Denotes whether this step is a bpmn.ScriptTask
 
+    All additional arguments are expected to correspond to input parameters of the decorated
+    function, and are used to provide extra semantic types for that parameter. For example,
+    consider the following decorated function:
+        @is_fairstep(label='Addition', a='http://www.example.org/number', out1='http://www.example.org/float')
+        def add(a:float, b:float) -> float:
+            return a + b
+    1. Note that using 'a' as parameter to the decorator allows the user to provide a URI for a semantic type
+    that should be associated with the function's input parameter, 'a'. This can be either a string, an
+    rdflib.URIRef, or a list of these.
+    2. Note that the return parameter is referred to using 'out1', because it does not otherwise have a name.
+    In this case, the function only returns one value. However, if e.g. a tuple of 3 values were returned,
+    you could use out1, out2 and out3 to set the semantic types of each return value, if so desired.
     """
 
     def _modify_function(func):
@@ -422,8 +445,9 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         """
         # Description of step is the raw function code
         description = inspect.getsource(func)
-        inputs = _extract_inputs_from_function(func)
-        outputs = _extract_outputs_from_function(func)
+        inputs = _extract_inputs_from_function(func, kwargs)
+        outputs = _extract_outputs_from_function(func, kwargs)
+
 
         func._fairstep = FairStep(uri='http://www.example.org/unpublished-'+func.__name__,
                                   label=label,
@@ -439,22 +463,25 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
     return _modify_function
 
 
-def _extract_inputs_from_function(func) -> List[FairVariable]:
+def _extract_inputs_from_function(func, additional_params) -> List[FairVariable]:
     """
     Extract inputs from function using inspection. The name of the argument will be the name of
     the fair variable, the corresponding type hint will be the type of the variable.
     """
     argspec = inspect.getfullargspec(func)
     try:
-        return [FairVariable(name=arg, type=argspec.annotations[arg].__name__)
-                for arg in argspec.args]
+        return [FairVariable(
+                    name=arg,
+                    computational_type=argspec.annotations[arg].__name__,
+                    semantic_types=additional_params.get(arg))
+                    for arg in argspec.args]
     except KeyError:
         raise ValueError('Not all input arguments have type hinting, '
                          'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
 
 
-def _extract_outputs_from_function(func) -> List[FairVariable]:
+def _extract_outputs_from_function(func, additional_params) -> List[FairVariable]:
     """
     Extract outputs from function using inspection. The name will be {function_name}_output{
     output_number}. The corresponding return type hint will be the type of the variable.
@@ -467,10 +494,16 @@ def _extract_outputs_from_function(func) -> List[FairVariable]:
                          'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
     if _is_generic_tuple(return_annotation):
-        return [FairVariable(name=func.__name__ + '-output' + str(i + 1), type=annotation.__name__)
+        return [FairVariable(
+                    name='out' + str(i + 1),
+                    computational_type=annotation.__name__,
+                    semantic_types=additional_params.get('out' + str(i + 1)))
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
-        return [FairVariable(name=func.__name__ + '-output1', type=return_annotation.__name__)]
+        return [FairVariable(
+                name='out1',
+                computational_type=return_annotation.__name__,
+                semantic_types=additional_params.get('out1'))]
 
 
 def _is_generic_tuple(type_):

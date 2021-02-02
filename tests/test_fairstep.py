@@ -12,9 +12,9 @@ from fairworkflows.rdf_wrapper import replace_in_rdf
 
 
 def test_construct_fair_variable_get_name_from_uri():
-    variable = FairVariable(name=None, uri='http:example.org#input1', type='int')
+    variable = FairVariable(name=None, uri='http:example.org#input1', computational_type='int')
     assert variable.name == 'input1'
-    assert variable.type == 'int'
+    assert variable.computational_type == 'int'
 
 
 class TestFairStep:
@@ -26,7 +26,7 @@ class TestFairStep:
         assert (rdflib.term.BNode('input1'), rdflib.RDF.type, namespaces.PPLAN.Variable) in step.rdf
         for input in step.inputs:
             assert str(input.name) in [test_input.name for test_input in test_inputs]
-            assert str(input.type) in [test_input.type for test_input in test_inputs]
+            assert str(input.computational_type) in [test_input.computational_type for test_input in test_inputs]
 
         # test overwriting
         new_input = FairVariable('input3', 'int')
@@ -42,7 +42,7 @@ class TestFairStep:
                 rdflib.RDF.type, namespaces.PPLAN.Variable) in step.rdf
         for output in step.outputs:
             assert str(output.name) in [test_output.name for test_output in test_outputs]
-            assert str(output.type) in [test_output.type for test_output in test_outputs]
+            assert str(output.computational_type) in [test_output.computational_type for test_output in test_outputs]
 
         # test overwriting
         outputs = FairVariable('output3', 'int')
@@ -255,17 +255,23 @@ def test_is_fairstep_decorator():
 
     assert hasattr(add(1,2), '_fairstep')
 
-#    step = FairStep.from_function(add)
-#    assert str(step.label) == 'test_label'
-#    assert step.is_manual_task
-#    assert step.is_pplan_step
-#    assert not step.is_script_task
-#    assert 'def add(a: int, b: int) -> int:' in str(step.description)
-#    assert 'Computational step adding two ints together.' in str(step.description)
-#    assert isinstance(step, FairStep)
-#    assert set(step.inputs) == {FairVariable('a', 'int'), FairVariable('b', 'int')}
-#    assert step.outputs[0] == FairVariable('add_output1', 'int')
+def test_decorator_semantic_types():
+    test_types_a = ['http://www.example.org/distance', 'http://www.example.org/number']
+    test_type_output = 'http://www.example.org/walrus'
+    @is_fairstep(label='A test step', a=test_types_a, out1=test_type_output)
+    def test_step(a:float, b:float) -> float:
+        return a + b
 
+    assert hasattr(test_step, '_fairstep')
+    for var in test_step._fairstep.inputs:
+        assert namespaces.PPLAN.Variable not in var.semantic_types
+        if var.name == 'a':
+            assert var.computational_type == 'float'
+            for sem_type in test_types_a:
+                assert rdflib.URIRef(sem_type) in var.semantic_types
+            break
+    else:
+        raise
 
 def test_extract_outputs_from_function_multiple_outputs():
     # Note this function returns a tuple, and thus has multiple outputs
@@ -275,6 +281,6 @@ def test_extract_outputs_from_function_multiple_outputs():
         """
         return a // b, a % b
 
-    result = _extract_outputs_from_function(divmod)
-    assert set(result) == {FairVariable('divmod-output1', 'int'),
-                           FairVariable('divmod-output2', 'int')}
+    result = _extract_outputs_from_function(divmod, {})
+    assert set(result) == {FairVariable('out1', 'int'),
+                           FairVariable('out2', 'int')}
