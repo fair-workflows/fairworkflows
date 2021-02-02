@@ -267,7 +267,7 @@ def test_decorator_semantic_types():
         if var.name == 'a':
             assert var.computational_type == 'float'
             for sem_type in test_types_a:
-                assert rdflib.URIRef(sem_type) in var.types
+                assert rdflib.URIRef(sem_type) in var.semantic_types
             break
     else:
         raise
