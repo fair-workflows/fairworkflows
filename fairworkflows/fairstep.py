@@ -43,7 +43,7 @@ class FairVariable:
         if types is None:
             self.types = []
         else:
-            if isinstance(types, str):
+            if isinstance(types, str) or isinstance(types, rdflib.URIRef):
                 self.types = [rdflib.URIRef(types)]
             else:
                 self.types = [rdflib.URIRef(t) for t in types]
