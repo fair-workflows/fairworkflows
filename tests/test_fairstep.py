@@ -258,7 +258,7 @@ def test_is_fairstep_decorator():
 def test_decorator_semantic_types():
     test_types_a = ['http://www.example.org/distance', 'http://www.example.org/number']
     test_type_output = 'http://www.example.org/walrus'
-    @is_fairstep(label='A test step', a=test_types_a, out1=test_type_output)
+    @is_fairstep(label='A test step', a=test_types_a, out=test_type_output)
     def test_step(a:float, b:float) -> float:
         return a + b
 
@@ -272,6 +272,19 @@ def test_decorator_semantic_types():
             break
     else:
         raise
+
+def test_decorator_semantic_types_multiple_outputs():
+    output_tuple = ('http://www.example.org/walrus', 'http://www.example.org/krill')
+
+    @is_fairstep(label='A test step', out=output_tuple)
+    def test_step(a:float, b:float) -> Tuple[float, float]:
+        return a + b, a - b
+
+    assert hasattr(test_step, '_fairstep')
+    for i, var in enumerate(test_step._fairstep.outputs):
+        assert namespaces.PPLAN.Variable not in var.semantic_types
+        assert var.computational_type == 'float'
+        assert rdflib.URIRef(output_tuple[i]) in var.semantic_types
 
 def test_extract_outputs_from_function_multiple_outputs():
     # Note this function returns a tuple, and thus has multiple outputs
