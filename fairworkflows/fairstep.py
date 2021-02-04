@@ -494,16 +494,23 @@ def _extract_outputs_from_function(func, additional_params) -> List[FairVariable
                          'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
     if _is_generic_tuple(return_annotation):
+        return_sem_types = additional_params.get('return')
+        if return_sem_types is not None:
+            num_return_args = len(return_annotation.__args__)
+            if len(return_sem_types) != num_return_args:
+                raise ValueError(f'"return" parameter to is_fairstep decorator must be a '
+                                  'tuple of length number of returned values (in this case, '
+                                  '{num_return_args}).')
         return [FairVariable(
                     name='out' + str(i + 1),
                     computational_type=annotation.__name__,
-                    semantic_types=additional_params.get('out' + str(i + 1)))
+                    semantic_types=additional_params.get('out')[i])
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
         return [FairVariable(
                 name='out1',
                 computational_type=return_annotation.__name__,
-                semantic_types=additional_params.get('out1'))]
+                semantic_types=additional_params.get('out'))]
 
 
 def _is_generic_tuple(type_):
