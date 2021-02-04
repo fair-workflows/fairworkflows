@@ -10,3 +10,4 @@ PYTHON_DIR = 'scripts'
 PLEX_DIR = 'plex'
 
 DUMMY_FAIRWORKFLOWS_URI = 'http://fairworkflows.org'
+IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME='out'

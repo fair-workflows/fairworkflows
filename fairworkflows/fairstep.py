@@ -9,7 +9,7 @@ import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 
 from fairworkflows import namespaces
-from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI
+from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 class FairVariable:
@@ -439,6 +439,8 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
     return value as 'distance'. Lists can also be provided instead of a single URI, if more than one
     semantic type should be associated with a given output. Any element of this tuple can also be
     set to None, if no semantic type is desired for it.
+    3. The return parameter name (by default 'out') can be changed if necessary, by modifying
+    the IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME constant.
     """
 
     def _modify_function(func):
@@ -499,7 +501,7 @@ def _extract_outputs_from_function(func, additional_params) -> List[FairVariable
                          'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
     if _is_generic_tuple(return_annotation):
-        return_sem_types = additional_params.get('out')
+        return_sem_types = additional_params.get(IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME)
         if return_sem_types is not None:
             num_return_args = len(return_annotation.__args__)
             if len(return_sem_types) != num_return_args:
@@ -518,7 +520,7 @@ def _extract_outputs_from_function(func, additional_params) -> List[FairVariable
         return [FairVariable(
                 name='out1',
                 computational_type=return_annotation.__name__,
-                semantic_types=additional_params.get('out'))]
+                semantic_types=additional_params.get(IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME))]
 
 
 def _is_generic_tuple(type_):
