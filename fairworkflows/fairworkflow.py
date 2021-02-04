@@ -379,7 +379,7 @@ class FairWorkflow(RdfWrapper):
         workflow and retroprov is the retrospective provenance logged during execution.
         """
 
-        if not hasattr(self, 'promise'):
+        if not hasattr(self, 'noodles_promise'):
             raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
 
         log = io.StringIO()
