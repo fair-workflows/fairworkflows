@@ -9,7 +9,7 @@ import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 
 from fairworkflows import namespaces
-from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI
+from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 class FairVariable:
@@ -424,15 +424,22 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
     All additional arguments are expected to correspond to input parameters of the decorated
     function, and are used to provide extra semantic types for that parameter. For example,
     consider the following decorated function:
-        @is_fairstep(label='Addition', a='http://www.example.org/number', out1='http://www.example.org/float')
+        @is_fairstep(label='Addition', a='http://www.example.org/number', out='http://www.example.org/float')
         def add(a:float, b:float) -> float:
             return a + b
     1. Note that using 'a' as parameter to the decorator allows the user to provide a URI for a semantic type
     that should be associated with the function's input parameter, 'a'. This can be either a string, an
     rdflib.URIRef, or a list of these.
-    2. Note that the return parameter is referred to using 'out1', because it does not otherwise have a name.
+    2. Note that the return parameter is referred to using 'returns', because it does not otherwise have a name.
     In this case, the function only returns one value. However, if e.g. a tuple of 3 values were returned,
-    you could use out1, out2 and out3 to set the semantic types of each return value, if so desired.
+    you could use a tuple for 'returns' in the decorator arguments too. For example:
+        out=('http://www.example.org/mass', 'http://www.example.org/distance')
+    This would set the semantic type of the first return value as some 'mass' URI, and the second
+    return value as 'distance'. Lists can also be provided instead of a single URI, if more than one
+    semantic type should be associated with a given output. Any element of this tuple can also be
+    set to None, if no semantic type is desired for it.
+    3. The return parameter name (by default 'returns') can be changed if necessary, by modifying
+    the IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME constant.
     """
 
     def _modify_function(func):
@@ -493,16 +500,26 @@ def _extract_outputs_from_function(func, additional_params) -> List[FairVariable
                          'FAIR step functions MUST have type hinting, '
                          'see https://docs.python.org/3/library/typing.html')
     if _is_generic_tuple(return_annotation):
+        return_sem_types = additional_params.get(IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME)
+        if return_sem_types is not None:
+            num_return_args = len(return_annotation.__args__)
+            if len(return_sem_types) != num_return_args:
+                raise ValueError(f'"out" parameter to is_fairstep decorator must be a '
+                                  'tuple of length number of returned values (in this case, '
+                                  '{num_return_args}).')
+        else:
+            return_sem_types = [None for arg in return_annotation.__args__]
+
         return [FairVariable(
                     name='out' + str(i + 1),
                     computational_type=annotation.__name__,
-                    semantic_types=additional_params.get('out' + str(i + 1)))
+                    semantic_types=return_sem_types[i])
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
         return [FairVariable(
                 name='out1',
                 computational_type=return_annotation.__name__,
-                semantic_types=additional_params.get('out1'))]
+                semantic_types=additional_params.get(IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME))]
 
 
 def _is_generic_tuple(type_):
