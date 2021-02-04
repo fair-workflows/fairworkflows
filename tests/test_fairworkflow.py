@@ -1,3 +1,4 @@
+import inspect
 import warnings
 from unittest import mock
 
@@ -336,18 +337,18 @@ class TestFairWorkflow:
             """
             A simple addition, subtraction, multiplication workflow
             """
-            t1 = add(in1, in2)
-            t2 = sub(in1, in2)
-            t3 = mul(weird(t1, in3), t2)
-            return t3
+            t1 = add(in1, in2)  # 5
+            t2 = sub(in1, in2)  # -3
+            t3 = weird(t1, in3)  # 10 + 12 = 22
+            t4 = mul(t3, t2)  # 22 * -3 =
+            return t4
 
-        fw = my_workflow(1, 4, 3)
+        fw = my_workflow._fairworkflow
         assert isinstance(fw, FairWorkflow)
 
-        # TODO: Find out why execution hangs only when running in pytest. May be to do with the threading.
-        #result, prov = fw.execute(num_threads=1)
-        #assert result == -66
-        #assert isinstance(prov, Publication)
+        result, prov = fw.execute(1, 4, 3)
+        assert result == -66
+        assert isinstance(prov, Publication)
 
     def test_workflow_complex_serialization(self):
         class OtherType:
@@ -363,10 +364,18 @@ class TestFairWorkflow:
             return return_that_object(im)
 
         obj = OtherType('I could be e.g. a PIL Image')
-        fw = process_image(obj)
+        fw = process_image._fairworkflow
+        result, prov = fw.execute(obj)
+        assert isinstance(result, type(obj))
+        assert result.message == obj.message
+        assert isinstance(prov, Publication)
 
-        # TODO: Find out why execution hangs only when running in pytest. May be to do with the threading.
-        #result, prov = fw.execute()
-        #assert isinstance(result, type(obj))
-        #assert result.message == obj.message
-        #assert isinstance(prov, Publication)
+    def test_get_arguments_dict(self):
+        args = (1, 2)
+        kwargs = {'c': 3, 'd': 4}
+
+        def func(a, b, c, d):
+            return
+
+        result = FairWorkflow._get_arguments_dict(args, kwargs, inspect.signature(func))
+        assert result == {'a': 1, 'b': 2, 'c': 3, 'd': 4}

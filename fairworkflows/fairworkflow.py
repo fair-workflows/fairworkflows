@@ -1,11 +1,15 @@
 import inspect
+import io
+import logging
 import warnings
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Optional
 
+import nanopub
 import networkx as nx
+import noodles
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
@@ -14,7 +18,7 @@ from requests import HTTPError
 from fairworkflows import namespaces
 from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper
-import nanopub
+
 
 class FairWorkflow(RdfWrapper):
 
@@ -77,15 +81,18 @@ class FairWorkflow(RdfWrapper):
         from noodles import get_workflow
         workflow = get_workflow(self.noodles_promise)
 
-        steps_dict = {}
-        for i, n in workflow.nodes.items():
-            steps_dict[i] = n.foo._fairstep
+        # Exclude the root, because that is the workflow definition itself and not a step
+        steps_dict = {i: n.foo._fairstep for i, n in workflow.nodes.items() if i != workflow.root}
 
         for i, step in steps_dict.items():
             self._add_step(step)
 
         for i in workflow.links:
+            # Exclude the root, because that is the workflow definition itself and not a step
+            if i == workflow.root:
+                continue
             current_step = steps_dict[i]
+            # Some of this is retro prov
             from_uri = rdflib.URIRef(steps_dict[i].uri + '#' + current_step.outputs[0].name)
             for j in workflow.links[i]:
                 linked_step = steps_dict[j[0]]
@@ -347,7 +354,7 @@ class FairWorkflow(RdfWrapper):
         if full_rdf:
             return self.display_full_rdf()
         else:
-            if not hasattr(self, 'noodles_promise'):
+            if not hasattr(self, 'promise'):
                 raise ValueError('Cannot display workflow as no noodles promise has been constructed.')
             import noodles.tutorial
             noodles.tutorial.display_workflows(prefix='control', workflow=self.noodles_promise)
@@ -361,7 +368,7 @@ class FairWorkflow(RdfWrapper):
                 rdf2dot(self._rdf, f)
             return graphviz.Source.from_file(filename)
 
-    def execute(self, num_threads=1):
+    def execute(self, *args, **kwargs):
         """
         Executes the workflow on the specified number of threads. Noodles is used as the execution
         engine. If a noodles workflow has not been generated for this fairworkflow object, then
@@ -371,13 +378,8 @@ class FairWorkflow(RdfWrapper):
         workflow and retroprov is the retrospective provenance logged during execution.
         """
 
-        if not hasattr(self, 'noodles_promise'):
+        if not hasattr(self, 'promise'):
             raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
-
-        from noodles.run.threading.sqlite3 import run_parallel
-        from noodles import serial
-        import io
-        import logging
 
         log = io.StringIO()
         log_handler = logging.StreamHandler(log)
@@ -387,28 +389,36 @@ class FairWorkflow(RdfWrapper):
         logger = logging.getLogger('noodles')
         logger.setLevel(logging.INFO)
         logger.handlers = [log_handler]
-
-        # A local function defining the serializers in the registry
-        # If we want to allow remote execution with noodles, we will
-        # need to define this function differently, but for multithreaded
-        # execution (most likely what we'll stick with) this is fine.
-        def registry():
-            return serial.pickle() + serial.base()
-
-        # TODO: Currently we are dumping a lot to an sqlite db, that will slow the
-        # execution down a bit. In future we will either write our own version of
-        # the runner, to grab that extra prov without any db writing, or we will
-        # read it from the database and convert it to RDF then.
-        with TemporaryDirectory() as td:
-            temp_db_fname = Path(td) / 'retro_prov.db'
-            result = run_parallel(self.noodles_promise, n_threads=num_threads,
-                                  registry=registry, db_file=temp_db_fname,
-                                  always_cache=True, echo_log=False)
+        self.noodles_promise = self._replace_input_arguments(self.noodles_promise, args, kwargs)
+        result = noodles.run_single(self.noodles_promise)
 
         # Generate the retrospective provenance as a (nano-) Publication object
         retroprov = self._generate_retrospective_prov_publication(log.getvalue())
 
         return result, retroprov
+
+    def _replace_input_arguments(self, promise: noodles.interface.PromisedObject, args, kwargs):
+        """
+        Replace the input arguments of the promise so we can run the workflow with the right
+        inputs. This goes into the guts of noodles, doing something noodles was not intended to be
+        used for.
+        TODO: find a better solution for this
+        """
+        workflow = noodles.get_workflow(promise)
+        signature = inspect.signature(workflow.root_node.foo)
+        arguments_dict = self._get_arguments_dict(args, kwargs, signature)
+        workflow.root_node.bound_args = inspect.BoundArguments(signature, arguments_dict)
+        return promise
+
+    @staticmethod
+    def _get_arguments_dict(args, kwargs, signature):
+        """
+        Create dictionary of keyword arguments from positional and keyword arguments and the
+        signature of the function.
+        """
+        arguments_dict = {key: arg for arg, key in zip(args, signature.parameters.keys())}
+        arguments_dict.update(kwargs)
+        return arguments_dict
 
     def _generate_retrospective_prov_publication(self, log:str) -> nanopub.Publication:
         """
@@ -506,16 +516,21 @@ def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
     """
     def _modify_function(func):
         """
-        Store FairStep object as _fairstep attribute of the function. Use inspection to get the
-        description, inputs, and outputs of the step based on the function specification.
+        Store FairWorkflow as _fairworkflow attribute of the function. Use inspection to get the
+        description, inputs, and outputs of the workflow based on the function specification.
+        Call the scheduled_workflow with empty arguments so we get a PromisedObject. These empty
+        arguments will be replaced upon execution with the input arguments that the .execute()
+        method is called with.
         """
-        def _wrapper(*args, **kwargs):
-            promise = func(*args, **kwargs)
+        # Description of workflow is the raw function code
+        description = inspect.getsource(func)
 
-            # Description of workflow is the raw function code
-            description = inspect.getsource(func)
-
-            return FairWorkflow.from_noodles_promise(promise, description=description, label=label,
-                 is_pplan_plan=is_pplan_plan, derived_from=None)
-        return _wrapper
+        scheduled_workflow = noodles.schedule(func)
+        num_params = len(inspect.signature(func).parameters)
+        empty_args = ([inspect.Parameter.empty()] * num_params)
+        promise = scheduled_workflow(*empty_args)
+        promise._fairworkflow = FairWorkflow.from_noodles_promise(
+            promise, description=description, label=label,
+            is_pplan_plan=is_pplan_plan, derived_from=None)
+        return promise
     return _modify_function
