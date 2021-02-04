@@ -76,8 +76,7 @@ class FairWorkflow(RdfWrapper):
     @classmethod
     def from_function(cls, func: Callable):
         """
-        Generates a plex rdf decription for the given python function,
-        and makes this FairStep object a bpmn:ScriptTask.
+        Return a FairWorkflow object for a function decorated with is_fairworkflow decorator
         """
         try:
             return func._fairworkflow

@@ -169,8 +169,7 @@ class FairStep(RdfWrapper):
     @classmethod
     def from_function(cls, func: Callable):
         """
-        Generates a plex rdf decription for the given python function,
-        and makes this FairStep object a bpmn:ScriptTask.
+        Return a FairStep object for a function decorated with is_fairstep decorator
         """
         try:
             return func._fairstep
