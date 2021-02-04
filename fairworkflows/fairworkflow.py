@@ -11,6 +11,7 @@ import nanopub
 import networkx as nx
 import noodles
 import rdflib
+from noodles.interface import PromisedObject
 from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
@@ -522,13 +523,16 @@ def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
         arguments will be replaced upon execution with the input arguments that the .execute()
         method is called with.
         """
-        # Description of workflow is the raw function code
-        description = inspect.getsource(func)
-
         scheduled_workflow = noodles.schedule(func)
         num_params = len(inspect.signature(func).parameters)
         empty_args = ([inspect.Parameter.empty()] * num_params)
         promise = scheduled_workflow(*empty_args)
+        if not isinstance(promise, PromisedObject):
+            raise TypeError("The workflow does not return a 'promise'. Did you use the "
+                            "is_fairstep decorator on all the steps?")
+
+        # Description of workflow is the raw function code
+        description = inspect.getsource(func)
         promise._fairworkflow = FairWorkflow.from_noodles_promise(
             promise, description=description, label=label,
             is_pplan_plan=is_pplan_plan, derived_from=None)
