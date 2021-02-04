@@ -91,8 +91,7 @@ class FairWorkflow(RdfWrapper):
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
         self.noodles_promise = noodles_promise
 
-        from noodles import get_workflow
-        workflow = get_workflow(self.noodles_promise)
+        workflow = noodles.get_workflow(self.noodles_promise)
 
         # Exclude the root, because that is the workflow definition itself and not a step
         steps_dict = {i: n.foo._fairstep for i, n in workflow.nodes.items() if i != workflow.root}
@@ -105,7 +104,6 @@ class FairWorkflow(RdfWrapper):
             if i == workflow.root:
                 continue
             current_step = steps_dict[i]
-            # Some of this is retro prov
             from_uri = rdflib.URIRef(steps_dict[i].uri + '#' + current_step.outputs[0].name)
             for j in workflow.links[i]:
                 linked_step = steps_dict[j[0]]
