@@ -527,7 +527,7 @@ def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
         num_params = len(inspect.signature(func).parameters)
         empty_args = ([inspect.Parameter.empty()] * num_params)
         promise = scheduled_workflow(*empty_args)
-        if not isinstance(promise, PromisedObject):
+        if not isinstance(func(*empty_args), PromisedObject):
             raise TypeError("The workflow does not return a 'promise'. Did you use the "
                             "is_fairstep decorator on all the steps?")
 
