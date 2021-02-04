@@ -176,7 +176,7 @@ class FairStep(RdfWrapper):
             return func._fairstep
         except AttributeError:
             raise ValueError('The function was not marked as a fair step,'
-                             'use mark_as_fairstep decorator to mark it.')
+                             'use is_fairworkflow decorator to mark it.')
 
     @property
     def is_pplan_step(self):

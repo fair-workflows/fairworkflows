@@ -5,7 +5,7 @@ import warnings
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Callable
 
 import nanopub
 import networkx as nx
@@ -72,6 +72,18 @@ class FairWorkflow(RdfWrapper):
             self._rdf = deepcopy(rdf)  # Make sure we don't mutate user RDF
         self.anonymise_rdf()
         return self
+
+    @classmethod
+    def from_function(cls, func: Callable):
+        """
+        Generates a plex rdf decription for the given python function,
+        and makes this FairStep object a bpmn:ScriptTask.
+        """
+        try:
+            return func._fairworkflow
+        except AttributeError:
+            raise ValueError('The function was not marked as a fair workflow,'
+                             'use is_fairworkflow decorator to mark it.')
 
     @classmethod
     def from_noodles_promise(cls, noodles_promise, description: str = None, label: str = None,

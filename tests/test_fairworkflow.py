@@ -11,6 +11,7 @@ from fairworkflows import FairWorkflow, FairStep, namespaces, FairVariable, is_f
 from fairworkflows.rdf_wrapper import replace_in_rdf
 from nanopub import Publication
 
+
 class TestFairWorkflow:
     test_description = 'This is a test workflow.'
     test_label = 'Test'
@@ -340,10 +341,11 @@ class TestFairWorkflow:
             t1 = add(in1, in2)  # 5
             t2 = sub(in1, in2)  # -3
             t3 = weird(t1, in3)  # 10 + 12 = 22
-            t4 = mul(t3, t2)  # 22 * -3 =
+            t4 = mul(t3, t2)  # 22 * -3 = 66
             return t4
 
-        fw = my_workflow._fairworkflow
+        fw = FairWorkflow.from_function(my_workflow)
+
         assert isinstance(fw, FairWorkflow)
 
         result, prov = fw.execute(1, 4, 3)
@@ -364,7 +366,7 @@ class TestFairWorkflow:
             return return_that_object(im)
 
         obj = OtherType('I could be e.g. a PIL Image')
-        fw = process_image._fairworkflow
+        fw = FairWorkflow.from_function(process_image)
         result, prov = fw.execute(obj)
         assert isinstance(result, type(obj))
         assert result.message == obj.message
