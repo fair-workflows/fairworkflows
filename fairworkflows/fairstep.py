@@ -425,15 +425,20 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
     All additional arguments are expected to correspond to input parameters of the decorated
     function, and are used to provide extra semantic types for that parameter. For example,
     consider the following decorated function:
-        @is_fairstep(label='Addition', a='http://www.example.org/number', out1='http://www.example.org/float')
+        @is_fairstep(label='Addition', a='http://www.example.org/number', out='http://www.example.org/float')
         def add(a:float, b:float) -> float:
             return a + b
     1. Note that using 'a' as parameter to the decorator allows the user to provide a URI for a semantic type
     that should be associated with the function's input parameter, 'a'. This can be either a string, an
     rdflib.URIRef, or a list of these.
-    2. Note that the return parameter is referred to using 'out1', because it does not otherwise have a name.
+    2. Note that the return parameter is referred to using 'out', because it does not otherwise have a name.
     In this case, the function only returns one value. However, if e.g. a tuple of 3 values were returned,
-    you could use out1, out2 and out3 to set the semantic types of each return value, if so desired.
+    you could use a tuple for 'out' in the decorator arguments too. For example:
+        out=('http://www.example.org/mass', 'http://www.example.org/distance')
+    This would set the semantic type of the first return value as some 'mass' URI, and the second
+    return value as 'distance'. Lists can also be provided instead of a single URI, if more than one
+    semantic type should be associated with a given output. Any element of this tuple can also be
+    set to None, if no semantic type is desired for it.
     """
 
     def _modify_function(func):
