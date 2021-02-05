@@ -1,3 +1,4 @@
+import inspect
 import warnings
 from unittest import mock
 
@@ -9,6 +10,7 @@ from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairWorkflow, FairStep, namespaces, FairVariable, is_fairstep, is_fairworkflow
 from fairworkflows.rdf_wrapper import replace_in_rdf
 from nanopub import Publication
+
 
 class TestFairWorkflow:
     test_description = 'This is a test workflow.'
@@ -336,18 +338,19 @@ class TestFairWorkflow:
             """
             A simple addition, subtraction, multiplication workflow
             """
-            t1 = add(in1, in2)
-            t2 = sub(in1, in2)
-            t3 = mul(weird(t1, in3), t2)
-            return t3
+            t1 = add(in1, in2)  # 5
+            t2 = sub(in1, in2)  # -3
+            t3 = weird(t1, in3)  # 10 + 12 = 22
+            t4 = mul(t3, t2)  # 22 * -3 = 66
+            return t4
 
-        fw = my_workflow(1, 4, 3)
+        fw = FairWorkflow.from_function(my_workflow)
+
         assert isinstance(fw, FairWorkflow)
 
-        # TODO: Find out why execution hangs only when running in pytest. May be to do with the threading.
-        #result, prov = fw.execute(num_threads=1)
-        #assert result == -66
-        #assert isinstance(prov, Publication)
+        result, prov = fw.execute(1, 4, 3)
+        assert result == -66
+        assert isinstance(prov, Publication)
 
     def test_workflow_complex_serialization(self):
         class OtherType:
@@ -363,25 +366,32 @@ class TestFairWorkflow:
             return return_that_object(im)
 
         obj = OtherType('I could be e.g. a PIL Image')
-        fw = process_image(obj)
+        fw = FairWorkflow.from_function(process_image)
+        result, prov = fw.execute(obj)
+        assert isinstance(result, type(obj))
+        assert result.message == obj.message
+        assert isinstance(prov, Publication)
 
-        # TODO: Find out why execution hangs only when running in pytest. May be to do with the threading.
-        #result, prov = fw.execute()
-        #assert isinstance(result, type(obj))
-        #assert result.message == obj.message
-        #assert isinstance(prov, Publication)
+    def test_get_arguments_dict(self):
+        args = (1, 2)
+        kwargs = {'c': 3, 'd': 4}
+
+        def func(a, b, c, d):
+            return
+
+        result = FairWorkflow._get_arguments_dict(args, kwargs, inspect.signature(func))
+        assert result == {'a': 1, 'b': 2, 'c': 3, 'd': 4}
 
     def test_workflow_non_decorated_step(self):
-        def add(a: float, b: float) -> float:
-            """Adding up numbers. NB: no is_fairstep decorator!"""
-            return a + b
+        def return_value(a: float) -> float:
+            """Return the input value. NB: no is_fairstep decorator!"""
+            return a
 
-        @is_fairworkflow(label='My Workflow')
-        def my_workflow(in1, in2):
-            """
-            A simple addition workflow
-            """
-            return add(in1, in2)
         with pytest.raises(TypeError) as e:
-            my_workflow(1, 2)
+            @is_fairworkflow(label='My Workflow')
+            def my_workflow(in1):
+                """
+                A simple workflow
+                """
+                return return_value(in1)
         assert "The workflow does not return a 'promise'" in str(e.value)

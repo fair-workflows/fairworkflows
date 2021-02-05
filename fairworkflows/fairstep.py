@@ -169,14 +169,13 @@ class FairStep(RdfWrapper):
     @classmethod
     def from_function(cls, func: Callable):
         """
-        Generates a plex rdf decription for the given python function,
-        and makes this FairStep object a bpmn:ScriptTask.
+        Return a FairStep object for a function decorated with is_fairstep decorator
         """
         try:
             return func._fairstep
         except AttributeError:
             raise ValueError('The function was not marked as a fair step,'
-                             'use mark_as_fairstep decorator to mark it.')
+                             'use is_fairworkflow decorator to mark it.')
 
     @property
     def is_pplan_step(self):
