@@ -1,3 +1,4 @@
+import sys
 import inspect
 import typing
 from copy import deepcopy
@@ -251,13 +252,13 @@ class FairStep(RdfWrapper):
     @property
     def programming_language(self):
         """Returns the programming language for this fairstep's code (either a string, or URI)"""
-        return self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.text)
+        return self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.programmingLanguage)
 
     @programming_language.setter
-    def programming_language(self, value: Union[str, rdflib.URIRef]):
-        """Sets the programming language for this fairstep's code (either a string, or URI)"""
+    def programming_language(self, value: str):
+        """Sets the programming language for this fairstep's code (takes a string)"""
         self.set_attribute(namespaces.SCHEMAORG.SoftwareSourceCode, self.code_ref, overwrite=False)
-        self._rdf.add((self.code_ref, namespaces.SCHEMAORG.programmingLanguage, value))
+        self._rdf.add((self.code_ref, namespaces.SCHEMAORG.programmingLanguage, rdflib.Literal(value)))
 
     def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""
@@ -484,7 +485,8 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         # Description of step is the raw function code
         description = inspect.getdoc(func)
         code = inspect.getsource(func)
-        proglang = rdflib.URIRef('https://en.wikipedia.org/wiki/Python_(programming_language)')
+        sv = sys.version_info
+        proglangtxt = f'python {sv.major}.{sv.minor}.{sv.micro}'
         inputs = _extract_inputs_from_function(func, kwargs)
         outputs = _extract_outputs_from_function(func, kwargs)
 
@@ -495,7 +497,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                                   is_manual_task=is_manual_task,
                                   is_script_task=is_script_task,
                                   code=code,
-                                  programming_language=proglang,
+                                  programming_language=proglangtxt,
                                   inputs=inputs,
                                   outputs=outputs)
 

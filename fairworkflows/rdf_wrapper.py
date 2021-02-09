@@ -32,6 +32,7 @@ class RdfWrapper:
         self.rdf.bind("dul", namespaces.DUL)
         self.rdf.bind("bpmn", namespaces.BPMN)
         self.rdf.bind("pwo", namespaces.PWO)
+        self.rdf.bind("schema", namespaces.SCHEMAORG)
 
     @property
     def rdf(self) -> rdflib.Graph:
