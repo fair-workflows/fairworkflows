@@ -1,5 +1,6 @@
 import sys
 import inspect
+import warnings
 import typing
 from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
@@ -87,7 +88,7 @@ class FairStep(RdfWrapper):
     def __init__(self, label: str = None, description: str = None, uri=None,
                  is_pplan_step: bool = True, is_manual_task: bool = None,
                  is_script_task: bool = None, code: str = None,
-                 programming_language: Union[str, rdflib.URIRef] = None,
+                 programming_language: str = None,
                  inputs: List[FairVariable] = None,
                  outputs: List[FairVariable] = None, derived_from=None):
         super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
@@ -241,7 +242,14 @@ class FairStep(RdfWrapper):
     @property
     def code(self):
         """Returns the code text associated with this FairStep, or None if there isn't any."""
-        return self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.text)
+        stepcode = list(self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.text))
+        if len(stepcode) == 0:
+            return None
+        if len(stepcode) > 1:
+            warnings.warn('There is more than one code text associated with '
+                          'this FairStep in its RDF description: {stepcode}. '
+                          'Returning only the first in list.')
+        return str(stepcode[0])
 
     @code.setter
     def code(self, value: str):
@@ -252,7 +260,14 @@ class FairStep(RdfWrapper):
     @property
     def programming_language(self):
         """Returns the programming language for this fairstep's code (either a string, or URI)"""
-        return self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.programmingLanguage)
+        proglang = list(self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.programmingLanguage))
+        if len(proglang) == 0:
+            return None
+        if len(proglang) > 1:
+            warnings.warn('There is more than one programming language associated with the code '
+                          'for this FairStep in its RDF description: {proglang}. Returning only '
+                          'the first in list.')
+        return str(proglang[0])
 
     @programming_language.setter
     def programming_language(self, value: str):

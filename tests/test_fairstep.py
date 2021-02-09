@@ -1,3 +1,4 @@
+import sys
 from typing import Tuple
 from unittest.mock import patch
 
@@ -272,6 +273,13 @@ def test_decorator_semantic_types():
             break
     else:
         raise
+
+    assert test_step._fairstep.programming_language is not None
+    assert isinstance(test_step._fairstep.programming_language, str)
+    assert 'python' in test_step._fairstep.programming_language
+    assert test_step._fairstep.code is not None
+    assert isinstance(test_step._fairstep.code, str)
+
 
 def test_decorator_semantic_types_multiple_outputs():
     output_tuple = ('http://www.example.org/walrus', 'http://www.example.org/krill')
