@@ -85,9 +85,15 @@ class FairStep(RdfWrapper):
 
     def __init__(self, label: str = None, description: str = None, uri=None,
                  is_pplan_step: bool = True, is_manual_task: bool = None,
-                 is_script_task: bool = None, inputs: List[FairVariable] = None,
+                 is_script_task: bool = None, code: str = None,
+                 programming_language: Union[str, rdflib.URIRef] = None,
+                 inputs: List[FairVariable] = None,
                  outputs: List[FairVariable] = None, derived_from=None):
         super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
+
+        # The reference blank node to use for assigning code, programming language etc for the step
+        self.code_ref = rdflib.term.BNode('code')
+
         if label is not None:
             self.label = label
         if description is not None:
@@ -100,6 +106,10 @@ class FairStep(RdfWrapper):
             self.is_manual_task = is_manual_task
         if is_script_task is not None:
             self.is_script_task = is_script_task
+        if code is not None:
+            self.code = code
+        if programming_language is not None:
+            self.programming_language = programming_language
         if inputs is not None:
             self.inputs = inputs
         if outputs is not None:
@@ -226,6 +236,28 @@ class FairStep(RdfWrapper):
             self.is_manual_task = False  # manual and script are mutually exclusive
         else:
             self.remove_attribute(RDF.type, object=namespaces.BPMN.ScriptTask)
+
+    @property
+    def code(self):
+        """Returns the code text associated with this FairStep, or None if there isn't any."""
+        return self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.text)
+
+    @code.setter
+    def code(self, value: str):
+        """Sets the code text associated with this FairStep"""
+        self.set_attribute(namespaces.SCHEMAORG.SoftwareSourceCode, self.code_ref, overwrite=False)
+        self._rdf.add((self.code_ref, namespaces.SCHEMAORG.text, rdflib.Literal(value)))
+
+    @property
+    def programming_language(self):
+        """Returns the programming language for this fairstep's code (either a string, or URI)"""
+        return self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.text)
+
+    @programming_language.setter
+    def programming_language(self, value: Union[str, rdflib.URIRef]):
+        """Sets the programming language for this fairstep's code (either a string, or URI)"""
+        self.set_attribute(namespaces.SCHEMAORG.SoftwareSourceCode, self.code_ref, overwrite=False)
+        self._rdf.add((self.code_ref, namespaces.SCHEMAORG.programmingLanguage, value))
 
     def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""
@@ -450,10 +482,11 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         Returns this function decorated with the noodles schedule decorator.
         """
         # Description of step is the raw function code
-        description = inspect.getsource(func)
+        description = inspect.getdoc(func)
+        code = inspect.getsource(func)
+        proglang = rdflib.URIRef('https://en.wikipedia.org/wiki/Python_(programming_language)')
         inputs = _extract_inputs_from_function(func, kwargs)
         outputs = _extract_outputs_from_function(func, kwargs)
-
 
         func._fairstep = FairStep(uri='http://www.example.org/unpublished-'+func.__name__,
                                   label=label,
@@ -461,6 +494,8 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                                   is_pplan_step=is_pplan_step,
                                   is_manual_task=is_manual_task,
                                   is_script_task=is_script_task,
+                                  code=code,
+                                  programming_language=proglang,
                                   inputs=inputs,
                                   outputs=outputs)
 
