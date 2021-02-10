@@ -92,11 +92,6 @@ class FairStep(RdfWrapper):
                  outputs: List[FairVariable] = None, derived_from=None):
         super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
 
-        # A blank node to which triples about the linguistic
-        # system for this FAIR object can be added
-        self.lingsys_ref = rdflib.BNode('LinguisticSystem')
-        self._rdf.add((self.self_ref, DCTERMS.language, self.lingsys_ref))
-
         if label is not None:
             self.label = label
         if description is not None:
@@ -237,26 +232,6 @@ class FairStep(RdfWrapper):
             self.is_manual_task = False  # manual and script are mutually exclusive
         else:
             self.remove_attribute(RDF.type, object=namespaces.BPMN.ScriptTask)
-
-    @property
-    def language(self):
-        """Returns the language for this fairstep's description (could be code).
-           Returns a LinguisticSystem object.
-        """
-        lingsys_rdf = rdflib.Graph()
-        for t in self._rdf.triples((self.lingsys_ref, None, None)):
-            lingsys_rdf.add(t)
-        return LinguisticSystem.from_rdf(lingsys_rdf)
-
-    @language.setter
-    def language(self, value: LinguisticSystem):
-        """Sets the language for this fairstep's code (takes a LinguisticSystem).
-           Removes the existing linguistic system triples from the RDF decription
-           and replaces them with the new linguistic system."""
-        lingsys_triples = list(self._rdf.triples( (self.lingsys_ref, None, None) ))
-        if len(lingsys_triples) > 0:
-            self._rdf.remove(lingsys_triples)
-        self._rdf += value.generate_rdf(self.lingsys_ref)
 
     def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""

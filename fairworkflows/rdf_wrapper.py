@@ -8,7 +8,7 @@ from rdflib import DCTERMS, OWL
 
 from nanopub import Publication, NanopubClient
 
-from fairworkflows import namespaces
+from fairworkflows import namespaces, LinguisticSystem
 from fairworkflows.config import PACKAGE_DIR
 
 PLEX_SHAPES_SHACL_FILEPATH = str(PACKAGE_DIR / 'resources' / 'plex-shapes.ttl')
@@ -22,6 +22,11 @@ class RdfWrapper:
         self._is_published = False
         self.derived_from = derived_from
         self._bind_namespaces()
+
+        # A blank node to which triples about the linguistic
+        # system for this FAIR object can be added
+        self.lingsys_ref = rdflib.BNode('LinguisticSystem')
+        self._rdf.add((self.self_ref, DCTERMS.language, self.lingsys_ref))
 
     def _bind_namespaces(self):
         """Bind namespaces used often in fair step and fair workflow.
@@ -114,6 +119,26 @@ class RdfWrapper:
         matching the `object` arg.
         """
         self._rdf.remove((self.self_ref, predicate, object))
+
+    @property
+    def language(self):
+        """Returns the language for this fairstep's description (could be code).
+           Returns a LinguisticSystem object.
+        """
+        lingsys_rdf = rdflib.Graph()
+        for t in self._rdf.triples((self.lingsys_ref, None, None)):
+            lingsys_rdf.add(t)
+        return LinguisticSystem.from_rdf(lingsys_rdf)
+
+    @language.setter
+    def language(self, value: LinguisticSystem):
+        """Sets the language for this fairstep's code (takes a LinguisticSystem).
+           Removes the existing linguistic system triples from the RDF decription
+           and replaces them with the new linguistic system."""
+        lingsys_triples = list(self._rdf.triples( (self.lingsys_ref, None, None) ))
+        if len(lingsys_triples) > 0:
+            self._rdf.remove(lingsys_triples)
+        self._rdf += value.generate_rdf(self.lingsys_ref)
 
     def shacl_validate(self):
         sg = rdflib.Graph()
