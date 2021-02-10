@@ -347,6 +347,7 @@ class TestFairWorkflow:
         fw = FairWorkflow.from_function(my_workflow)
 
         assert isinstance(fw, FairWorkflow)
+        assert len(fw._steps) == 4
 
         result, prov = fw.execute(1, 4, 3)
         assert result == -66
@@ -394,4 +395,4 @@ class TestFairWorkflow:
                 A simple workflow
                 """
                 return return_value(in1)
-        assert "The workflow does not return a 'promise'" in str(e.value)
+        assert "The workflow does not return a 'step_level_promise'" in str(e.value)
