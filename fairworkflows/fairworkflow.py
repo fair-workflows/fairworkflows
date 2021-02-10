@@ -414,7 +414,7 @@ class FairWorkflow(RdfWrapper):
 
     def _replace_input_arguments(self, promise: noodles.interface.PromisedObject, args, kwargs):
         """
-        Replace the input arguments of the step_level_promise so we can run the workflow with the right
+        Replace the input arguments of the promise so we can run the workflow with the right
         inputs. This goes into the guts of noodles, doing something noodles was not intended to be
         used for.
         TODO: find a better solution for this
@@ -543,7 +543,7 @@ def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
         workflow_level_promise = scheduled_workflow(*empty_args)
         step_level_promise = func(*empty_args)
         if not isinstance(step_level_promise, PromisedObject):
-            raise TypeError("The workflow does not return a 'step_level_promise'. Did you use the "
+            raise TypeError("The workflow does not return a 'promise'. Did you use the "
                             "is_fairstep decorator on all the steps?")
 
         # Description of workflow is the raw function code

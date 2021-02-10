@@ -395,4 +395,4 @@ class TestFairWorkflow:
                 A simple workflow
                 """
                 return return_value(in1)
-        assert "The workflow does not return a 'step_level_promise'" in str(e.value)
+        assert "The workflow does not return a 'promise'" in str(e.value)
