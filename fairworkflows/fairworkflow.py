@@ -519,10 +519,8 @@ def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
         num_params = len(inspect.signature(func).parameters)
         empty_args = ([inspect.Parameter.empty()] * num_params)
         workflow_level_promise = scheduled_workflow(*empty_args)
+        _validate_decorated_function(func, empty_args)
         step_level_promise = func(*empty_args)
-        if not isinstance(step_level_promise, PromisedObject):
-            raise TypeError("The workflow does not return a 'promise'. Did you use the "
-                            "is_fairstep decorator on all the steps?")
 
         # Description of workflow is the raw function code
         description = inspect.getsource(func)
@@ -531,3 +529,22 @@ def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
             is_pplan_plan=is_pplan_plan, derived_from=None)
         return workflow_level_promise
     return _modify_function
+
+
+def _validate_decorated_function(func, empty_args):
+    """
+    Validate that a function decorated with is_fairworkflow actually consists of steps that are
+    decorated with is_fairstep. Call the function using empty arguments to test. NB: This won't
+    catch all edgecases of users misusing the is_fairworkflow decorator, but at least will
+    provide more useful error messages in frequently occurring cases.
+    """
+    try:
+        result = func(*empty_args)
+    except TypeError as e:
+        raise TypeError("Marking the function as workflow with `is_fairworkflow` decorator "
+                        "failed. "
+                        "Did you use the is_fairstep decorator on all the steps? "
+                        f"Detailed error message: {e}")
+    if not isinstance(result, PromisedObject):
+        raise TypeError("The workflow does not return a 'promise'. Did you use the "
+                        "is_fairstep decorator on all the steps?")
