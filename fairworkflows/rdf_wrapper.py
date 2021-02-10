@@ -4,6 +4,7 @@ from urllib.parse import urldefrag
 
 import pyshacl
 import rdflib
+from rdflib import DCTERMS, OWL
 
 from nanopub import Publication, NanopubClient
 
@@ -33,6 +34,8 @@ class RdfWrapper:
         self.rdf.bind("bpmn", namespaces.BPMN)
         self.rdf.bind("pwo", namespaces.PWO)
         self.rdf.bind("schema", namespaces.SCHEMAORG)
+        self.rdf.bind("dc", DCTERMS)
+        self.rdf.bind("owl", OWL)
 
     @property
     def rdf(self) -> rdflib.Graph:
