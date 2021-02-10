@@ -10,7 +10,7 @@ from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairStep, namespaces, FairVariable, is_fairworkflow
 from fairworkflows.fairstep import _extract_outputs_from_function, is_fairstep
 from fairworkflows.rdf_wrapper import replace_in_rdf
-
+from fairworkflows import LinguisticSystem
 
 def test_construct_fair_variable_get_name_from_uri():
     variable = FairVariable(name=None, uri='http:example.org#input1', computational_type='int')
@@ -274,11 +274,9 @@ def test_decorator_semantic_types():
     else:
         raise
 
-    assert test_step._fairstep.programming_language is not None
-    assert isinstance(test_step._fairstep.programming_language, str)
-    assert 'python' in test_step._fairstep.programming_language
-    assert test_step._fairstep.code is not None
-    assert isinstance(test_step._fairstep.code, str)
+    assert test_step._fairstep.language is not None
+    assert isinstance(test_step._fairstep.language, LinguisticSystem)
+    assert 'python' in test_step._fairstep.language.label
 
 
 def test_decorator_semantic_types_multiple_outputs():
