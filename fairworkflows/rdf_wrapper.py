@@ -1,10 +1,13 @@
 import warnings
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import List
 from urllib.parse import urldefrag
 
 import pyshacl
 import rdflib
 from nanopub import Publication, NanopubClient
+from rdflib.tools.rdf2dot import rdf2dot
 
 from fairworkflows import namespaces
 from fairworkflows.config import PACKAGE_DIR
@@ -244,6 +247,30 @@ class RdfWrapper:
         self._is_modified = False
 
         return publication_info
+
+    @staticmethod
+    def _import_graphviz():
+        """Import graphviz.
+
+        Raises:
+             ImportError with appropriate message if import failed
+        """
+        try:
+            import graphviz
+            return graphviz
+        except ImportError:
+            raise ImportError('Cannot produce visualization of RDF, you need '
+                              'to install graphviz python package. '
+                              'Version 0.14.1 is known to work well.')
+
+    def display_rdf(self):
+        graphviz = self._import_graphviz()
+
+        with TemporaryDirectory() as td:
+            filename = Path(td) / 'dag.dot'
+            with open(filename, 'w') as f:
+                rdf2dot(self._rdf, f)
+            return graphviz.Source.from_file(filename)
 
 
 def replace_in_rdf(rdf: rdflib.Graph, oldvalue, newvalue):

@@ -349,21 +349,6 @@ class FairWorkflow(RdfWrapper):
         if shacl:
             self.shacl_validate()
 
-    @staticmethod
-    def _import_graphviz():
-        """Import graphviz.
-
-        Raises:
-             ImportError with appropriate message if import failed
-        """
-        try:
-            import graphviz
-            return graphviz
-        except ImportError:
-            raise ImportError('Cannot produce visualization of RDF, you need '
-                              'to install graphviz python package. '
-                              'Version 0.14.1 is known to work well.')
-
     def _get_workflow_graph(self, promise):
         """Get a graph of a promise."""
         workflow = noodles.get_workflow(promise)
@@ -392,15 +377,6 @@ class FairWorkflow(RdfWrapper):
             with open(filename, 'bw') as file:
                 file.write(dot.pipe(format='svg'))
             display(SVG(filename=filename))
-
-    def display_full_rdf(self):
-        graphviz = self._import_graphviz()
-
-        with TemporaryDirectory() as td:
-            filename = Path(td) / 'dag.dot'
-            with open(filename, 'w') as f:
-                rdf2dot(self._rdf, f)
-            return graphviz.Source.from_file(filename)
 
     def execute(self, *args, **kwargs):
         """

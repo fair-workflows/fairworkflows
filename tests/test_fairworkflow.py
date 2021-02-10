@@ -251,17 +251,17 @@ class TestFairWorkflow:
         test_workflow.draw(filepath=str(tmp_path))
 
     @mock.patch.dict('sys.modules', {'graphviz': None})
-    def test_display_without_graphviz_module(self, test_workflow):
-        """Test display method without graphviz python module installed."""
+    def test_display_rdf_without_graphviz_module(self, test_workflow):
+        """Test display_rdf method without graphviz python module installed."""
         with pytest.raises(ImportError):
-            test_workflow.display(full_rdf=True)
+            test_workflow.display_rdf()
 
-    def test_display_with_graphviz_module_and_dependency(self, test_workflow):
+    def test_display_rdf_with_graphviz_module_and_dependency(self, test_workflow):
         """
-        Test display method with graphviz python module and graphviz software
+        Test display_rdf method with graphviz python module and graphviz software
         installed
         """
-        test_workflow.display(full_rdf=True)
+        test_workflow.display_rdf()
 
     @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
     def test_publish_as_nanopub(self, mock_publish, test_workflow):
