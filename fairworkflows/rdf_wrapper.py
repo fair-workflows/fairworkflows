@@ -4,13 +4,13 @@ from urllib.parse import urldefrag
 
 import pyshacl
 import rdflib
+
 from nanopub import Publication, NanopubClient
 
 from fairworkflows import namespaces
 from fairworkflows.config import PACKAGE_DIR
 
 PLEX_SHAPES_SHACL_FILEPATH = str(PACKAGE_DIR / 'resources' / 'plex-shapes.ttl')
-
 
 class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject', derived_from: List[str] = None):

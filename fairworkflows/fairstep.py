@@ -1,6 +1,5 @@
 import sys
 import inspect
-import warnings
 import typing
 from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
@@ -10,7 +9,7 @@ import noodles
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 
-from fairworkflows import namespaces
+from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
 from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
@@ -87,14 +86,16 @@ class FairStep(RdfWrapper):
 
     def __init__(self, label: str = None, description: str = None, uri=None,
                  is_pplan_step: bool = True, is_manual_task: bool = None,
-                 is_script_task: bool = None, code: str = None,
-                 programming_language: str = None,
+                 is_script_task: bool = None,
+                 language: LinguisticSystem = LINGSYS_ENGLISH,
                  inputs: List[FairVariable] = None,
                  outputs: List[FairVariable] = None, derived_from=None):
         super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
 
-        # The reference blank node to use for assigning code, programming language etc for the step
-        self.code_ref = rdflib.term.BNode('code')
+        # A blank node to which triples about the linguistic
+        # system for this FAIR object can be added
+        self.lingsys_ref = rdflib.BNode('LinguisticSystem')
+        self._rdf.add((self.self_ref, DCTERMS.language, self.lingsys_ref))
 
         if label is not None:
             self.label = label
@@ -108,10 +109,8 @@ class FairStep(RdfWrapper):
             self.is_manual_task = is_manual_task
         if is_script_task is not None:
             self.is_script_task = is_script_task
-        if code is not None:
-            self.code = code
-        if programming_language is not None:
-            self.programming_language = programming_language
+        if language is not None:
+            self.language = language
         if inputs is not None:
             self.inputs = inputs
         if outputs is not None:
@@ -240,40 +239,24 @@ class FairStep(RdfWrapper):
             self.remove_attribute(RDF.type, object=namespaces.BPMN.ScriptTask)
 
     @property
-    def code(self):
-        """Returns the code text associated with this FairStep, or None if there isn't any."""
-        stepcode = list(self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.text))
-        if len(stepcode) == 0:
-            return None
-        if len(stepcode) > 1:
-            warnings.warn('There is more than one code text associated with '
-                          'this FairStep in its RDF description: {stepcode}. '
-                          'Returning only the first in list.')
-        return str(stepcode[0])
+    def language(self):
+        """Returns the language for this fairstep's description (could be code).
+           Returns a LinguisticSystem object.
+        """
+        lingsys_rdf = rdflib.Graph()
+        for t in self._rdf.triples((self.lingsys_ref, None, None)):
+            lingsys_rdf.add(t)
+        return LinguisticSystem.from_rdf(lingsys_rdf)
 
-    @code.setter
-    def code(self, value: str):
-        """Sets the code text associated with this FairStep"""
-        self.set_attribute(namespaces.SCHEMAORG.SoftwareSourceCode, self.code_ref, overwrite=False)
-        self._rdf.add((self.code_ref, namespaces.SCHEMAORG.text, rdflib.Literal(value)))
-
-    @property
-    def programming_language(self):
-        """Returns the programming language for this fairstep's code (either a string, or URI)"""
-        proglang = list(self._rdf.objects(self.code_ref, namespaces.SCHEMAORG.programmingLanguage))
-        if len(proglang) == 0:
-            return None
-        if len(proglang) > 1:
-            warnings.warn('There is more than one programming language associated with the code '
-                          'for this FairStep in its RDF description: {proglang}. Returning only '
-                          'the first in list.')
-        return str(proglang[0])
-
-    @programming_language.setter
-    def programming_language(self, value: str):
-        """Sets the programming language for this fairstep's code (takes a string)"""
-        self.set_attribute(namespaces.SCHEMAORG.SoftwareSourceCode, self.code_ref, overwrite=False)
-        self._rdf.add((self.code_ref, namespaces.SCHEMAORG.programmingLanguage, rdflib.Literal(value)))
+    @language.setter
+    def language(self, value: LinguisticSystem):
+        """Sets the language for this fairstep's code (takes a LinguisticSystem).
+           Removes the existing linguistic system triples from the RDF decription
+           and replaces them with the new linguistic system."""
+        lingsys_triples = list(self._rdf.triples( (self.lingsys_ref, None, None) ))
+        if len(lingsys_triples) > 0:
+            self._rdf.remove(lingsys_triples)
+        self._rdf += value.generate_rdf(self.lingsys_ref)
 
     def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""
@@ -498,10 +481,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         Returns this function decorated with the noodles schedule decorator.
         """
         # Description of step is the raw function code
-        description = inspect.getdoc(func)
-        code = inspect.getsource(func)
-        sv = sys.version_info
-        proglangtxt = f'python {sv.major}.{sv.minor}.{sv.micro}'
+        description = inspect.getsource(func)
         inputs = _extract_inputs_from_function(func, kwargs)
         outputs = _extract_outputs_from_function(func, kwargs)
 
@@ -511,8 +491,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                                   is_pplan_step=is_pplan_step,
                                   is_manual_task=is_manual_task,
                                   is_script_task=is_script_task,
-                                  code=code,
-                                  programming_language=proglangtxt,
+                                  language=LINGSYS_PYTHON,
                                   inputs=inputs,
                                   outputs=outputs)
 
