@@ -16,7 +16,7 @@ from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
-from fairworkflows import namespaces
+from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
 from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper
 
@@ -32,6 +32,7 @@ class FairWorkflow(RdfWrapper):
     """
 
     def __init__(self, description: str = None, label: str = None, uri=None,
+                 language: LinguisticSystem = None,
                  is_pplan_plan: bool = True, first_step: FairStep = None, derived_from=None):
         super().__init__(uri=uri, ref_name='plan', derived_from=derived_from)
         self._is_published = False
@@ -40,6 +41,8 @@ class FairWorkflow(RdfWrapper):
             self.description = description
         if label is not None:
             self.label = label
+        if language is not None:
+            self.language = language
         self._steps = {}
         self._last_step_added = None
         if first_step is not None:
@@ -87,7 +90,8 @@ class FairWorkflow(RdfWrapper):
     @classmethod
     def from_noodles_promise(cls, noodles_promise, description: str = None, label: str = None,
                  is_pplan_plan: bool = True, derived_from=None):
-        self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
+        self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan,
+                   derived_from=derived_from, language=LINGSYS_PYTHON)
         self.noodles_promise = noodles_promise
 
         workflow = noodles.get_workflow(self.noodles_promise)
