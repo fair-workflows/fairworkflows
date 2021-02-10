@@ -98,7 +98,6 @@ class FairWorkflow(RdfWrapper):
         """
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
         self.workflow_level_promise = workflow_level_promise
-        self.step_level_promise = step_level_promise
 
         workflow = noodles.get_workflow(step_level_promise)
 
@@ -371,7 +370,7 @@ class FairWorkflow(RdfWrapper):
             return self.display_full_rdf()
         else:
             if not hasattr(self, 'workflow_level_promise'):
-                raise ValueError('Cannot display workflow as no noodles promise has been constructed.')
+                raise ValueError('Cannot display workflow as no noodles step_level_promise has been constructed.')
             import noodles.tutorial
             noodles.tutorial.display_workflows(prefix='control', workflow=self.workflow_level_promise)
 
