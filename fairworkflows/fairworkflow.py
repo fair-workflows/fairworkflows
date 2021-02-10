@@ -98,6 +98,7 @@ class FairWorkflow(RdfWrapper):
         """
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
         self.workflow_level_promise = workflow_level_promise
+        self.step_level_promise = step_level_promise
 
         workflow = noodles.get_workflow(step_level_promise)
 
@@ -369,10 +370,10 @@ class FairWorkflow(RdfWrapper):
         if full_rdf:
             return self.display_full_rdf()
         else:
-            if not hasattr(self, 'workflow_level_promise'):
+            if not hasattr(self, 'step_level_promise'):
                 raise ValueError('Cannot display workflow as no noodles step_level_promise has been constructed.')
             import noodles.tutorial
-            noodles.tutorial.display_workflows(prefix='control', workflow=self.workflow_level_promise)
+            noodles.tutorial.display_workflows(prefix='control', workflow=self.step_level_promise)
 
     def display_full_rdf(self):
         graphviz = self._import_graphviz()
@@ -404,36 +405,14 @@ class FairWorkflow(RdfWrapper):
         logger = logging.getLogger('noodles')
         logger.setLevel(logging.INFO)
         logger.handlers = [log_handler]
-        self.workflow_level_promise = self._replace_input_arguments(self.workflow_level_promise, args, kwargs)
+        self.workflow_level_promise = noodles.workflow.from_call(
+            noodles.get_workflow(self.workflow_level_promise).root_node.foo, args, kwargs, {})
         result = noodles.run_single(self.workflow_level_promise)
 
         # Generate the retrospective provenance as a (nano-) Publication object
         retroprov = self._generate_retrospective_prov_publication(log.getvalue())
 
         return result, retroprov
-
-    def _replace_input_arguments(self, promise: noodles.interface.PromisedObject, args, kwargs):
-        """
-        Replace the input arguments of the promise so we can run the workflow with the right
-        inputs. This goes into the guts of noodles, doing something noodles was not intended to be
-        used for.
-        TODO: find a better solution for this
-        """
-        workflow = noodles.get_workflow(promise)
-        signature = inspect.signature(workflow.root_node.foo)
-        arguments_dict = self._get_arguments_dict(args, kwargs, signature)
-        workflow.root_node.bound_args = inspect.BoundArguments(signature, arguments_dict)
-        return promise
-
-    @staticmethod
-    def _get_arguments_dict(args, kwargs, signature):
-        """
-        Create dictionary of keyword arguments from positional and keyword arguments and the
-        signature of the function.
-        """
-        arguments_dict = {key: arg for arg, key in zip(args, signature.parameters.keys())}
-        arguments_dict.update(kwargs)
-        return arguments_dict
 
     def _generate_retrospective_prov_publication(self, log:str) -> nanopub.Publication:
         """
