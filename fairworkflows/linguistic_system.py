@@ -35,6 +35,20 @@ class LinguisticSystem:
             rdf.add( (ref, OWL.versionInfo, self.versionInfo) )
         return rdf
 
+    def __str__(self):
+        return (f'LinguisticSystem with type={self.lstype}, label={self.label}, '
+                f'seeAlso={self.seeAlso}, versionInfo={self.versionInfo}')
+
+
+def _check_unique(l: List):
+    if len(l) == 0:
+        return None
+    if len(l) > 1:
+        warnings.warn(f'Only one triple expected, but found {len(l)}: {l}')
+    return l[0]
+
+
+
 LINGSYS_ENGLISH = LinguisticSystem(lstype=DC.LinguisticSystem,
                                    label='en',
                                    seeAlso="http://www.datypic.com/sc/xsd/t-xsd_language.html")
@@ -44,9 +58,3 @@ LINGSYS_PYTHON = LinguisticSystem(lstype=SCHEMAORG.ComputerLanguage,
                                   versionInfo='.'.join([str(v) for v in sys.version_info]),
                                   seeAlso="https://en.wikipedia.org/wiki/Python_(programming_language)")
 
-def _check_unique(l: List):
-    if len(l) == 0:
-        return None
-    if len(l) > 1:
-        warnings.warn(f'Only one triple expected, but found {len(l)}: {l}')
-    return l[0]
