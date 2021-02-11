@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pytest
 import rdflib
+from rdflib import DCTERMS, OWL, RDF
 from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
@@ -276,6 +277,9 @@ def test_decorator_semantic_types():
 
     assert test_step._fairstep.language is not None
     assert isinstance(test_step._fairstep.language, LinguisticSystem)
+    assert (None, RDF.type, namespaces.SCHEMAORG.ComputerLanguage) in test_step._fairstep._rdf
+    assert (None, DCTERMS.language, None) in test_step._fairstep._rdf
+    assert (None, OWL.versionInfo, None) in test_step._fairstep._rdf
     assert 'python' in test_step._fairstep.language.label
 
 
