@@ -291,39 +291,6 @@ class FairStep(RdfWrapper):
         for variable in variables:
             self._add_variable(variable, namespaces.PPLAN.hasOutputVar)
 
-    @property
-    def label(self):
-        """Label.
-
-        Returns the rdfs:label of this step (or a list, if more than one matching triple is found)
-        """
-        return self.get_attribute(RDFS.label)
-
-    @label.setter
-    def label(self, value):
-        """
-        Adds the given text string as an rdfs:label for this FairStep
-        object.
-        """
-        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
-
-    @property
-    def description(self):
-        """Description.
-
-        Returns the dcterms:description of this step (or a list, if more than
-        one matching triple is found)
-        """
-        return self.get_attribute(DCTERMS.description)
-
-    @description.setter
-    def description(self, value):
-        """
-        Adds the given text string as a dcterms:description for this FairStep
-        object.
-        """
-        self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
-
     def validate(self, shacl=False):
         """Validate step.
 

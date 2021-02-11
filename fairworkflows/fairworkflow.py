@@ -282,35 +282,6 @@ class FairWorkflow(RdfWrapper):
         """
         return self._steps[uri]
 
-    @property
-    def label(self):
-        """Label.
-
-        Returns the rdfs:label of this workflow (or a list, if more than one matching triple is found)
-        """
-        return self.get_attribute(RDFS.label)
-
-    @label.setter
-    def label(self, value):
-        """
-        Adds the given text string as an rdfs:label for this FairWorkflow
-        object.
-        """
-        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
-
-    @property
-    def description(self):
-        """
-        Description of the workflow. This is the dcterms:description found in
-        the rdf for this workflow (or a list if more than one matching triple
-        found)
-        """
-        return self.get_attribute(DCTERMS.description)
-
-    @description.setter
-    def description(self, value):
-        self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
-
     def validate(self, shacl=False):
         """Validate workflow.
 

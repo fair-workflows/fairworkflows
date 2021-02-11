@@ -4,8 +4,7 @@ from urllib.parse import urldefrag
 
 import pyshacl
 import rdflib
-from rdflib import DCTERMS, OWL
-
+from rdflib import RDF, RDFS, DCTERMS, OWL
 from nanopub import Publication, NanopubClient
 
 from fairworkflows import namespaces, LinguisticSystem
@@ -126,8 +125,39 @@ class RdfWrapper:
         self._rdf.remove((self.self_ref, predicate, object))
 
     @property
+    def label(self):
+        """Label.
+
+        Returns the rdfs:label of this Fair object (or a list, if more than one matching triple is found)
+        """
+        return self.get_attribute(RDFS.label)
+
+    @label.setter
+    def label(self, value):
+        """
+        Adds the given text string as an rdfs:label for this Fair object.
+        """
+        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
+
+    @property
+    def description(self):
+        """Description.
+
+        Returns the dcterms:description of this Fair object (or a list, if more than
+        one matching triple is found)
+        """
+        return self.get_attribute(DCTERMS.description)
+
+    @description.setter
+    def description(self, value):
+        """
+        Adds the given text string as a dcterms:description for this Fair object.
+        """
+        self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
+
+    @property
     def language(self):
-        """Returns the language for this fairstep's description (could be code).
+        """Returns the language for this fair objects's description (could be code).
            Returns a LinguisticSystem object.
         """
         lingsys_rdf = rdflib.Graph()
@@ -137,7 +167,7 @@ class RdfWrapper:
 
     @language.setter
     def language(self, value: LinguisticSystem):
-        """Sets the language for this fairstep's code (takes a LinguisticSystem).
+        """Sets the language for this fair object's code (takes a LinguisticSystem).
            Removes the existing linguistic system triples from the RDF decription
            and replaces them with the new linguistic system."""
         lingsys_triples = list(self._rdf.triples( (self.lingsys_ref, None, None) ))
