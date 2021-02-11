@@ -1,3 +1,4 @@
+import sys
 import inspect
 import typing
 from copy import deepcopy
@@ -8,7 +9,7 @@ import noodles
 import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 
-from fairworkflows import namespaces
+from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
 from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME, \
     LOGGER
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
@@ -87,9 +88,12 @@ class FairStep(RdfWrapper):
 
     def __init__(self, label: str = None, description: str = None, uri=None,
                  is_pplan_step: bool = True, is_manual_task: bool = None,
-                 is_script_task: bool = None, inputs: List[FairVariable] = None,
+                 is_script_task: bool = None,
+                 language: LinguisticSystem = LINGSYS_ENGLISH,
+                 inputs: List[FairVariable] = None,
                  outputs: List[FairVariable] = None, derived_from=None):
-        super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
+        super().__init__(uri=uri, ref_name='step', derived_from=derived_from, language=language)
+
         if label is not None:
             self.label = label
         if description is not None:
@@ -289,39 +293,6 @@ class FairStep(RdfWrapper):
         for variable in variables:
             self._add_variable(variable, namespaces.PPLAN.hasOutputVar)
 
-    @property
-    def label(self):
-        """Label.
-
-        Returns the rdfs:label of this step (or a list, if more than one matching triple is found)
-        """
-        return self.get_attribute(RDFS.label)
-
-    @label.setter
-    def label(self, value):
-        """
-        Adds the given text string as an rdfs:label for this FairStep
-        object.
-        """
-        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
-
-    @property
-    def description(self):
-        """Description.
-
-        Returns the dcterms:description of this step (or a list, if more than
-        one matching triple is found)
-        """
-        return self.get_attribute(DCTERMS.description)
-
-    @description.setter
-    def description(self, value):
-        """
-        Adds the given text string as a dcterms:description for this FairStep
-        object.
-        """
-        self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
-
     def validate(self, shacl=False):
         """Validate step.
 
@@ -462,6 +433,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                             is_pplan_step=is_pplan_step,
                             is_manual_task=is_manual_task,
                             is_script_task=is_script_task,
+                            language=LINGSYS_PYTHON,
                             inputs=inputs,
                             outputs=outputs)
 
