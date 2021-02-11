@@ -86,8 +86,10 @@ class FairWorkflow(RdfWrapper):
                              'use is_fairworkflow decorator to mark it.')
 
     @classmethod
-    def from_noodles_promise(cls, workflow_level_promise, step_level_promise, description: str = None, label: str =
-                             None, is_pplan_plan: bool = True, derived_from=None):
+    def from_noodles_promise(cls, workflow_level_promise: PromisedObject,
+                             step_level_promise: PromisedObject,
+                             description: str = None, label: str= None,
+                             is_pplan_plan: bool = True, derived_from=None):
         """
 
         Args:
