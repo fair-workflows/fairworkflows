@@ -11,13 +11,13 @@ import nanopub
 import networkx as nx
 import noodles
 import rdflib
-from noodles.display import NCDisplay
 from noodles.interface import PromisedObject
 from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
 from fairworkflows import namespaces
+from fairworkflows.config import LOGGER
 from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper
 
@@ -397,12 +397,10 @@ class FairWorkflow(RdfWrapper):
         formatter = logging.Formatter('%(asctime)s - %(message)s')
         log_handler.setFormatter(formatter)
 
-        logger = logging.getLogger('noodles')
-        logger.setLevel(logging.INFO)
-        logger.handlers = [log_handler]
+        LOGGER.setLevel(logging.INFO)
+        LOGGER.handlers = [log_handler]
         self.noodles_promise = self._replace_input_arguments(self.noodles_promise, args, kwargs)
-        with NCDisplay() as display:
-            result = noodles.run_logging(self.noodles_promise, 1, display)
+        result = noodles.run_single(self.noodles_promise)
 
         # Generate the retrospective provenance as a (nano-) Publication object
         retroprov = self._generate_retrospective_prov_publication(log.getvalue())

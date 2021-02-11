@@ -9,8 +9,10 @@ import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 
 from fairworkflows import namespaces
-from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME
+from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME, \
+    LOGGER
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
+
 
 class FairVariable:
     """Represents a variable.
@@ -464,7 +466,13 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                                   inputs=inputs,
                                   outputs=outputs)
 
-        return noodles.schedule(func, display=f'Running step: {func.__name__}')
+        def _add_logging(func):
+            def _wrapper(*func_args, **func_kwargs):
+                LOGGER.info(f'Running step: {func.__name__}')
+                return func(*func_args, **func_kwargs)
+            return _wrapper
+
+        return noodles.schedule(_add_logging(func))
 
     return _modify_function
 
