@@ -1,15 +1,17 @@
+import sys
 from typing import Tuple
 from unittest.mock import patch
 
 import pytest
 import rdflib
+from rdflib import DCTERMS, OWL, RDF
 from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairStep, namespaces, FairVariable, is_fairworkflow
 from fairworkflows.fairstep import _extract_outputs_from_function, is_fairstep
 from fairworkflows.rdf_wrapper import replace_in_rdf
-
+from fairworkflows import LinguisticSystem
 
 def test_construct_fair_variable_get_name_from_uri():
     variable = FairVariable(name=None, uri='http:example.org#input1', computational_type='int')
@@ -272,6 +274,14 @@ def test_decorator_semantic_types():
             break
     else:
         raise
+
+    assert test_step._fairstep.language is not None
+    assert isinstance(test_step._fairstep.language, LinguisticSystem)
+    assert (None, RDF.type, namespaces.SCHEMAORG.ComputerLanguage) in test_step._fairstep._rdf
+    assert (None, DCTERMS.language, None) in test_step._fairstep._rdf
+    assert (None, OWL.versionInfo, None) in test_step._fairstep._rdf
+    assert 'python' in test_step._fairstep.language.label
+
 
 def test_decorator_semantic_types_multiple_outputs():
     output_tuple = ('http://www.example.org/walrus', 'http://www.example.org/krill')
