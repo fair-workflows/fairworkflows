@@ -34,15 +34,13 @@ class FairWorkflow(RdfWrapper):
     def __init__(self, description: str = None, label: str = None, uri=None,
                  language: LinguisticSystem = None,
                  is_pplan_plan: bool = True, first_step: FairStep = None, derived_from=None):
-        super().__init__(uri=uri, ref_name='plan', derived_from=derived_from)
+        super().__init__(uri=uri, ref_name='plan', derived_from=derived_from, language=language)
         self._is_published = False
         self.is_pplan_plan = is_pplan_plan
         if description is not None:
             self.description = description
         if label is not None:
             self.label = label
-        if language is not None:
-            self.language = language
         self._steps = {}
         self._last_step_added = None
         if first_step is not None:

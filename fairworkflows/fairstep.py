@@ -90,7 +90,7 @@ class FairStep(RdfWrapper):
                  language: LinguisticSystem = LINGSYS_ENGLISH,
                  inputs: List[FairVariable] = None,
                  outputs: List[FairVariable] = None, derived_from=None):
-        super().__init__(uri=uri, ref_name='step', derived_from=derived_from)
+        super().__init__(uri=uri, ref_name='step', derived_from=derived_from, language=language)
 
         if label is not None:
             self.label = label
@@ -104,8 +104,6 @@ class FairStep(RdfWrapper):
             self.is_manual_task = is_manual_task
         if is_script_task is not None:
             self.is_script_task = is_script_task
-        if language is not None:
-            self.language = language
         if inputs is not None:
             self.inputs = inputs
         if outputs is not None:

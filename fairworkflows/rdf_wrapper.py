@@ -14,19 +14,24 @@ from fairworkflows.config import PACKAGE_DIR
 PLEX_SHAPES_SHACL_FILEPATH = str(PACKAGE_DIR / 'resources' / 'plex-shapes.ttl')
 
 class RdfWrapper:
-    def __init__(self, uri, ref_name='fairobject', derived_from: List[str] = None):
+    def __init__(self, uri, ref_name='fairobject', derived_from: List[str] = None,
+                 language: LinguisticSystem = None ):
         self._rdf = rdflib.Graph()
         self._uri = str(uri)
         self.self_ref = rdflib.term.BNode(ref_name)
         self._is_modified = False
         self._is_published = False
         self.derived_from = derived_from
+
         self._bind_namespaces()
 
         # A blank node to which triples about the linguistic
         # system for this FAIR object can be added
         self.lingsys_ref = rdflib.BNode('LinguisticSystem')
         self._rdf.add((self.self_ref, DCTERMS.language, self.lingsys_ref))
+
+        if language is not None:
+            self.language = language
 
     def _bind_namespaces(self):
         """Bind namespaces used often in fair step and fair workflow.
