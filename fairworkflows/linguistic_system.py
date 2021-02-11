@@ -16,8 +16,8 @@ class LinguisticSystem:
     def from_rdf(cls, rdf):
         lstype = _check_unique(list(rdf.objects(None, RDF.type)))
         label = _check_unique(list(rdf.objects(None, RDFS.label)))
-        see_also = _check_unique(list(rdf.objects(None, RDFS.see_also)))
-        version_info = _check_unique(list(rdf.objects(None, OWL.version_info)))
+        see_also = _check_unique(list(rdf.objects(None, RDFS.seeAlso)))
+        version_info = _check_unique(list(rdf.objects(None, OWL.versionInfo)))
         return cls(lstype = lstype,
                    label=label,
                    see_also=see_also,
@@ -51,10 +51,10 @@ def _check_unique(l: List):
 
 LINGSYS_ENGLISH = LinguisticSystem(lstype=DC.LinguisticSystem,
                                    label='en',
-                                   seeAlso="http://www.datypic.com/sc/xsd/t-xsd_language.html")
+                                   see_also="http://www.datypic.com/sc/xsd/t-xsd_language.html")
 
 LINGSYS_PYTHON = LinguisticSystem(lstype=SCHEMAORG.ComputerLanguage,
                                   label='python',
-                                  versionInfo='.'.join([str(v) for v in sys.version_info]),
-                                  seeAlso="https://en.wikipedia.org/wiki/Python_(programming_language)")
+                                  version_info='.'.join([str(v) for v in sys.version_info]),
+                                  see_also="https://en.wikipedia.org/wiki/Python_(programming_language)")
 
