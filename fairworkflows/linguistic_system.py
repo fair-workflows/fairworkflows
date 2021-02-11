@@ -6,22 +6,22 @@ from rdflib import DC, RDF, RDFS, OWL
 from .namespaces import SCHEMAORG
 
 class LinguisticSystem:
-    def __init__(self, lstype: rdflib.URIRef = None, label: str = None, seeAlso: rdflib.URIRef = None, versionInfo: str = None):
+    def __init__(self, lstype: rdflib.URIRef = None, label: str = None, see_also: rdflib.URIRef = None, version_info: str = None):
         self.lstype = rdflib.URIRef(lstype)
         self.label = rdflib.Literal(label)
-        self.seeAlso = rdflib.URIRef(seeAlso)
-        self.versionInfo = rdflib.Literal(versionInfo)
+        self.see_also = rdflib.URIRef(see_also)
+        self.version_info = rdflib.Literal(version_info)
 
     @classmethod
     def from_rdf(cls, rdf):
         lstype = _check_unique(list(rdf.objects(None, RDF.type)))
         label = _check_unique(list(rdf.objects(None, RDFS.label)))
-        seeAlso = _check_unique(list(rdf.objects(None, RDFS.seeAlso)))
-        versionInfo = _check_unique(list(rdf.objects(None, OWL.versionInfo)))
+        see_also = _check_unique(list(rdf.objects(None, RDFS.see_also)))
+        version_info = _check_unique(list(rdf.objects(None, OWL.version_info)))
         return cls(lstype = lstype,
                    label=label,
-                   seeAlso=seeAlso,
-                   versionInfo=versionInfo)
+                   see_also=see_also,
+                   version_info=version_info)
 
     def generate_rdf(self, ref: rdflib.BNode):
         rdf = rdflib.Graph()
@@ -29,15 +29,15 @@ class LinguisticSystem:
             rdf.add( (ref, RDF.type, self.lstype) )
         if self.label:
             rdf.add( (ref, RDFS.label, self.label) )
-        if self.seeAlso:
-            rdf.add( (ref, RDFS.seeAlso, self.seeAlso) )
-        if self.versionInfo:
-            rdf.add( (ref, OWL.versionInfo, self.versionInfo) )
+        if self.see_also:
+            rdf.add( (ref, RDFS.seeAlso, self.see_also) )
+        if self.version_info:
+            rdf.add( (ref, OWL.versionInfo, self.version_info) )
         return rdf
 
     def __str__(self):
         return (f'LinguisticSystem with type={self.lstype}, label={self.label}, '
-                f'seeAlso={self.seeAlso}, versionInfo={self.versionInfo}')
+                f'seeAlso={self.see_also}, versionInfo={self.version_info}')
 
 
 def _check_unique(l: List):
