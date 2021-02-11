@@ -86,24 +86,29 @@ class FairWorkflow(RdfWrapper):
                              'use is_fairworkflow decorator to mark it.')
 
     @classmethod
-    def from_noodles_promise(cls, noodles_promise, description: str = None, label: str = None,
-                 is_pplan_plan: bool = True, derived_from=None):
+    def from_noodles_promise(cls, workflow_level_promise, step_level_promise, description: str = None, label: str =
+                             None, is_pplan_plan: bool = True, derived_from=None):
+        """
+
+        Args:
+            workflow_level_promise: Noodles workflow_level_promise at the workflow function level.
+                This excludes the individual steps, but we need it to do proper execution.
+            step_level_promise: Promise at the steps level. This includes the individual steps as
+                nodes but does not bind them together. We use this to extract step information from
+                it.
+        """
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan,
                    derived_from=derived_from, language=LINGSYS_PYTHON)
-        self.noodles_promise = noodles_promise
+        self.workflow_level_promise = workflow_level_promise
 
-        workflow = noodles.get_workflow(self.noodles_promise)
+        workflow = noodles.get_workflow(step_level_promise)
 
-        # Exclude the root, because that is the workflow definition itself and not a step
-        steps_dict = {i: n.foo._fairstep for i, n in workflow.nodes.items() if i != workflow.root}
+        steps_dict = {i: n.foo._fairstep for i, n in workflow.nodes.items()}
 
         for i, step in steps_dict.items():
             self._add_step(step)
 
         for i in workflow.links:
-            # Exclude the root, because that is the workflow definition itself and not a step
-            if i == workflow.root:
-                continue
             current_step = steps_dict[i]
             from_uri = rdflib.URIRef(steps_dict[i].uri + '#' + current_step.outputs[0].name)
             for j in workflow.links[i]:
@@ -337,10 +342,10 @@ class FairWorkflow(RdfWrapper):
         if full_rdf:
             return self.display_full_rdf()
         else:
-            if not hasattr(self, 'noodles_promise'):
-                raise ValueError('Cannot display workflow as no noodles promise has been constructed.')
+            if not hasattr(self, 'workflow_level_promise'):
+                raise ValueError('Cannot display workflow as no noodles step_level_promise has been constructed.')
             import noodles.tutorial
-            noodles.tutorial.display_workflows(prefix='control', workflow=self.noodles_promise)
+            noodles.tutorial.display_workflows(prefix='control', workflow=self.workflow_level_promise)
 
     def display_full_rdf(self):
         graphviz = self._import_graphviz()
@@ -361,8 +366,8 @@ class FairWorkflow(RdfWrapper):
         workflow and retroprov is the retrospective provenance logged during execution.
         """
 
-        if not hasattr(self, 'noodles_promise'):
-            raise ValueError('Cannot execute workflow as no noodles promise has been constructed.')
+        if not hasattr(self, 'workflow_level_promise'):
+            raise ValueError('Cannot execute workflow as no noodles step_level_promise has been constructed.')
 
         log = io.StringIO()
         log_handler = logging.StreamHandler(log)
@@ -372,8 +377,8 @@ class FairWorkflow(RdfWrapper):
         logger = logging.getLogger('noodles')
         logger.setLevel(logging.INFO)
         logger.handlers = [log_handler]
-        self.noodles_promise = self._replace_input_arguments(self.noodles_promise, args, kwargs)
-        result = noodles.run_single(self.noodles_promise)
+        self.workflow_level_promise = self._replace_input_arguments(self.workflow_level_promise, args, kwargs)
+        result = noodles.run_single(self.workflow_level_promise)
 
         # Generate the retrospective provenance as a (nano-) Publication object
         retroprov = self._generate_retrospective_prov_publication(log.getvalue())
@@ -508,15 +513,16 @@ def is_fairworkflow(label: str = None, is_pplan_plan: bool = True):
         scheduled_workflow = noodles.schedule(func)
         num_params = len(inspect.signature(func).parameters)
         empty_args = ([inspect.Parameter.empty()] * num_params)
-        promise = scheduled_workflow(*empty_args)
+        workflow_level_promise = scheduled_workflow(*empty_args)
         _validate_decorated_function(func, empty_args)
+        step_level_promise = func(*empty_args)
 
         # Description of workflow is the raw function code
         description = inspect.getsource(func)
-        promise._fairworkflow = FairWorkflow.from_noodles_promise(
-            promise, description=description, label=label,
+        workflow_level_promise._fairworkflow = FairWorkflow.from_noodles_promise(
+            workflow_level_promise, step_level_promise, description=description, label=label,
             is_pplan_plan=is_pplan_plan, derived_from=None)
-        return promise
+        return workflow_level_promise
     return _modify_function
 
 

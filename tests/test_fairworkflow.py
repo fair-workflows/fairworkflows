@@ -347,6 +347,7 @@ class TestFairWorkflow:
         fw = FairWorkflow.from_function(my_workflow)
 
         assert isinstance(fw, FairWorkflow)
+        assert len(fw._steps) == 4
 
         result, prov = fw.execute(1, 4, 3)
         assert result == -66
