@@ -16,7 +16,7 @@ from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
-from fairworkflows import namespaces
+from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
 from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper
 
@@ -32,8 +32,9 @@ class FairWorkflow(RdfWrapper):
     """
 
     def __init__(self, description: str = None, label: str = None, uri=None,
+                 language: LinguisticSystem = None,
                  is_pplan_plan: bool = True, first_step: FairStep = None, derived_from=None):
-        super().__init__(uri=uri, ref_name='plan', derived_from=derived_from)
+        super().__init__(uri=uri, ref_name='plan', derived_from=derived_from, language=language)
         self._is_published = False
         self.is_pplan_plan = is_pplan_plan
         if description is not None:
@@ -85,8 +86,10 @@ class FairWorkflow(RdfWrapper):
                              'use is_fairworkflow decorator to mark it.')
 
     @classmethod
-    def from_noodles_promise(cls, workflow_level_promise, step_level_promise, description: str = None, label: str =
-                             None, is_pplan_plan: bool = True, derived_from=None):
+    def from_noodles_promise(cls, workflow_level_promise: PromisedObject,
+                             step_level_promise: PromisedObject,
+                             description: str = None, label: str= None,
+                             is_pplan_plan: bool = True, derived_from=None):
         """
 
         Args:
@@ -96,7 +99,8 @@ class FairWorkflow(RdfWrapper):
                 nodes but does not bind them together. We use this to extract step information from
                 it.
         """
-        self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan, derived_from=derived_from)
+        self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan,
+                   derived_from=derived_from, language=LINGSYS_PYTHON)
         self.workflow_level_promise = workflow_level_promise
         self.step_level_promise = step_level_promise
 
@@ -285,35 +289,6 @@ class FairWorkflow(RdfWrapper):
             Returns the FairStep instance associated with the given step URI (if such a step was added to this workflow)
         """
         return self._steps[uri]
-
-    @property
-    def label(self):
-        """Label.
-
-        Returns the rdfs:label of this workflow (or a list, if more than one matching triple is found)
-        """
-        return self.get_attribute(RDFS.label)
-
-    @label.setter
-    def label(self, value):
-        """
-        Adds the given text string as an rdfs:label for this FairWorkflow
-        object.
-        """
-        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
-
-    @property
-    def description(self):
-        """
-        Description of the workflow. This is the dcterms:description found in
-        the rdf for this workflow (or a list if more than one matching triple
-        found)
-        """
-        return self.get_attribute(DCTERMS.description)
-
-    @description.setter
-    def description(self, value):
-        self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
 
     def validate(self, shacl=False):
         """Validate workflow.

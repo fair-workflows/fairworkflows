@@ -6,24 +6,34 @@ from urllib.parse import urldefrag
 
 import pyshacl
 import rdflib
+from rdflib import RDF, RDFS, DCTERMS, OWL
 from nanopub import Publication, NanopubClient
 from rdflib.tools.rdf2dot import rdf2dot
 
-from fairworkflows import namespaces
+from fairworkflows import namespaces, LinguisticSystem
 from fairworkflows.config import PACKAGE_DIR
 
 PLEX_SHAPES_SHACL_FILEPATH = str(PACKAGE_DIR / 'resources' / 'plex-shapes.ttl')
 
-
 class RdfWrapper:
-    def __init__(self, uri, ref_name='fairobject', derived_from: List[str] = None):
+    def __init__(self, uri, ref_name='fairobject', derived_from: List[str] = None,
+                 language: LinguisticSystem = None ):
         self._rdf = rdflib.Graph()
         self._uri = str(uri)
         self.self_ref = rdflib.term.BNode(ref_name)
         self._is_modified = False
         self._is_published = False
         self.derived_from = derived_from
+
         self._bind_namespaces()
+
+        # A blank node to which triples about the linguistic
+        # system for this FAIR object can be added
+        self.lingsys_ref = rdflib.BNode('LinguisticSystem')
+        self._rdf.add((self.self_ref, DCTERMS.language, self.lingsys_ref))
+
+        if language is not None:
+            self.language = language
 
     def _bind_namespaces(self):
         """Bind namespaces used often in fair step and fair workflow.
@@ -35,6 +45,9 @@ class RdfWrapper:
         self.rdf.bind("dul", namespaces.DUL)
         self.rdf.bind("bpmn", namespaces.BPMN)
         self.rdf.bind("pwo", namespaces.PWO)
+        self.rdf.bind("schema", namespaces.SCHEMAORG)
+        self.rdf.bind("dc", DCTERMS)
+        self.rdf.bind("owl", OWL)
 
     @property
     def rdf(self) -> rdflib.Graph:
@@ -113,6 +126,57 @@ class RdfWrapper:
         matching the `object` arg.
         """
         self._rdf.remove((self.self_ref, predicate, object))
+
+    @property
+    def label(self):
+        """Label.
+
+        Returns the rdfs:label of this Fair object (or a list, if more than one matching triple is found)
+        """
+        return self.get_attribute(RDFS.label)
+
+    @label.setter
+    def label(self, value):
+        """
+        Adds the given text string as an rdfs:label for this Fair object.
+        """
+        self.set_attribute(RDFS.label, rdflib.term.Literal(value))
+
+    @property
+    def description(self):
+        """Description.
+
+        Returns the dcterms:description of this Fair object (or a list, if more than
+        one matching triple is found)
+        """
+        return self.get_attribute(DCTERMS.description)
+
+    @description.setter
+    def description(self, value):
+        """
+        Adds the given text string as a dcterms:description for this Fair object.
+        """
+        self.set_attribute(DCTERMS.description, rdflib.term.Literal(value))
+
+    @property
+    def language(self):
+        """Returns the language for this fair objects's description (could be code).
+           Returns a LinguisticSystem object.
+        """
+        lingsys_rdf = rdflib.Graph()
+        for t in self._rdf.triples((self.lingsys_ref, None, None)):
+            lingsys_rdf.add(t)
+        return LinguisticSystem.from_rdf(lingsys_rdf)
+
+    @language.setter
+    def language(self, value: LinguisticSystem):
+        """Sets the language for this fair object's code (takes a LinguisticSystem).
+           Removes the existing linguistic system triples from the RDF decription
+           and replaces them with the new linguistic system."""
+        lingsys_triples = list(self._rdf.triples( (self.lingsys_ref, None, None) ))
+        if len(lingsys_triples) > 0:
+            self._rdf.remove(lingsys_triples)
+        self._rdf += value.generate_rdf(self.lingsys_ref)
 
     def shacl_validate(self):
         sg = rdflib.Graph()
