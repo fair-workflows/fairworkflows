@@ -11,6 +11,7 @@ import nanopub
 import networkx as nx
 import noodles
 import rdflib
+from noodles.display import NCDisplay
 from noodles.interface import PromisedObject
 from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
@@ -400,7 +401,8 @@ class FairWorkflow(RdfWrapper):
         logger.setLevel(logging.INFO)
         logger.handlers = [log_handler]
         self.noodles_promise = self._replace_input_arguments(self.noodles_promise, args, kwargs)
-        result = noodles.run_single(self.noodles_promise)
+        with NCDisplay() as display:
+            result = noodles.run_logging(self.noodles_promise, 1, display)
 
         # Generate the retrospective provenance as a (nano-) Publication object
         retroprov = self._generate_retrospective_prov_publication(log.getvalue())

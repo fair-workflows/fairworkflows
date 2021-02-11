@@ -464,7 +464,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                                   inputs=inputs,
                                   outputs=outputs)
 
-        return noodles.schedule(func)
+        return noodles.schedule(func, display=f'Running step: {func.__name__}')
 
     return _modify_function
 
