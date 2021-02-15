@@ -7,18 +7,18 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterator, Optional, Callable
 
-import nanopub
 import networkx as nx
 import noodles
 import rdflib
 from noodles.interface import PromisedObject
-from rdflib import RDF, RDFS, DCTERMS
+from rdflib import RDF
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
+from fairworkflows import namespaces, LinguisticSystem, LINGSYS_PYTHON
 from fairworkflows.config import LOGGER
-from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
 from fairworkflows.fairstep import FairStep
+from fairworkflows.prov import WorkflowRetroProv
 from fairworkflows.rdf_wrapper import RdfWrapper
 
 
@@ -411,27 +411,18 @@ class FairWorkflow(RdfWrapper):
         arguments_dict.update(kwargs)
         return arguments_dict
 
-    def _generate_retrospective_prov_publication(self, log:str) -> nanopub.Publication:
+    def _generate_retrospective_prov_publication(self, log:str) -> WorkflowRetroProv:
         """
         Utility method for generating a Publication object for the retrospective
         provenance of this workflow. Uses the given 'log' string as the actual
         provenance for now.
         """
-        log_message = rdflib.Literal(log)
-        this_retroprov = rdflib.BNode('retroprov')
-        if self.uri is None or self.uri == 'None': # TODO: This is horrific
-            this_workflow = rdflib.URIRef('http://www.example.org/unpublishedworkflow')
-        else:
+        if self._is_published:
             this_workflow = rdflib.URIRef(self.uri)
+        else:
+            this_workflow = rdflib.URIRef('http://www.example.org/unpublishedworkflow')
 
-        retroprov_assertion = rdflib.Graph()
-        retroprov_assertion.add((this_retroprov, rdflib.RDF.type, namespaces.PROV.Activity))
-        retroprov_assertion.add((this_retroprov, namespaces.PROV.wasDerivedFrom, this_workflow))
-        retroprov_assertion.add((this_retroprov, RDFS.label, log_message))
-        retroprov = nanopub.Publication.from_assertion(assertion_rdf=retroprov_assertion)
-
-        return retroprov
-
+        return WorkflowRetroProv(this_workflow, log)
 
     def draw(self, filepath):
         """Visualize workflow.
