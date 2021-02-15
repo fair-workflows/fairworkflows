@@ -373,16 +373,6 @@ class TestFairWorkflow:
         assert result.message == obj.message
         assert isinstance(prov, Publication)
 
-    def test_get_arguments_dict(self):
-        args = (1, 2)
-        kwargs = {'c': 3, 'd': 4}
-
-        def func(a, b, c, d):
-            return
-
-        result = FairWorkflow._get_arguments_dict(args, kwargs, inspect.signature(func))
-        assert result == {'a': 1, 'b': 2, 'c': 3, 'd': 4}
-
     def test_workflow_non_decorated_step(self):
         def return_value(a: float) -> float:
             """Return the input value. NB: no is_fairstep decorator!"""
