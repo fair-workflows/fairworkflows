@@ -438,15 +438,14 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                             inputs=inputs,
                             outputs=outputs)
 
-        @functools.wraps
         def _add_logging(func):
+            @functools.wraps(func)
             def _wrapper(*func_args, **func_kwargs):
                 LOGGER.info(f'Running step: {func.__name__}')
                 return func(*func_args, **func_kwargs)
             return _wrapper
-        func = _add_logging(func)
         func._fairstep = fairstep
-        return noodles.schedule(func)
+        return noodles.schedule(_add_logging(func))
 
     return _modify_function
 
