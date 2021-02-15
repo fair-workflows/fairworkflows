@@ -16,6 +16,7 @@ from rdflib import RDF, RDFS, DCTERMS
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
+from fairworkflows.config import LOGGER
 from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
 from fairworkflows.fairstep import FairStep
 from fairworkflows.rdf_wrapper import RdfWrapper
@@ -376,9 +377,8 @@ class FairWorkflow(RdfWrapper):
         formatter = logging.Formatter('%(asctime)s - %(message)s')
         log_handler.setFormatter(formatter)
 
-        logger = logging.getLogger('noodles')
-        logger.setLevel(logging.INFO)
-        logger.handlers = [log_handler]
+        LOGGER.setLevel(logging.INFO)
+        LOGGER.handlers = [log_handler]
         self.workflow_level_promise = noodles.workflow.from_call(
             noodles.get_workflow(self.workflow_level_promise).root_node.foo, args, kwargs, {})
         result = noodles.run_single(self.workflow_level_promise)

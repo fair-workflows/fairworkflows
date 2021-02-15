@@ -4,6 +4,7 @@ from unittest import mock
 
 import pytest
 import rdflib
+from nanopub.definitions import DUMMY_NANOPUB_URI
 from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
@@ -351,7 +352,12 @@ class TestFairWorkflow:
 
         result, prov = fw.execute(1, 4, 3)
         assert result == -66
+
         assert isinstance(prov, Publication)
+
+        prov_log = str(list(prov.assertion.objects(rdflib.URIRef(f'{DUMMY_NANOPUB_URI}#retroprov'),
+                                                   rdflib.RDFS.label))[0])
+        assert 'Running step: add' in prov_log
 
     def test_workflow_complex_serialization(self):
         class OtherType:

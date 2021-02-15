@@ -1,3 +1,4 @@
+import functools
 import sys
 import inspect
 import typing
@@ -10,8 +11,10 @@ import rdflib
 from rdflib import RDF, RDFS, DCTERMS
 
 from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
-from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME
+from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME, \
+    LOGGER
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
+
 
 class FairVariable:
     """Represents a variable.
@@ -425,16 +428,24 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         inputs = _extract_inputs_from_function(func, kwargs)
         outputs = _extract_outputs_from_function(func, kwargs)
 
-        func._fairstep = FairStep(uri='http://www.example.org/unpublished-'+func.__name__,
-                                  label=label,
-                                  description=description,
-                                  is_pplan_step=is_pplan_step,
-                                  is_manual_task=is_manual_task,
-                                  is_script_task=is_script_task,
-                                  language=LINGSYS_PYTHON,
-                                  inputs=inputs,
-                                  outputs=outputs)
+        fairstep = FairStep(uri='http://www.example.org/unpublished-'+func.__name__,
+                            label=label,
+                            description=description,
+                            is_pplan_step=is_pplan_step,
+                            is_manual_task=is_manual_task,
+                            is_script_task=is_script_task,
+                            language=LINGSYS_PYTHON,
+                            inputs=inputs,
+                            outputs=outputs)
 
+        @functools.wraps
+        def _add_logging(func):
+            def _wrapper(*func_args, **func_kwargs):
+                LOGGER.info(f'Running step: {func.__name__}')
+                return func(*func_args, **func_kwargs)
+            return _wrapper
+        func = _add_logging(func)
+        func._fairstep = fairstep
         return noodles.schedule(func)
 
     return _modify_function

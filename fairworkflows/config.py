@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 PACKAGE_DIR = Path(__file__).parent.absolute()
@@ -11,3 +12,5 @@ PLEX_DIR = 'plex'
 
 DUMMY_FAIRWORKFLOWS_URI = 'http://fairworkflows.org'
 IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME='returns'
+
+LOGGER = logging.getLogger('fairworkflows')
