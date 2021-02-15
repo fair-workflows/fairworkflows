@@ -1,3 +1,4 @@
+import functools
 import sys
 import inspect
 import typing
@@ -437,6 +438,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                             inputs=inputs,
                             outputs=outputs)
 
+        @functools.wraps
         def _add_logging(func):
             def _wrapper(*func_args, **func_kwargs):
                 LOGGER.info(f'Running step: {func.__name__}')
