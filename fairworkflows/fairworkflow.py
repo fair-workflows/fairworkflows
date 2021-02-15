@@ -473,7 +473,7 @@ class FairWorkflow(RdfWrapper):
                 'Cannot produce visualization of RDF, you need to install '
                 'graphviz dependency https://graphviz.org/')
 
-    def publish_as_nanopub(self, use_test_server=False, force=False, **kwargs):
+    def publish_as_nanopub(self, use_test_server=False, publish_steps=False, **kwargs):
         """Publish to nanopub server.
 
         Publish the workflow as nanopublication to the nanopub server.
@@ -483,8 +483,9 @@ class FairWorkflow(RdfWrapper):
 
         Args:
             use_test_server (bool): Toggle using the test nanopub server.
-            force (bool): Toggle publishing the workflow with force. This will publish all
-                unpublished steps first before publishing the workflow
+            publish_steps (bool): Toggle publishing publishing all unpublished steps first before
+                publishing the workflow. (Otherwise an exception is raised and unpublished steps
+                need to be published manually first)
             kwargs: Keyword arguments to be passed to [nanopub.Publication.from_assertion](
                 https://nanopub.readthedocs.io/en/latest/reference/publication.html#
                 nanopub.publication.Publication.from_assertion).
@@ -497,7 +498,7 @@ class FairWorkflow(RdfWrapper):
         for step in self:
             if step.is_modified or not step._is_published:
                 self._is_modified = True  # If one of the steps is modified the workflow is too.
-                if force:
+                if publish_steps:
                     step.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
                 else:
                     raise RuntimeError(f'{step} was not published yet, please publish steps first, '
