@@ -455,7 +455,7 @@ class FairWorkflow(RdfWrapper):
                     step.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
                 else:
                     raise RuntimeError(f'{step} was not published yet, please publish steps first, '
-                                       f'or use force=True')
+                                       f'or use publish_steps=True')
 
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
 
