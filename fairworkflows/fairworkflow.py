@@ -103,6 +103,7 @@ class FairWorkflow(RdfWrapper):
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan,
                    derived_from=derived_from, language=LINGSYS_PYTHON)
         self.workflow_level_promise = workflow_level_promise
+        self.step_level_promise = step_level_promise
 
         workflow = noodles.get_workflow(step_level_promise)
 
@@ -324,40 +325,34 @@ class FairWorkflow(RdfWrapper):
         if shacl:
             self.shacl_validate()
 
-    @staticmethod
-    def _import_graphviz():
-        """Import graphviz.
+    def _get_workflow_graph(self, promise):
+        """Get a graph of a promise."""
+        workflow = noodles.get_workflow(promise)
 
-        Raises:
-             ImportError with appropriate message if import failed
-        """
-        try:
-            import graphviz
-            return graphviz
-        except ImportError:
-            raise ImportError('Cannot produce visualization of RDF, you need '
-                              'to install graphviz python package. '
-                              'Version 0.14.1 is known to work well.')
-
-    def display(self, full_rdf=False):
-        """Visualize workflow directly in notebook."""
-
-        if full_rdf:
-            return self.display_full_rdf()
-        else:
-            if not hasattr(self, 'workflow_level_promise'):
-                raise ValueError('Cannot display workflow as no noodles step_level_promise has been constructed.')
-            import noodles.tutorial
-            noodles.tutorial.display_workflows(prefix='control', workflow=self.workflow_level_promise)
-
-    def display_full_rdf(self):
         graphviz = self._import_graphviz()
+        dot = graphviz.Digraph()
+        for i, n in workflow.nodes.items():
+            dot.node(str(i), label=n.foo.__name__)
+        for i in workflow.links:
+            for j in workflow.links[i]:
+                dot.edge(str(i), str(j[0]), label=str(j[1].name))
+        return dot
+
+    def display(self):
+        """Visualize workflow directly in notebook."""
+        if not hasattr(self, 'step_level_promise'):
+            raise ValueError(
+                'Cannot display workflow as no noodles step_level_promise has been constructed.')
+
+        from IPython.display import display, SVG
 
         with TemporaryDirectory() as td:
-            filename = Path(td) / 'dag.dot'
-            with open(filename, 'w') as f:
-                rdf2dot(self._rdf, f)
-            return graphviz.Source.from_file(filename)
+            filename = Path(td) / 'dag.svg'
+            dot = self._get_workflow_graph(self.step_level_promise)
+            dot.attr('graph', bgcolor='transparent')
+            with open(filename, 'bw') as file:
+                file.write(dot.pipe(format='svg'))
+            display(SVG(filename=filename))
 
     def execute(self, *args, **kwargs):
         """
