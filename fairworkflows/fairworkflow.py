@@ -18,7 +18,7 @@ from requests import HTTPError
 from fairworkflows import namespaces, LinguisticSystem, LINGSYS_PYTHON
 from fairworkflows.config import LOGGER
 from fairworkflows.fairstep import FairStep
-from fairworkflows.prov import WorkflowRetroProv
+from fairworkflows.prov import WorkflowRetroProv, prov_logger
 from fairworkflows.rdf_wrapper import RdfWrapper
 
 
@@ -363,38 +363,31 @@ class FairWorkflow(RdfWrapper):
         Returns a tuple (result, retroprov), where result is the final output of the executed
         workflow and retroprov is the retrospective provenance logged during execution.
         """
-
         if not hasattr(self, 'workflow_level_promise'):
             raise ValueError('Cannot execute workflow as no noodles step_level_promise has been constructed.')
-
-        log = io.StringIO()
-        log_handler = logging.StreamHandler(log)
-        formatter = logging.Formatter('%(asctime)s - %(message)s')
-        log_handler.setFormatter(formatter)
-
-        LOGGER.setLevel(logging.INFO)
-        LOGGER.handlers = [log_handler]
+        prov_logger.empty()
         self.workflow_level_promise = noodles.workflow.from_call(
             noodles.get_workflow(self.workflow_level_promise).root_node.foo, args, kwargs, {})
         result = noodles.run_single(self.workflow_level_promise)
 
         # Generate the retrospective provenance as a (nano-) Publication object
-        retroprov = self._generate_retrospective_prov_publication(log.getvalue())
+        retroprov = self._generate_retrospective_prov_publication()
 
         return result, retroprov
 
-    def _generate_retrospective_prov_publication(self, log: str) -> WorkflowRetroProv:
+    def _generate_retrospective_prov_publication(self) -> WorkflowRetroProv:
         """
         Utility method for generating a Publication object for the retrospective
         provenance of this workflow. Uses the given 'log' string as the actual
         provenance for now.
         """
         if self._is_published:
-            this_workflow = rdflib.URIRef(self.uri)
+            workflow_uri = rdflib.URIRef(self.uri)
         else:
-            this_workflow = rdflib.URIRef('http://www.example.org/unpublishedworkflow')
+            workflow_uri = rdflib.URIRef('http://www.example.org/unpublishedworkflow')
 
-        return WorkflowRetroProv(this_workflow, log)
+        step_provs = prov_logger.get_all()
+        return WorkflowRetroProv(self, workflow_uri, step_provs)
 
     def draw(self, filepath):
         """Visualize workflow.
