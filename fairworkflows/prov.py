@@ -16,3 +16,9 @@ class RetroProv(RdfWrapper):
 class WorkflowRetroProv(RetroProv):
     def __init__(self, prov_was_derived_from, log_message):
         super().__init__(prov_was_derived_from, log_message)
+
+    def __str__(self):
+        """String representation."""
+        s = f'Workflow retrospective provenance.\n'
+        s += self._rdf.serialize(format='trig').decode('utf-8')
+        return s
