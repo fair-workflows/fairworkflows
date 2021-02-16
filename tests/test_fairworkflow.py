@@ -252,17 +252,17 @@ class TestFairWorkflow:
         test_workflow.draw(filepath=str(tmp_path))
 
     @mock.patch.dict('sys.modules', {'graphviz': None})
-    def test_display_without_graphviz_module(self, test_workflow):
-        """Test display method without graphviz python module installed."""
+    def test_display_rdf_without_graphviz_module(self, test_workflow):
+        """Test display_rdf method without graphviz python module installed."""
         with pytest.raises(ImportError):
-            test_workflow.display(full_rdf=True)
+            test_workflow.display_rdf()
 
-    def test_display_with_graphviz_module_and_dependency(self, test_workflow):
+    def test_display_rdf_with_graphviz_module_and_dependency(self, test_workflow):
         """
-        Test display method with graphviz python module and graphviz software
+        Test display_rdf method with graphviz python module and graphviz software
         installed
         """
-        test_workflow.display(full_rdf=True)
+        test_workflow.display_rdf()
 
     @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
     def test_publish_as_nanopub(self, mock_publish, test_workflow):
@@ -277,12 +277,10 @@ class TestFairWorkflow:
             {'concept_uri': test_published_uris[3]}   # Last call
         ]
         with pytest.raises(RuntimeError):
-            # 'Publishing a workflow with unpublished steps must raise RunTimeError'
+            # 'Publishing a workflow with unpublished steps must raise RunTimeError...'
             test_workflow.publish_as_nanopub()
-        # First publish the steps
-        for step in test_workflow:
-            step.publish_as_nanopub()
-        pubinfo = test_workflow.publish_as_nanopub()
+        # ...unless using pubish_steps=True
+        pubinfo = test_workflow.publish_as_nanopub(publish_steps=True)
         assert pubinfo['concept_uri'] == 'www.example.org/published_workflow#workflow'
         assert mock_publish.call_count == 4  # 1 workflow, 3 steps
         for step in test_workflow:
@@ -378,16 +376,6 @@ class TestFairWorkflow:
         assert isinstance(result, type(obj))
         assert result.message == obj.message
         assert isinstance(prov, Publication)
-
-    def test_get_arguments_dict(self):
-        args = (1, 2)
-        kwargs = {'c': 3, 'd': 4}
-
-        def func(a, b, c, d):
-            return
-
-        result = FairWorkflow._get_arguments_dict(args, kwargs, inspect.signature(func))
-        assert result == {'a': 1, 'b': 2, 'c': 3, 'd': 4}
 
     def test_workflow_non_decorated_step(self):
         def return_value(a: float) -> float:

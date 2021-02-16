@@ -103,6 +103,7 @@ class FairWorkflow(RdfWrapper):
         self = cls(description=description, label=label, is_pplan_plan=is_pplan_plan,
                    derived_from=derived_from, language=LINGSYS_PYTHON)
         self.workflow_level_promise = workflow_level_promise
+        self.step_level_promise = step_level_promise
 
         workflow = noodles.get_workflow(step_level_promise)
 
@@ -324,40 +325,34 @@ class FairWorkflow(RdfWrapper):
         if shacl:
             self.shacl_validate()
 
-    @staticmethod
-    def _import_graphviz():
-        """Import graphviz.
+    def _get_workflow_graph(self, promise):
+        """Get a graph of a promise."""
+        workflow = noodles.get_workflow(promise)
 
-        Raises:
-             ImportError with appropriate message if import failed
-        """
-        try:
-            import graphviz
-            return graphviz
-        except ImportError:
-            raise ImportError('Cannot produce visualization of RDF, you need '
-                              'to install graphviz python package. '
-                              'Version 0.14.1 is known to work well.')
-
-    def display(self, full_rdf=False):
-        """Visualize workflow directly in notebook."""
-
-        if full_rdf:
-            return self.display_full_rdf()
-        else:
-            if not hasattr(self, 'workflow_level_promise'):
-                raise ValueError('Cannot display workflow as no noodles step_level_promise has been constructed.')
-            import noodles.tutorial
-            noodles.tutorial.display_workflows(prefix='control', workflow=self.workflow_level_promise)
-
-    def display_full_rdf(self):
         graphviz = self._import_graphviz()
+        dot = graphviz.Digraph()
+        for i, n in workflow.nodes.items():
+            dot.node(str(i), label=n.foo.__name__)
+        for i in workflow.links:
+            for j in workflow.links[i]:
+                dot.edge(str(i), str(j[0]), label=str(j[1].name))
+        return dot
+
+    def display(self):
+        """Visualize workflow directly in notebook."""
+        if not hasattr(self, 'step_level_promise'):
+            raise ValueError(
+                'Cannot display workflow as no noodles step_level_promise has been constructed.')
+
+        from IPython.display import display, SVG
 
         with TemporaryDirectory() as td:
-            filename = Path(td) / 'dag.dot'
-            with open(filename, 'w') as f:
-                rdf2dot(self._rdf, f)
-            return graphviz.Source.from_file(filename)
+            filename = Path(td) / 'dag.svg'
+            dot = self._get_workflow_graph(self.step_level_promise)
+            dot.attr('graph', bgcolor='transparent')
+            with open(filename, 'bw') as file:
+                file.write(dot.pipe(format='svg'))
+            display(SVG(filename=filename))
 
     def execute(self, *args, **kwargs):
         """
@@ -379,8 +374,8 @@ class FairWorkflow(RdfWrapper):
 
         LOGGER.setLevel(logging.INFO)
         LOGGER.handlers = [log_handler]
-        self.workflow_level_promise = self._replace_input_arguments(self.workflow_level_promise,
-                                                                    args, kwargs)
+        self.workflow_level_promise = noodles.workflow.from_call(
+            noodles.get_workflow(self.workflow_level_promise).root_node.foo, args, kwargs, {})
         result = noodles.run_single(self.workflow_level_promise)
 
         # Generate the retrospective provenance as a (nano-) Publication object
@@ -388,30 +383,7 @@ class FairWorkflow(RdfWrapper):
 
         return result, retroprov
 
-    def _replace_input_arguments(self, promise: noodles.interface.PromisedObject, args, kwargs):
-        """
-        Replace the input arguments of the promise so we can run the workflow with the right
-        inputs. This goes into the guts of noodles, doing something noodles was not intended to be
-        used for.
-        TODO: find a better solution for this
-        """
-        workflow = noodles.get_workflow(promise)
-        signature = inspect.signature(workflow.root_node.foo)
-        arguments_dict = self._get_arguments_dict(args, kwargs, signature)
-        workflow.root_node.bound_args = inspect.BoundArguments(signature, arguments_dict)
-        return promise
-
-    @staticmethod
-    def _get_arguments_dict(args, kwargs, signature):
-        """
-        Create dictionary of keyword arguments from positional and keyword arguments and the
-        signature of the function.
-        """
-        arguments_dict = {key: arg for arg, key in zip(args, signature.parameters.keys())}
-        arguments_dict.update(kwargs)
-        return arguments_dict
-
-    def _generate_retrospective_prov_publication(self, log:str) -> WorkflowRetroProv:
+    def _generate_retrospective_prov_publication(self, log: str) -> WorkflowRetroProv:
         """
         Utility method for generating a Publication object for the retrospective
         provenance of this workflow. Uses the given 'log' string as the actual
@@ -445,7 +417,7 @@ class FairWorkflow(RdfWrapper):
                 'Cannot produce visualization of RDF, you need to install '
                 'graphviz dependency https://graphviz.org/')
 
-    def publish_as_nanopub(self, use_test_server=False, **kwargs):
+    def publish_as_nanopub(self, use_test_server=False, publish_steps=False, **kwargs):
         """Publish to nanopub server.
 
         Publish the workflow as nanopublication to the nanopub server.
@@ -455,6 +427,9 @@ class FairWorkflow(RdfWrapper):
 
         Args:
             use_test_server (bool): Toggle using the test nanopub server.
+            publish_steps (bool): Toggle publishing publishing all unpublished steps first before
+                publishing the workflow. (Otherwise an exception is raised and unpublished steps
+                need to be published manually first)
             kwargs: Keyword arguments to be passed to [nanopub.Publication.from_assertion](
                 https://nanopub.readthedocs.io/en/latest/reference/publication.html#
                 nanopub.publication.Publication.from_assertion).
@@ -467,7 +442,11 @@ class FairWorkflow(RdfWrapper):
         for step in self:
             if step.is_modified or not step._is_published:
                 self._is_modified = True  # If one of the steps is modified the workflow is too.
-                raise RuntimeError(f'{step} was not published yet, please publish steps first')
+                if publish_steps:
+                    step.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
+                else:
+                    raise RuntimeError(f'{step} was not published yet, please publish steps first, '
+                                       f'or use force=True')
 
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
 
