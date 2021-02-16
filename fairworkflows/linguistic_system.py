@@ -56,5 +56,5 @@ LINGSYS_ENGLISH = LinguisticSystem(lstype=DC.LinguisticSystem,
 LINGSYS_PYTHON = LinguisticSystem(lstype=SCHEMAORG.ComputerLanguage,
                                   label='python',
                                   version_info='.'.join([str(v) for v in sys.version_info]),
-                                  see_also="https://en.wikipedia.org/wiki/Python_(programming_language)")
+                                  see_also="https://www.wikidata.org/wiki/Q28865")
 
