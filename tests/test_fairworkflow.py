@@ -9,6 +9,7 @@ from requests import HTTPError
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairWorkflow, FairStep, namespaces, FairVariable, is_fairstep, is_fairworkflow
+from fairworkflows.prov import WorkflowRetroProv, StepRetroProv
 from fairworkflows.rdf_wrapper import replace_in_rdf
 from nanopub import Publication
 
@@ -351,11 +352,11 @@ class TestFairWorkflow:
         result, prov = fw.execute(1, 4, 3)
         assert result == -66
 
-        assert isinstance(prov, Publication)
-
-        prov_log = str(list(prov.assertion.objects(rdflib.URIRef(f'{DUMMY_NANOPUB_URI}#retroprov'),
-                                                   rdflib.RDFS.label))[0])
-        assert 'Running step: add' in prov_log
+        assert isinstance(prov, WorkflowRetroProv)
+        assert len(prov) == 4
+        for step_prov in prov:
+            assert isinstance(step_prov, StepRetroProv)
+            assert step_prov.step in fw._steps.values()
 
     def test_workflow_complex_serialization(self):
         class OtherType:
@@ -375,7 +376,7 @@ class TestFairWorkflow:
         result, prov = fw.execute(obj)
         assert isinstance(result, type(obj))
         assert result.message == obj.message
-        assert isinstance(prov, Publication)
+        assert isinstance(prov, WorkflowRetroProv)
 
     def test_workflow_non_decorated_step(self):
         def return_value(a: float) -> float:

@@ -13,6 +13,7 @@ from rdflib import RDF, RDFS, DCTERMS
 from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
 from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME, \
     LOGGER
+from fairworkflows.prov import prov_logger, StepRetroProv
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 
 
@@ -441,7 +442,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         def _add_logging(func):
             @functools.wraps(func)
             def _wrapper(*func_args, **func_kwargs):
-                LOGGER.info(f'Running step: {func.__name__}')
+                prov_logger.add(StepRetroProv(step=fairstep))
                 return func(*func_args, **func_kwargs)
             return _wrapper
         func._fairstep = fairstep
