@@ -36,7 +36,7 @@ class RetroProv(RdfWrapper):
 
 
 class StepRetroProv(RetroProv):
-    def __init__(self, step=None, step_args=None):
+    def __init__(self, step=None, step_args=None, time_start:datetime = None, time_end:datetime = None):
         super().__init__()
         self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Activity)
         self.step = step
@@ -48,6 +48,12 @@ class StepRetroProv(RetroProv):
         for inputvar in step.inputs:
             if inputvar.name in step_args:
                 self._rdf.add( (inputvar.uri, rdflib.RDF.value, rdflib.Literal(step_args[inputvar.name])) )
+
+        # Add times to RDF (if available)
+        if time_start:
+            self.set_attribute(namespaces.PROV.startedAtTime, rdflib.Literal(time_start, datatype=rdflib.XSD.dateTime))
+        if time_end:
+            self.set_attribute(namespaces.PROV.endedAtTime, rdflib.Literal(time_end, datatype=rdflib.XSD.dateTime))
 
     @property
     def step_uri(self):

@@ -5,6 +5,7 @@ import typing
 from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
+from datetime import datetime
 
 import noodles
 import rdflib
@@ -461,9 +462,12 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                 all_args = {**func_args_dict, **func_kwargs}
 
                 # Execute step (with timing)
-                execution_result = func(*func_args, **func_kwargs)
 
-                prov_logger.add(StepRetroProv(step=fairstep, step_args=all_args))
+                t0 = datetime.now()
+                execution_result = func(*func_args, **func_kwargs)
+                t1 = datetime.now()
+
+                prov_logger.add(StepRetroProv(step=fairstep, step_args=all_args, time_start=t0, time_end=t1))
 
                 return execution_result
 
