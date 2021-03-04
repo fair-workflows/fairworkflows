@@ -1,6 +1,6 @@
 import threading
 from datetime import datetime
-from typing import List, Iterator
+from typing import List, Iterator, Dict
 
 import rdflib
 
@@ -36,7 +36,7 @@ class RetroProv(RdfWrapper):
 
 
 class StepRetroProv(RetroProv):
-    def __init__(self, step=None, step_args=None, time_start:datetime = None, time_end:datetime = None):
+    def __init__(self, step=None, step_args:Dict = None, time_start:datetime = None, time_end:datetime = None, output=None):
         super().__init__()
         self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Activity)
         self.step = step
@@ -48,6 +48,18 @@ class StepRetroProv(RetroProv):
         for inputvar in step.inputs:
             if inputvar.name in step_args:
                 self._rdf.add( (inputvar.uri, rdflib.RDF.value, rdflib.Literal(step_args[inputvar.name])) )
+
+        # Bind outputs
+        num_outputs = len(list(step.outputs))
+        if num_outputs == 1:
+            var = list(step.outputs)[0]
+            self._rdf.add( (var.uri, rdflib.RDF.value, rdflib.Literal(output)) )
+        elif num_outputs > 1:
+            outvardict = {('out' + str(i)): outval for outval in output }
+            for outputvar in step.outputs:
+                if outputvar.name in step_args:
+                    self._rdf.add( (outputvar.uri, rdflib.RDF.value, rdflib.Literal(step_args[outputvar.name])) )
+
 
         # Add times to RDF (if available)
         if time_start:

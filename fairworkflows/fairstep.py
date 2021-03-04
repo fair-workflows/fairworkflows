@@ -467,7 +467,7 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                 execution_result = func(*func_args, **func_kwargs)
                 t1 = datetime.now()
 
-                prov_logger.add(StepRetroProv(step=fairstep, step_args=all_args, time_start=t0, time_end=t1))
+                prov_logger.add(StepRetroProv(step=fairstep, step_args=all_args, output=execution_result, time_start=t0, time_end=t1))
 
                 return execution_result
 
