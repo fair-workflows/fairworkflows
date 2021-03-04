@@ -45,6 +45,11 @@ class FairVariable:
         self.name = name
         self.computational_type = computational_type
 
+        if uri:
+            self._uri = rdlib.URIRef(uri)
+        else:
+            self._uri = None
+
         if semantic_types is None:
             self.semantic_types = []
         else:
@@ -53,6 +58,13 @@ class FairVariable:
             else:
                 self.semantic_types = [rdflib.URIRef(t) for t in semantic_types]
 
+    @property
+    def uri(self):
+        if self._uri:
+            return self._uri
+        else:
+            return rdflib.BNode(self.name)
+
     def __eq__(self, other):
         return self.name == other.name and self.computational_type == other.computational_type
 
@@ -60,7 +72,8 @@ class FairVariable:
         return hash(str(self))
 
     def __str__(self):
-        return f'FairVariable {self.name} of computational type: {self.computational_type} and semantic types: {self.semantic_types}'
+        return (f'FairVariable {self.name} of computational type: {self.computational_type},'
+                f'semantic types: {self.semantic_types}.\nHas URI {self.uri}.\n')
 
 
 class FairStep(RdfWrapper):
@@ -442,8 +455,18 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         def _add_logging(func):
             @functools.wraps(func)
             def _wrapper(*func_args, **func_kwargs):
-                prov_logger.add(StepRetroProv(step=fairstep))
-                return func(*func_args, **func_kwargs)
+
+                # Get the arg label/value pairs as a dict (for both args and kwargs)
+                func_args_dict = dict(zip(inspect.getfullargspec(func).args, func_args))
+                all_args = {**func_args_dict, **func_kwargs}
+
+                # Execute step (with timing)
+                execution_result = func(*func_args, **func_kwargs)
+
+                prov_logger.add(StepRetroProv(step=fairstep, step_args=all_args))
+
+                return execution_result
+
             return _wrapper
         func._fairstep = fairstep
         return noodles.schedule(_add_logging(func))

@@ -36,19 +36,26 @@ class RetroProv(RdfWrapper):
 
 
 class StepRetroProv(RetroProv):
-    def __init__(self, step):
+    def __init__(self, step=None, step_args=None):
         super().__init__()
         self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Activity)
         self.step = step
         self.step_uri = step.uri
 
+        stepbase = rdflib.Namespace(step.uri)
+
+        # Bind inputs
+        for inputvar in step.inputs:
+            if inputvar.name in step_args:
+                self._rdf.add( (inputvar.uri, rdflib.RDF.value, rdflib.Literal(step_args[inputvar.name])) )
+
     @property
     def step_uri(self):
         """Refers to URI of step associated to this provenance.
 
-        Matches the predicate prov:wasDerivedFrom associated to this retrospective provenance
+        Matches the predicate pplan:correspondsToStep associated to this retrospective provenance
         """
-        return self.get_attribute(namespaces.PROV.wasDerivedFrom)
+        return self.get_attribute(namespaces.PPLAN.correspondsToStep)
 
     @step_uri.setter
     def step_uri(self, value):
