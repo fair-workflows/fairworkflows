@@ -30,7 +30,6 @@ class RdfWrapper:
         # A blank node to which triples about the linguistic
         # system for this FAIR object can be added
         self.lingsys_ref = rdflib.BNode('LinguisticSystem')
-        self._rdf.add((self.self_ref, DCTERMS.language, self.lingsys_ref))
 
         if language is not None:
             self.language = language
@@ -164,16 +163,23 @@ class RdfWrapper:
         """Returns the language for this fair objects's description (could be code).
            Returns a LinguisticSystem object.
         """
-        lingsys_rdf = rdflib.Graph()
-        for t in self._rdf.triples((self.lingsys_ref, None, None)):
-            lingsys_rdf.add(t)
-        return LinguisticSystem.from_rdf(lingsys_rdf)
+        if (None, DCTERMS.language, self.lingsys_ref) in self._rdf:
+            lingsys_rdf = rdflib.Graph()
+            for t in self._rdf.triples((self.lingsys_ref, None, None)):
+                lingsys_rdf.add(t)
+            return LinguisticSystem.from_rdf(lingsys_rdf)
+        else:
+            return None
 
     @language.setter
     def language(self, value: LinguisticSystem):
         """Sets the language for this fair object's code (takes a LinguisticSystem).
            Removes the existing linguistic system triples from the RDF decription
            and replaces them with the new linguistic system."""
+
+        if (None, DCTERMS.language, self.lingsys_ref) not in self._rdf:
+            self._rdf.add((self.self_ref, DCTERMS.language, self.lingsys_ref))
+
         lingsys_triples = list(self._rdf.triples( (self.lingsys_ref, None, None) ))
         if len(lingsys_triples) > 0:
             self._rdf.remove(lingsys_triples)
@@ -300,6 +306,7 @@ class RdfWrapper:
                                              introduces_concept=self.self_ref,
                                              derived_from=self._derived_from,
                                              **kwargs)
+
         client = NanopubClient(use_test_server=use_test_server)
         publication_info = client.publish(nanopub)
 

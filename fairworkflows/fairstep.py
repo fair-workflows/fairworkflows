@@ -39,17 +39,22 @@ class FairVariable:
                             become mapped to e.g. XSD types.
         semantic_types: One or more URIs that describe the semantic type(s) of this FairVariable.
     """
-    def __init__(self, name: str = None, computational_type: str = None, semantic_types = None, uri: str = None):
+    def __init__(self, name: str = None, computational_type: str = None, semantic_types = None, uri: str = None, stepuri: str = None):
         if uri and name is None:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
+
+        if name is None:
+            raise ValueError('Both name and uri cannot both be None when constructing a FairVariable.')
+
         self.name = name
         self.computational_type = computational_type
 
         if uri:
             self._uri = rdlib.URIRef(uri)
         else:
-            self._uri = None
+            step_base_uri, _ = urldefrag(stepuri)
+            self._uri = rdflib.Namespace(step_base_uri)['#' + name]
 
         if semantic_types is None:
             self.semantic_types = []
@@ -257,9 +262,9 @@ class FairStep(RdfWrapper):
         sem_types = [sem_type for sem_type in sem_type_objs if sem_type != namespaces.PPLAN.Variable]
 
         if isinstance(var_ref, rdflib.term.BNode):
-            return FairVariable(name=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
+            return FairVariable(name=str(var_ref), computational_type=computational_type, semantic_types=sem_types, stepuri=self._uri)
         else:
-            return FairVariable(uri=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
+            return FairVariable(uri=str(var_ref), computational_type=computational_type, semantic_types=sem_types, stepuri=self._uri)
 
     def _add_variable(self, variable: FairVariable, relation_to_step):
         """Add triples describing FairVariable to rdf."""
