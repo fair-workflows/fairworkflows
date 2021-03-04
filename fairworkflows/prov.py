@@ -47,19 +47,32 @@ class StepRetroProv(RetroProv):
         # Bind inputs
         for inputvar in step.inputs:
             if inputvar.name in step_args:
-                self._rdf.add( (inputvar.uri, rdflib.RDF.value, rdflib.Literal(step_args[inputvar.name])) )
+                retrovar = rdflib.BNode(inputvar.name)
+                self._rdf.add( (self.self_ref, namespaces.PROV.used, retrovar) )
+                self._rdf.add( (retrovar, rdflib.RDF.type, namespaces.PPLAN.Entity) )
+                self._rdf.add( (retrovar, rdflib.RDFS.label, rdflib.Literal(inputvar.name)) )
+                self._rdf.add( (retrovar, rdflib.RDF.value, rdflib.Literal(step_args[inputvar.name])) )
+
+                if inputvar.uri:
+                    self._rdf.add( (retrovar, namespaces.PPLAN.correspondsToVariable, inputvar.uri) )
 
         # Bind outputs
         num_outputs = len(list(step.outputs))
         if num_outputs == 1:
-            var = list(step.outputs)[0]
-            self._rdf.add( (var.uri, rdflib.RDF.value, rdflib.Literal(output)) )
-        elif num_outputs > 1:
+            outvardict = {'out1': output}
+        else:
             outvardict = {('out' + str(i)): outval for outval in output }
-            for outputvar in step.outputs:
-                if outputvar.name in step_args:
-                    self._rdf.add( (outputvar.uri, rdflib.RDF.value, rdflib.Literal(step_args[outputvar.name])) )
 
+        for outputvar in step.outputs:
+            retrovar = rdflib.BNode(outputvar.name)
+            if outputvar.name in outvardict:
+                self._rdf.add( (self.self_ref, namespaces.PROV.used, retrovar) )
+                self._rdf.add( (retrovar, rdflib.RDF.type, namespaces.PPLAN.Entity) )
+                self._rdf.add( (retrovar, rdflib.RDFS.label, rdflib.Literal(outputvar.name)) )
+                self._rdf.add( (retrovar, rdflib.RDF.value, rdflib.Literal(outvardict[outputvar.name])) )
+
+                if outputvar.uri:
+                    self._rdf.add( (retrovar, namespaces.PPLAN.correspondsToVariable, outputvar.uri) )
 
         # Add times to RDF (if available)
         if time_start:
@@ -82,7 +95,7 @@ class StepRetroProv(RetroProv):
     def __str__(self):
         """String representation."""
         s = f'Step retrospective provenance.\n'
-        s += self._rdf.serialize(format='trig').decode('utf-8')
+        s += self._rdf.serialize(format='turtle').decode('utf-8')
         return s
 
 
@@ -116,5 +129,5 @@ class WorkflowRetroProv(RetroProv):
     def __str__(self):
         """String representation."""
         s = f'Workflow retrospective provenance.\n'
-        s += self._rdf.serialize(format='trig').decode('utf-8')
+        s += self._rdf.serialize(format='turtle').decode('utf-8')
         return s

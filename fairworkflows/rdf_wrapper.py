@@ -42,6 +42,7 @@ class RdfWrapper:
         """
         self.rdf.bind("npx", namespaces.NPX)
         self.rdf.bind("pplan", namespaces.PPLAN)
+        self.rdf.bind("prov", namespaces.PROV)
         self.rdf.bind("dul", namespaces.DUL)
         self.rdf.bind("bpmn", namespaces.BPMN)
         self.rdf.bind("pwo", namespaces.PWO)

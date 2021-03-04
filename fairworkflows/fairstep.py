@@ -63,8 +63,6 @@ class FairVariable:
     def uri(self):
         if self._uri:
             return self._uri
-        else:
-            return rdflib.BNode(self.name)
 
     def __eq__(self, other):
         return self.name == other.name and self.computational_type == other.computational_type
@@ -462,11 +460,11 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
                 all_args = {**func_args_dict, **func_kwargs}
 
                 # Execute step (with timing)
-
                 t0 = datetime.now()
                 execution_result = func(*func_args, **func_kwargs)
                 t1 = datetime.now()
 
+                # Log step execution
                 prov_logger.add(StepRetroProv(step=fairstep, step_args=all_args, output=execution_result, time_start=t0, time_end=t1))
 
                 return execution_result
