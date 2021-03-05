@@ -5,6 +5,7 @@ import typing
 from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
+from datetime import datetime
 
 import noodles
 import rdflib
@@ -38,12 +39,22 @@ class FairVariable:
                             become mapped to e.g. XSD types.
         semantic_types: One or more URIs that describe the semantic type(s) of this FairVariable.
     """
-    def __init__(self, name: str = None, computational_type: str = None, semantic_types = None, uri: str = None):
+    def __init__(self, name: str = None, computational_type: str = None, semantic_types = None, uri: str = None, stepuri: str = None):
         if uri and name is None:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
+
+        if name is None and uri is None:
+            raise ValueError('Both name and uri cannot both be None when constructing a FairVariable.')
+
         self.name = name
         self.computational_type = computational_type
+
+        if uri:
+            self._uri = rdflib.URIRef(uri)
+        else:
+            step_base_uri, _ = urldefrag(stepuri)
+            self._uri = rdflib.Namespace(step_base_uri)['#' + name]
 
         if semantic_types is None:
             self.semantic_types = []
@@ -53,6 +64,11 @@ class FairVariable:
             else:
                 self.semantic_types = [rdflib.URIRef(t) for t in semantic_types]
 
+    @property
+    def uri(self):
+        if self._uri:
+            return self._uri
+
     def __eq__(self, other):
         return self.name == other.name and self.computational_type == other.computational_type
 
@@ -60,7 +76,8 @@ class FairVariable:
         return hash(str(self))
 
     def __str__(self):
-        return f'FairVariable {self.name} of computational type: {self.computational_type} and semantic types: {self.semantic_types}'
+        return (f'FairVariable {self.name} of computational type: {self.computational_type},'
+                f'semantic types: {self.semantic_types}.\nHas URI {self.uri}.\n')
 
 
 class FairStep(RdfWrapper):
@@ -237,6 +254,10 @@ class FairStep(RdfWrapper):
 
     def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""
+
+        if var_ref is None:
+            raise ValueError('Variable reference var_ref cannot be None.')
+
         rdfs_comment_objs = list(self._rdf.objects(var_ref, RDFS.comment))
         computational_type = str(rdfs_comment_objs[0])
 
@@ -245,9 +266,9 @@ class FairStep(RdfWrapper):
         sem_types = [sem_type for sem_type in sem_type_objs if sem_type != namespaces.PPLAN.Variable]
 
         if isinstance(var_ref, rdflib.term.BNode):
-            return FairVariable(name=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
+            return FairVariable(name=str(var_ref), computational_type=computational_type, semantic_types=sem_types, stepuri=self._uri)
         else:
-            return FairVariable(uri=str(var_ref), computational_type=computational_type, semantic_types=sem_types)
+            return FairVariable(uri=str(var_ref), computational_type=computational_type, semantic_types=sem_types, stepuri=self._uri)
 
     def _add_variable(self, variable: FairVariable, relation_to_step):
         """Add triples describing FairVariable to rdf."""
@@ -360,11 +381,14 @@ class FairStep(RdfWrapper):
                            newvalue=rdflib.URIRef(self.uri))
 
             # Similarly replace old URIs for variable name bindings
+            # in both this step and any workflow objects that use it.
             published_step_uri_defrag, _ = urldefrag(self.uri)
             for var_name in var_names:
                 old_var_uri = old_uri + '#' + var_name
                 new_var_uri = published_step_uri_defrag + '#' + var_name
                 replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_var_uri),
+                               newvalue=rdflib.URIRef(new_var_uri))
+                replace_in_rdf(workflow.rdf, oldvalue=rdflib.URIRef(old_var_uri),
                                newvalue=rdflib.URIRef(new_var_uri))
             del workflow._steps[old_uri]
             workflow._steps[self.uri] = self
@@ -442,8 +466,21 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         def _add_logging(func):
             @functools.wraps(func)
             def _wrapper(*func_args, **func_kwargs):
-                prov_logger.add(StepRetroProv(step=fairstep))
-                return func(*func_args, **func_kwargs)
+
+                # Get the arg label/value pairs as a dict (for both args and kwargs)
+                func_args_dict = dict(zip(inspect.getfullargspec(func).args, func_args))
+                all_args = {**func_args_dict, **func_kwargs}
+
+                # Execute step (with timing)
+                t0 = datetime.now()
+                execution_result = func(*func_args, **func_kwargs)
+                t1 = datetime.now()
+
+                # Log step execution
+                prov_logger.add(StepRetroProv(step=fairstep, step_args=all_args, output=execution_result, time_start=t0, time_end=t1))
+
+                return execution_result
+
             return _wrapper
         func._fairstep = fairstep
         return noodles.schedule(_add_logging(func))

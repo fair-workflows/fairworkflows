@@ -308,10 +308,12 @@ class TestFairWorkflow:
         assert mock_publish.call_count == 0
         assert pubinfo['nanopub_uri'] is None
 
-    def test_workflow_construction_and_execution(self):
+    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    def test_workflow_construction_and_execution(self, mock_publish):
         """
         Construct a workflow using the is_fairstep and is_fairworkflow decorators
-        and check that execution and returned provenance is as expected.
+        and check that execution and returned provenance is as expected. Then
+        (mock) publishes the provenance and checks the entities are updated.
         """
         @is_fairstep(label='Addition')
         def add(a:float, b:float) -> float:
@@ -354,9 +356,26 @@ class TestFairWorkflow:
 
         assert isinstance(prov, WorkflowRetroProv)
         assert len(prov) == 4
+        print(prov)
         for step_prov in prov:
             assert isinstance(step_prov, StepRetroProv)
             assert step_prov.step in fw._steps.values()
+            print(step_prov)
+
+        test_published_uris = [
+                                'www.example.org/published1#prov',
+                                'www.example.org/published2#prov',
+                                'www.example.org/published3#prov',
+                                'www.example.org/published4#prov',
+                                'www.example.org/published5#prov'
+                              ]
+        mock_publish.side_effect = [{'concept_uri': uri} for uri in test_published_uris]
+
+        prov.publish_as_nanopub()
+        assert mock_publish.call_count == 5  # 1 workflow, 4 steps
+
+        for uri in test_published_uris[:4]:
+            assert (None, namespaces.PROV.hasMember, rdflib.URIRef(uri)) in prov._rdf
 
     def test_workflow_complex_serialization(self):
         class OtherType:
