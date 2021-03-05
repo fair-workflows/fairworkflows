@@ -55,7 +55,7 @@ class StepRetroProv(RdfWrapper):
         if num_outputs == 1:
             outvardict = {'out1': output}
         else:
-            outvardict = {('out' + str(i)): outval for outval in output }
+            outvardict = {('out' + str(i)): outval for i, outval in enumerate(output) }
 
         for outputvar in step.outputs:
             retrovar = rdflib.BNode(outputvar.name)
