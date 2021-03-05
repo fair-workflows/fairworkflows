@@ -51,7 +51,7 @@ class FairVariable:
         self.computational_type = computational_type
 
         if uri:
-            self._uri = rdlib.URIRef(uri)
+            self._uri = rdflib.URIRef(uri)
         else:
             step_base_uri, _ = urldefrag(stepuri)
             self._uri = rdflib.Namespace(step_base_uri)['#' + name]
