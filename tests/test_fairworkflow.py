@@ -356,9 +356,11 @@ class TestFairWorkflow:
 
         assert isinstance(prov, WorkflowRetroProv)
         assert len(prov) == 4
+        print(prov)
         for step_prov in prov:
             assert isinstance(step_prov, StepRetroProv)
             assert step_prov.step in fw._steps.values()
+            print(step_prov)
 
         test_published_uris = [
                                 'www.example.org/published1#prov',
