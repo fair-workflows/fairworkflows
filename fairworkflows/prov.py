@@ -29,15 +29,9 @@ class ProvLogger:
 prov_logger = ProvLogger()
 
 
-class RetroProv(RdfWrapper):
-    def __init__(self):
-        super().__init__(uri=None, ref_name='retroprov')
-        self.timestamp = datetime.now()
-
-
-class StepRetroProv(RetroProv):
+class StepRetroProv(RdfWrapper):
     def __init__(self, step=None, step_args:Dict = None, time_start:datetime = None, time_end:datetime = None, output=None):
-        super().__init__()
+        super().__init__(uri=None, ref_name='fairstepprov')
         self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Activity)
         self.step = step
         self.step_uri = step.uri
@@ -115,10 +109,11 @@ class StepRetroProv(RetroProv):
         return s
 
 
-class WorkflowRetroProv(RetroProv):
+class WorkflowRetroProv(RdfWrapper):
     def __init__(self, workflow, workflow_uri, step_provs: List[StepRetroProv]):
-        super().__init__()
-        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Bundle)
+        super().__init__(uri=None, ref_name='fairworkflowprov')
+        self._rdf.add((self.self_ref, rdflib.RDF.type, namespaces.PPLAN.Bundle))
+        self._rdf.add((self.self_ref, rdflib.RDF.type, namespaces.PROV.Collection))
         self.workflow = workflow
         self.workflow_uri = workflow_uri
         self._step_provs = step_provs
@@ -157,8 +152,12 @@ class WorkflowRetroProv(RetroProv):
             a dictionary with publication info, including 'nanopub_uri', and 'concept_uri'
         """
 
+        # Clear existing members of this entity (to be replaced with newly published links)
+        self.remove_attribute(namespaces.PROV.hasMember)
+
         for stepprov in self._step_provs:
             stepprov.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
+            self._rdf.add((self.self_ref, namespaces.PROV.hasMember, rdflib.URIRef(stepprov.uri)))
 
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
 
