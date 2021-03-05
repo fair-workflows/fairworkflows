@@ -19,7 +19,10 @@ class RdfWrapper:
     def __init__(self, uri, ref_name='fairobject', derived_from: List[str] = None,
                  language: LinguisticSystem = None ):
         self._rdf = rdflib.Graph()
-        self._uri = str(uri)
+        if uri:
+            self._uri = str(uri)
+        else:
+            self._uri = None
         self.self_ref = rdflib.term.BNode(ref_name)
         self._is_modified = False
         self._is_published = False

@@ -44,7 +44,7 @@ class FairVariable:
             # Get the name from the uri (i.e. 'input1' from http://example.org#input1)
             _, name = urldefrag(uri)
 
-        if name is None:
+        if name is None and uri is None:
             raise ValueError('Both name and uri cannot both be None when constructing a FairVariable.')
 
         self.name = name
@@ -254,6 +254,10 @@ class FairStep(RdfWrapper):
 
     def _get_variable(self, var_ref: Union[rdflib.term.BNode, rdflib.URIRef]) -> FairVariable:
         """Retrieve a specific FairVariable from the RDF triples."""
+
+        if var_ref is None:
+            raise ValueError('Variable reference var_ref cannot be None.')
+
         rdfs_comment_objs = list(self._rdf.objects(var_ref, RDFS.comment))
         computational_type = str(rdfs_comment_objs[0])
 

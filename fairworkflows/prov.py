@@ -118,6 +118,13 @@ class WorkflowRetroProv(RdfWrapper):
         self.workflow_uri = workflow_uri
         self._step_provs = step_provs
 
+        # Add the Entity links for now (dummy links, if unpublished)
+        for stepprov in self._step_provs:
+            if stepprov.uri:
+                self._rdf.add((self.self_ref, namespaces.PROV.hasMember, rdflib.URIRef(stepprov.uri)))
+            else:
+                self._rdf.add((self.self_ref, namespaces.PROV.hasMember, rdflib.URIRef('http://www.example.org/unpublished-entity-' + str(hash(stepprov)))))
+
     @property
     def workflow_uri(self):
         """Refers to URI of step associated to this provenance.
