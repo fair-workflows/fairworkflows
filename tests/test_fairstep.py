@@ -246,8 +246,8 @@ class TestFairStep:
 
         assert len(step.rdf) == n_triples_before, 'shacl_validate mutated RDF'
 
-
-def test_is_fairstep_decorator():
+@patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+def test_is_fairstep_decorator(mock_publish):
     @is_fairstep(label='test_label')
     def add(a: int, b: int) -> int:
         """
@@ -256,6 +256,9 @@ def test_is_fairstep_decorator():
         return a + b
 
     assert hasattr(add(1,2), '_fairstep')
+
+    add._fairstep.publish_as_nanopub()
+    assert mock_publish.call_count == 1
 
 def test_decorator_semantic_types():
     test_types_a = ['http://www.example.org/distance', 'http://www.example.org/number']
