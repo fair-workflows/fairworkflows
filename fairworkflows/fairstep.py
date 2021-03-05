@@ -381,7 +381,10 @@ class FairStep(RdfWrapper):
             for var_name in var_names:
                 old_var_uri = old_uri + '#' + var_name
                 new_var_uri = published_step_uri_defrag + '#' + var_name
+                print('AAAA', old_var_uri, new_var_uri)
                 replace_in_rdf(self.rdf, oldvalue=rdflib.URIRef(old_var_uri),
+                               newvalue=rdflib.URIRef(new_var_uri))
+                replace_in_rdf(workflow.rdf, oldvalue=rdflib.URIRef(old_var_uri),
                                newvalue=rdflib.URIRef(new_var_uri))
             del workflow._steps[old_uri]
             workflow._steps[self.uri] = self
