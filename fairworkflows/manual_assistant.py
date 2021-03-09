@@ -17,20 +17,13 @@ HOST = 'localhost'
 PORT = 8000
 ENCODING = 'UTF-8'
 
-#
-# def get_manual_step(uri: str) -> FairStep:
-#     step = FairStep.from_nanopub(uri, use_test_server=USE_TEST_SERVER)
-#
-#     assert step.is_manual_task, 'Step is not a manual task!'
-#     return step
 
-
-def render_manual_step(step):
+def _render_manual_step(step):
     template = env.get_template('manualstep.html')
-    return template.render(step=step, outputs=outputs_to_html(step.outputs)).encode(ENCODING)
+    return template.render(step=step, outputs=_outputs_to_html(step.outputs)).encode(ENCODING)
 
 
-def outputs_to_html(outputs):
+def _outputs_to_html(outputs):
     """
     Extract the information necessary to render the outputs in an html form.
     :param outputs:
@@ -54,7 +47,7 @@ def _create_request_handler(step):
 
         def do_GET(self):
             self._set_response()
-            self.wfile.write(render_manual_step(self.step))
+            self.wfile.write(_render_manual_step(self.step))
 
         def do_POST(self):
             # Parse the form data posted
