@@ -29,15 +29,17 @@ class ProvLogger:
         self.items = []
 
 
+# prov_logger will be used as a singleton throughout the library to log provenance during execution
 prov_logger = ProvLogger()
 
 
 class StepRetroProv(RdfWrapper):
     """
-    Represent retrospective provenance for a FAIR step.
+    Represent retrospective provenance for a FAIR step execution.
 
-    It holds the following information in its 'rdf' attribute:
-    * The uri of the prospective step that this retrospective provenance is associated with
+    It holds the following information in its `rdf` attribute:
+    * The uri of the prospective step that this retrospective provenance is associated with,
+        as pplan:correspondsToStep predicate
     * Bindings of the input values to the prospective input variables of the associated step
     * Bindings of the output values to the prospective output variables of the associated step
     * The start and end time of step execution
@@ -129,10 +131,31 @@ class StepRetroProv(RdfWrapper):
 
 
 class WorkflowRetroProv(RdfWrapper):
+    """
+    Represent the retrospective provenance of a FAIR workflow execution.
+
+    It holds the following information in its 'rdf' attribute:
+    * The uri of the prospective workflow that this retrospective provenance is associated with,
+        as prov:wasDerivedFrom predicate
+    * References to the retrospective provenance of the individual steps, indicated by the
+        prov:hasMember predicate
+
+    Attributes:
+        workflow_uri: Refers to URI of workflow associated to this provenance.
+    """
     def __init__(self, workflow, workflow_uri, step_provs: List[StepRetroProv]):
+        """Constructor.
+
+        Args:
+            workflow: the FairWorkflow object corresponding to this retrospective prov
+            workflow_uri: uri of the prospective workflow (NB: we do not use workflow.uri for
+                this because the workflow can be unpublished.)
+            step_provs: A list of StepRetroProv objects for each individual step of the workflow.
+
+        """
         super().__init__(uri=None, ref_name='fairworkflowprov')
-        self._rdf.add((self.self_ref, rdflib.RDF.type, namespaces.PPLAN.Bundle))
-        self._rdf.add((self.self_ref, rdflib.RDF.type, namespaces.PROV.Collection))
+        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Bundle)
+        self.set_attribute(rdflib.RDF.type, namespaces.PROV.Collection)
         self.workflow = workflow
         self.workflow_uri = workflow_uri
         self._step_provs = step_provs
