@@ -71,7 +71,7 @@ class FairVariable:
             return self._uri
 
     def __eq__(self, other):
-        return self.name == other.name and self.computational_type == other.computational_type
+        return self.name == other.name and ((self.computational_type == other.computational_type) or (self.computational_type is None))
 
     def __hash__(self):
         return hash(str(self))
