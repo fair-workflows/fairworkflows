@@ -4,11 +4,10 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import List, Dict, Union
 import base64
 
-from fairworkflows import FairStep
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 logging.basicConfig(level=logging.INFO)
-env = Environment(loader=PackageLoader('manualassistant', 'templates'), autoescape=select_autoescape('html'))
+env = Environment(loader=PackageLoader('fairworkflows', 'templates'), autoescape=select_autoescape('html'))
 
 # TODO: Remove
 USE_TEST_SERVER = True
@@ -18,15 +17,15 @@ HOST = 'localhost'
 PORT = 8000
 ENCODING = 'UTF-8'
 
+#
+# def get_manual_step(uri: str) -> FairStep:
+#     step = FairStep.from_nanopub(uri, use_test_server=USE_TEST_SERVER)
+#
+#     assert step.is_manual_task, 'Step is not a manual task!'
+#     return step
 
-def get_manual_step(uri: str) -> FairStep:
-    step = FairStep.from_nanopub(uri, use_test_server=USE_TEST_SERVER)
 
-    assert step.is_manual_task, 'Step is not a manual task!'
-    return step
-
-
-def render_manual_step(step: FairStep):
+def render_manual_step(step):
     template = env.get_template('manualstep.html')
     return template.render(step=step, outputs=outputs_to_html(step.outputs)).encode(ENCODING)
 
@@ -39,10 +38,10 @@ def outputs_to_html(outputs):
     """
 
     for o in outputs:
-        yield base64.b64encode(o.name.encode()).decode(), o.name, o.type
+        yield base64.b64encode(o.name.encode()).decode(), o.name, o.computational_type
 
 
-def _create_request_handler(step: FairStep):
+def _create_request_handler(step):
     class ManualStepRequestHandler(BaseHTTPRequestHandler):
         def __init__(self, request, client_address, server):
             self.step = step
@@ -99,10 +98,7 @@ class ManualTaskServer(HTTPServer):
         return self.done
 
 
-def execute_manual_step(step: Union[str, FairStep]):
-    if isinstance(step, str):
-        step = get_manual_step(step)
-
+def execute_manual_step(step):
     server_address = (HOST, PORT)
     server = ManualTaskServer(server_address, _create_request_handler(step))
 

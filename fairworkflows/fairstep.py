@@ -16,6 +16,7 @@ from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VAL
     LOGGER
 from fairworkflows.prov import prov_logger, StepRetroProv
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
+from fairworkflows import manual_assistant
 
 
 class FairVariable:
@@ -473,7 +474,10 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
 
                 # Execute step (with timing)
                 t0 = datetime.now()
-                execution_result = func(*func_args, **func_kwargs)
+                if is_manual_task:
+                    execution_result = manual_assistant.execute_manual_step(fairstep)
+                else:
+                    execution_result = func(*func_args, **func_kwargs)
                 t1 = datetime.now()
 
                 # Log step execution
