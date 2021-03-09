@@ -23,8 +23,16 @@
     </div>
     <div class="row">
         <div class="col-sm">
-        <p class="lead text-muted">{{step.description}}</p>
+        <p class="lead text-muted">{{step.label}}</p>
             </div>
+    </div>
+  <div class="row"><h2>Input names</h2>
+    <ul class="list-group">
+      {% for input in step.inputs %}
+      <li class="list-group-item">{{input.name}} {{input.type}}</li>
+      {% endfor %}
+    </ul>
+
     </div>
     <form method="POST">
         <div class="row">
