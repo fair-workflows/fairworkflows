@@ -6,6 +6,7 @@ from copy import deepcopy
 from typing import Callable, get_type_hints, List, Union
 from urllib.parse import urldefrag
 from datetime import datetime
+from warnings import warn
 
 import noodles
 import rdflib
@@ -494,16 +495,20 @@ def _extract_inputs_from_function(func, additional_params) -> List[FairVariable]
     the fair variable, the corresponding type hint will be the type of the variable.
     """
     argspec = inspect.getfullargspec(func)
-    try:
-        return [FairVariable(
-                    name=arg,
-                    computational_type=argspec.annotations[arg].__name__,
-                    semantic_types=additional_params.get(arg))
-                    for arg in argspec.args]
-    except KeyError:
-        raise ValueError('Not all input arguments have type hinting, '
-                         'FAIR step functions MUST have type hinting, '
-                         'see https://docs.python.org/3/library/typing.html')
+    inputs = list()
+    for arg in argspec.args:
+        try:
+            computational_type = argspec.annotations[arg].__name__
+        except KeyError:
+            warn(f'Function input argument {arg} does not have type hinting, '
+                 'FAIR step function arguments without type hinting will not have a computational '
+                 'type associated with them see https://docs.python.org/3/library/typing.html')
+            computational_type = None
+        inputs.append(FairVariable(
+            name=arg,
+            computational_type=computational_type,
+            semantic_types=additional_params.get(arg)))
+    return inputs
 
 
 def _extract_outputs_from_function(func, additional_params) -> List[FairVariable]:
@@ -515,9 +520,12 @@ def _extract_outputs_from_function(func, additional_params) -> List[FairVariable
     try:
         return_annotation = annotations['return']
     except KeyError:
-        raise ValueError('The return of the function does not have type hinting, '
-                         'FAIR step functions MUST have type hinting, '
-                         'see https://docs.python.org/3/library/typing.html')
+        warn(f'Function output does not have type hinting, '
+             'The outputs will not have a computational '
+             'type associated with them. Also multiple outputs will not be captured'
+             'correctly. See https://docs.python.org/3/library/typing.html')
+        return_annotation = None
+
     if _is_generic_tuple(return_annotation):
         return_sem_types = additional_params.get(IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME)
         if return_sem_types is not None:
@@ -535,9 +543,10 @@ def _extract_outputs_from_function(func, additional_params) -> List[FairVariable
                     semantic_types=return_sem_types[i])
                 for i, annotation in enumerate(return_annotation.__args__)]
     else:
+        computational_type = return_annotation.__name__ if return_annotation is not None else None
         return [FairVariable(
                 name='out1',
-                computational_type=return_annotation.__name__,
+                computational_type=computational_type,
                 semantic_types=additional_params.get(IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME))]
 
 
