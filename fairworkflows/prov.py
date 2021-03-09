@@ -4,7 +4,7 @@ from typing import List, Iterator, Dict
 
 import rdflib
 
-from fairworkflows import namespaces, FairVariable
+from fairworkflows import namespaces
 from fairworkflows.rdf_wrapper import RdfWrapper
 
 
@@ -85,7 +85,14 @@ class StepRetroProv(RdfWrapper):
         if time_end:
             self.set_attribute(namespaces.PROV.endedAtTime, rdflib.Literal(time_end, datatype=rdflib.XSD.dateTime))
 
-    def _add_retrospective_variable(self, prospective_var: FairVariable, value):
+    def _add_retrospective_variable(self, prospective_var, value):
+        """
+        Add retrospective variable to rdf
+
+        Args:
+            prospective_var (FairVariable): FairVariable object of associated variable
+            value: the variable value
+        """
         retrovar = rdflib.BNode(prospective_var.name)
         self.set_attribute(namespaces.PROV.used, retrovar)
         self._rdf.add((retrovar, rdflib.RDF.type, namespaces.PPLAN.Entity))
