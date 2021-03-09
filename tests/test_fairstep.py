@@ -9,7 +9,8 @@ from nanopub import Publication
 
 from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
 from fairworkflows import FairStep, namespaces, FairVariable, is_fairworkflow
-from fairworkflows.fairstep import _extract_outputs_from_function, is_fairstep
+from fairworkflows.fairstep import _extract_outputs_from_function, is_fairstep, \
+    _extract_inputs_from_function
 from fairworkflows.rdf_wrapper import replace_in_rdf
 from fairworkflows import LinguisticSystem
 
@@ -310,3 +311,19 @@ def test_extract_outputs_from_function_multiple_outputs():
     result = _extract_outputs_from_function(divmod, {})
     assert set(result) == {FairVariable('out1', 'int'),
                            FairVariable('out2', 'int')}
+
+
+def test_extract_inputs_from_function_no_type_hinting():
+    # test step where 'b' has no type hint
+    def test_step(a: float, b) -> float:
+        return a + b
+    result = _extract_inputs_from_function(test_step, {})
+    assert len(result) == 2
+
+
+def test_extract_outputs_from_function_no_type_hinting():
+    # test step where output has no type hint
+    def test_step(a: float, b: float):
+        return a + b
+    result = _extract_outputs_from_function(test_step, {})
+    assert len(result) == 1
