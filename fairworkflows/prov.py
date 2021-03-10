@@ -59,7 +59,7 @@ class StepRetroProv(RdfWrapper):
             time_end: the end time of execution of the step
         """
         super().__init__(uri=None, ref_name='fairstepprov')
-        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Activity)
+        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Activity, overwrite=False)
         self.step = step
         self.step_uri = step.uri
 
@@ -94,7 +94,7 @@ class StepRetroProv(RdfWrapper):
             value: the variable value
         """
         retrovar = rdflib.BNode(prospective_var.name)
-        self.set_attribute(namespaces.PROV.used, retrovar)
+        self.set_attribute(namespaces.PROV.used, retrovar, overwrite=False)
         self._rdf.add((retrovar, rdflib.RDF.type, namespaces.PPLAN.Entity))
         self._rdf.add((retrovar, rdflib.RDFS.label, rdflib.Literal(prospective_var.name)))
         self._rdf.add((retrovar, rdflib.RDF.value, rdflib.Literal(value)))
@@ -161,8 +161,8 @@ class WorkflowRetroProv(RdfWrapper):
 
         """
         super().__init__(uri=None, ref_name='fairworkflowprov')
-        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Bundle)
-        self.set_attribute(rdflib.RDF.type, namespaces.PROV.Collection)
+        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Bundle, overwrite=False)
+        self.set_attribute(rdflib.RDF.type, namespaces.PROV.Collection, overwrite=False)
         self.workflow = workflow
         self.workflow_uri = workflow_uri
         self._step_provs = step_provs
