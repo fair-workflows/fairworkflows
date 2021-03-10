@@ -9,6 +9,9 @@ from fairworkflows.rdf_wrapper import RdfWrapper
 
 
 class ProvLogger:
+    """
+    Simple logger for provenance. It allows storing items to a list in a thread-safe way.
+    """
     def __init__(self):
         self.lock = threading.Lock()
         self.items = []
@@ -26,29 +29,44 @@ class ProvLogger:
         self.items = []
 
 
+# prov_logger will be used as a singleton throughout the library to log provenance during execution
 prov_logger = ProvLogger()
 
 
 class StepRetroProv(RdfWrapper):
-    def __init__(self, step=None, step_args:Dict = None, time_start:datetime = None, time_end:datetime = None, output=None):
+    """
+    Represent retrospective provenance for a FAIR step execution.
+
+    It holds the following information in its `rdf` attribute:
+    * The uri of the prospective step that this retrospective provenance is associated with,
+        as pplan:correspondsToStep predicate
+    * Bindings of the input values to the prospective input variables of the associated step
+    * Bindings of the output values to the prospective output variables of the associated step
+    * The start and end time of step execution
+
+    Attributes:
+        step_uri: Refers to URI of step associated to this provenance.
+
+    """
+    def __init__(self, step=None, step_args: Dict = None, time_start: datetime = None,
+                 time_end: datetime = None, output=None):
+        """Constructor.
+
+        Args:
+            step: the associated FairStep object
+            step_args: a dictionary containing the input arguments and values
+            time_start: the start time of execution of the step
+            time_end: the end time of execution of the step
+        """
         super().__init__(uri=None, ref_name='fairstepprov')
-        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Activity)
+        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Activity, overwrite=False)
         self.step = step
         self.step_uri = step.uri
-
-        stepbase = rdflib.Namespace(step.uri)
 
         # Bind inputs
         for inputvar in step.inputs:
             if inputvar.name in step_args:
-                retrovar = rdflib.BNode(inputvar.name)
-                self._rdf.add( (self.self_ref, namespaces.PROV.used, retrovar) )
-                self._rdf.add( (retrovar, rdflib.RDF.type, namespaces.PPLAN.Entity) )
-                self._rdf.add( (retrovar, rdflib.RDFS.label, rdflib.Literal(inputvar.name)) )
-                self._rdf.add( (retrovar, rdflib.RDF.value, rdflib.Literal(step_args[inputvar.name])) )
-
-                if inputvar.uri:
-                    self._rdf.add( (retrovar, namespaces.PPLAN.correspondsToVariable, inputvar.uri) )
+                self._add_retrospective_variable(inputvar, step_args[inputvar.name])
 
         # Bind outputs
         num_outputs = len(list(step.outputs))
@@ -58,21 +76,31 @@ class StepRetroProv(RdfWrapper):
             outvardict = {('out' + str(i)): outval for i, outval in enumerate(output) }
 
         for outputvar in step.outputs:
-            retrovar = rdflib.BNode(outputvar.name)
             if outputvar.name in outvardict:
-                self._rdf.add( (self.self_ref, namespaces.PROV.used, retrovar) )
-                self._rdf.add( (retrovar, rdflib.RDF.type, namespaces.PPLAN.Entity) )
-                self._rdf.add( (retrovar, rdflib.RDFS.label, rdflib.Literal(outputvar.name)) )
-                self._rdf.add( (retrovar, rdflib.RDF.value, rdflib.Literal(outvardict[outputvar.name])) )
-
-                if outputvar.uri:
-                    self._rdf.add( (retrovar, namespaces.PPLAN.correspondsToVariable, outputvar.uri) )
+                self._add_retrospective_variable(outputvar, outvardict[outputvar.name])
 
         # Add times to RDF (if available)
         if time_start:
             self.set_attribute(namespaces.PROV.startedAtTime, rdflib.Literal(time_start, datatype=rdflib.XSD.dateTime))
         if time_end:
             self.set_attribute(namespaces.PROV.endedAtTime, rdflib.Literal(time_end, datatype=rdflib.XSD.dateTime))
+
+    def _add_retrospective_variable(self, prospective_var, value):
+        """
+        Add retrospective variable to rdf
+
+        Args:
+            prospective_var (FairVariable): FairVariable object of associated variable
+            value: the variable value
+        """
+        retrovar = rdflib.BNode(prospective_var.name)
+        self.set_attribute(namespaces.PROV.used, retrovar, overwrite=False)
+        self._rdf.add((retrovar, rdflib.RDF.type, namespaces.PPLAN.Entity))
+        self._rdf.add((retrovar, rdflib.RDFS.label, rdflib.Literal(prospective_var.name)))
+        self._rdf.add((retrovar, rdflib.RDF.value, rdflib.Literal(value)))
+
+        if prospective_var.uri:
+            self._rdf.add((retrovar, namespaces.PPLAN.correspondsToVariable, prospective_var.uri))
 
     @property
     def step_uri(self):
@@ -110,10 +138,31 @@ class StepRetroProv(RdfWrapper):
 
 
 class WorkflowRetroProv(RdfWrapper):
+    """
+    Represent the retrospective provenance of a FAIR workflow execution.
+
+    It holds the following information in its 'rdf' attribute:
+    * The uri of the prospective workflow that this retrospective provenance is associated with,
+        as prov:wasDerivedFrom predicate
+    * References to the retrospective provenance of the individual steps, indicated by the
+        prov:hasMember predicate
+
+    Attributes:
+        workflow_uri: Refers to URI of workflow associated to this provenance.
+    """
     def __init__(self, workflow, workflow_uri, step_provs: List[StepRetroProv]):
+        """Constructor.
+
+        Args:
+            workflow: the FairWorkflow object corresponding to this retrospective prov
+            workflow_uri: uri of the prospective workflow (NB: we do not use workflow.uri for
+                this because the workflow can be unpublished.)
+            step_provs: A list of StepRetroProv objects for each individual step of the workflow.
+
+        """
         super().__init__(uri=None, ref_name='fairworkflowprov')
-        self._rdf.add((self.self_ref, rdflib.RDF.type, namespaces.PPLAN.Bundle))
-        self._rdf.add((self.self_ref, rdflib.RDF.type, namespaces.PROV.Collection))
+        self.set_attribute(rdflib.RDF.type, namespaces.PPLAN.Bundle, overwrite=False)
+        self.set_attribute(rdflib.RDF.type, namespaces.PROV.Collection, overwrite=False)
         self.workflow = workflow
         self.workflow_uri = workflow_uri
         self._step_provs = step_provs
