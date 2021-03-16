@@ -14,3 +14,6 @@ DUMMY_FAIRWORKFLOWS_URI = 'http://fairworkflows.org'
 IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME='returns'
 
 LOGGER = logging.getLogger('fairworkflows')
+
+MANUAL_ASSISTANT_HOST = 'localhost'
+MANUAL_ASSISTANT_PORT = 8000

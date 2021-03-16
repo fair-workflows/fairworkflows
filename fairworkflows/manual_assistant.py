@@ -1,20 +1,14 @@
+import base64
 import cgi
 import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import List, Dict, Union
-import base64
-
+from typing import List, Dict
+from fairworkflows.config import MANUAL_ASSISTANT_HOST, MANUAL_ASSISTANT_PORT
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 logging.basicConfig(level=logging.INFO)
 env = Environment(loader=PackageLoader('fairworkflows', 'templates'), autoescape=select_autoescape('html'))
 
-# TODO: Remove
-USE_TEST_SERVER = True
-EXAMPLE_STEP_URI = 'http://purl.org/np/RAFszXfE-J3sef_ZX_5LRMM6rHgBt7a1uQH-vZdxfy-RU'
-
-HOST = 'localhost'
-PORT = 8000
 ENCODING = 'UTF-8'
 
 
@@ -92,11 +86,11 @@ class ManualTaskServer(HTTPServer):
 
 
 def execute_manual_step(step):
-    server_address = (HOST, PORT)
+    server_address = (MANUAL_ASSISTANT_HOST, MANUAL_ASSISTANT_PORT)
     server = ManualTaskServer(server_address, _create_request_handler(step))
 
     logging.info('Starting Manual Step Assistant')
-    logging.info(f'Please go to http://{HOST}:{PORT} to perform the manual step')
+    logging.info(f'Please go to http://{MANUAL_ASSISTANT_HOST}:{MANUAL_ASSISTANT_PORT} to perform the manual step')
 
     try:
         while not server.is_done():
@@ -106,7 +100,3 @@ def execute_manual_step(step):
         return server.outputs
     finally:
         server.server_close()
-
-
-if __name__ == '__main__':
-    execute_manual_step(EXAMPLE_STEP_URI)
