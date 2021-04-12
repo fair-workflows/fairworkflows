@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.abspath('.'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'nanopub'
-copyright = '2020, Robin Richardson, Sven van der Burg'
+project = 'fairworkflows'
+copyright = '2021, Robin Richardson, Sven van der Burg'
 author = 'Robin Richardson, Sven van der Burg'
 
 # The full version, including alpha/beta/rc tags

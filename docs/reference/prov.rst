@@ -1,4 +1,4 @@
-nanopub.namespaces
+fairworkflows.prov
 ==================
 
 .. automodule:: fairworkflows.prov
