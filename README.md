@@ -26,6 +26,9 @@ The goals of the project are:
 
 We seek to provide an easy-to-use python interface for achieving the above.
 
+## Documentation
+Checkout the [user documentation](https://fairworkflows.readthedocs.io/).
+
 ## Installation
 
 The most recent release can be installed from the python package index using ```pip```:
