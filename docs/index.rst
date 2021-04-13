@@ -145,7 +145,6 @@ RDF workflows, it is intended more as a component to be used in a
 variety of other tools that seek to add FAIR elements to workflows. At
 present the library is used in the following tools:
 
--  `NanopubJL <https://github.com/fair-workflows/NanopubJL>`__: A
    Jupyter Lab extension that adds a widget for searching the
    nanopublication servers, and helps the user fetch desired nanopubs
    through injection of the necessary python code into a notebook cell.
