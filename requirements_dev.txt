@@ -3,3 +3,6 @@ flaky
 graphviz==0.14.1
 pytest
 pytest-cov
+recommonmark
+sphinx
+sphinx_rtd_theme
