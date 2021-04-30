@@ -14,7 +14,7 @@ from rdflib import RDF, RDFS, DCTERMS
 
 from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
 from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME, \
-    LOGGER
+    LOGGER, WARN_FOR_TYPE_HINTING
 from fairworkflows.prov import prov_logger, StepRetroProv
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
 from fairworkflows import manual_assistant
@@ -504,9 +504,10 @@ def _extract_inputs_from_function(func, additional_params) -> List[FairVariable]
         try:
             computational_type = argspec.annotations[arg].__name__
         except KeyError:
-            warn(f'Function input argument {arg} does not have type hinting, '
-                 'FAIR step function arguments without type hinting will not have a computational '
-                 'type associated with them see https://docs.python.org/3/library/typing.html')
+            if WARN_FOR_TYPE_HINTING:
+                warn(f'Function input argument {arg} does not have type hinting, '
+                     'FAIR step function arguments without type hinting will not have a computational '
+                     'type associated with them see https://docs.python.org/3/library/typing.html')
             computational_type = None
         inputs.append(FairVariable(
             name=arg,
@@ -524,10 +525,11 @@ def _extract_outputs_from_function(func, additional_params) -> List[FairVariable
     try:
         return_annotation = annotations['return']
     except KeyError:
-        warn(f'Function output does not have type hinting, '
-             'The outputs will not have a computational '
-             'type associated with them. Also multiple outputs will not be captured'
-             'correctly. See https://docs.python.org/3/library/typing.html')
+        if WARN_FOR_TYPE_HINTING:
+            warn(f'Function output does not have type hinting, '
+                 'The outputs will not have a computational '
+                 'type associated with them. Also multiple outputs will not be captured'
+                 'correctly. See https://docs.python.org/3/library/typing.html')
         return_annotation = None
 
     if _is_generic_tuple(return_annotation):

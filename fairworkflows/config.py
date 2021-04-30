@@ -15,5 +15,7 @@ IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME='returns'
 
 LOGGER = logging.getLogger('fairworkflows')
 
+WARN_FOR_TYPE_HINTING = False
+
 MANUAL_ASSISTANT_HOST = 'localhost'
 MANUAL_ASSISTANT_PORT = 8000
