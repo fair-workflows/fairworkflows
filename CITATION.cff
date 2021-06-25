@@ -17,6 +17,14 @@ authors:
     affiliation: "Netherlands eScience Center"
     family-names: Smits
     given-names: Djura
+  -
+    affiliation: "Maastricht University"
+    family-names: Celebi
+    given-names: Remzi
+  -
+    affiliation: "Vrije Universiteit Amsterdam"
+    family-names: Kuhn
+    given-names: Tobias
 cff-version: "1.0.3"
 keywords:
   - "semantic"
