@@ -2,6 +2,7 @@
 [![Documentation Status](https://readthedocs.org/projects/fairworkflows/badge/?version=latest)](https://fairworkflows.readthedocs.io/en/latest/?badge=latest)
 [![Coverage Status](https://coveralls.io/repos/github/fair-workflows/fairworkflows/badge.svg?branch=main)](https://coveralls.io/github/fair-workflows/fairworkflows?branch=main)
 [![PyPI version](https://badge.fury.io/py/fairworkflows.svg)](https://badge.fury.io/py/fairworkflows)
+[![DOI](https://zenodo.org/badge/244369407.svg)](https://zenodo.org/badge/latestdoi/244369407)
 [![fair-software.eu](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F-green)](https://fair-software.eu)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fair-workflows/fairworkflows/main?filepath=examples%2Ffairworkflows-quick-start.ipynb)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4804/badge)](https://bestpractices.coreinfrastructure.org/projects/4804)
