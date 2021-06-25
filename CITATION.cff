@@ -27,4 +27,4 @@ keywords:
 license: "Apache-2.0"
 message: "If you use this software, please cite it using these metadata."
 title: "fairworkflows: A python library for handling semantically described scientific workflows"
-version: "0.2.9"
+version: "0.3.0"
