@@ -25,7 +25,7 @@ authors:
     affiliation: "Vrije Universiteit Amsterdam"
     family-names: Kuhn
     given-names: Tobias
-cff-version: "1.0.3"
+cff-version: 1.2.0
 keywords:
   - "semantic"
   - "RDF"
