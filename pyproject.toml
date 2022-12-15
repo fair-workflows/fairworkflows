@@ -109,8 +109,8 @@ format = [
     "pre-commit run --all-files || true",
 ]
 check = [
-    "isort --check-only --diff .",
-    "flake8 .",
+    "isort --check-only --diff fairworkflows",
+    "flake8 fairworkflows",
 ]
 
 
