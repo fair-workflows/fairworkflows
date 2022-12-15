@@ -28,19 +28,16 @@ classifiers = [
 dynamic = ["version"]
 
 dependencies = [
-    # "nanopub ==1.2.7",
     "nanopub@git+https://github.com/vemonet/nanopub.git",
+    # "nanopub >=2.0.0",
     "networkx ~=2.5",
     "pyyaml",
     "rdflib <7.0.0,>=6.0.2",
-    # "rdflib <6.0.0,>=5.0.0",
     "requests",
-    "pyshacl >=0.20.0",
-    # "pyshacl >=0.14.1",
+    "pyshacl >=0.17.0",
     "noodles ==0.3.3",
     "Jinja2 ==2.11.3",
-    "pytest",
-    "markupsafe ==2.0.1",
+    "markupsafe ==2.0.1", # fixed for a bug related to jinja2
 ]
 
 [project.optional-dependencies]
@@ -95,7 +92,7 @@ post-install-commands = [
 
 [tool.hatch.envs.default.scripts]
 test = "pytest {args}"
-cov = "pytest --cov=fairworkflows {args}"
+cov = "test --cov=fairworkflows {args}"
 format = [
     "isort fairworkflows tests",
     "autoflake --remove-all-unused-imports --recursive --remove-unused-variables --in-place fairworkflows tests --exclude=__init__.py",

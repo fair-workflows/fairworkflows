@@ -1,4 +1,4 @@
-![Build Status](https://github.com/fair-workflows/fairworkflows/workflows/Python%20application/badge.svg)
+[![Build Status](https://github.com/fair-workflows/fairworkflows/actions/workflows/build.yml/badge.svg)](https://github.com/fair-workflows/fairworkflows/actions/workflows/build.yml)
 [![Documentation Status](https://readthedocs.org/projects/fairworkflows/badge/?version=latest)](https://fairworkflows.readthedocs.io/en/latest/?badge=latest)
 [![Coverage Status](https://coveralls.io/repos/github/fair-workflows/fairworkflows/badge.svg?branch=main)](https://coveralls.io/github/fair-workflows/fairworkflows?branch=main)
 [![PyPI version](https://badge.fury.io/py/fairworkflows.svg)](https://badge.fury.io/py/fairworkflows)
