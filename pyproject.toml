@@ -1,6 +1,6 @@
 [project]
 name = "fairworkflows"
-description = "FAIRWorkflows python library"
+description = "A high-level and user-friendly python library for constructing, modifying, and publishing scientific workflows described using semantic technologies."
 readme = "README.md"
 requires-python = ">=3.7"
 license = { file = "LICENSE" }
@@ -55,19 +55,12 @@ test = [
     "mypy ==0.971",
 ]
 doc = [
-    "mkdocs >=1.1.2,<2.0.0",
-    "mkdocs-material >=8.2.7,<9.0.0",
-    "mkdocstrings[python] >=0.18.1",
-    "mdx-include >=1.4.1,<2.0.0",
-    "mkdocs-markdownextradata-plugin >=0.1.7,<0.3.0",
-    # "jinja2 ==3.0.3",
-]
-dev = [
-    "graphviz==0.14.1",
     "recommonmark",
     "sphinx",
     "sphinx_rtd_theme",
-
+]
+dev = [
+    "graphviz==0.14.1",
     "pre-commit >=2.17.0,<3.0.0",
     "autoflake >=1.4.0,<2.0.0",
     "jupyter",
@@ -120,6 +113,7 @@ path = "fairworkflows/_version.py"
 
 [tool.hatch.metadata]
 allow-direct-references = true
+# TODO: required to import from GitHub URL, to remove when not needed anymore
 
 
 [tool.isort]
@@ -174,9 +168,3 @@ testpaths = ["tests"]
 markers = [
     "no_rsa_key: mark a test as a test only run when there is no nanopub RSA key setup.",
 ]
-
-# [tool.black]
-# color = true
-# line-length = 120
-# target-version = ['py310']
-# skip-string-normalization = true
