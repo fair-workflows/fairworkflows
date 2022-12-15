@@ -371,12 +371,8 @@ class TestFairWorkflow:
 
         prov.publish_as_nanopub(use_test_server=use_test_server)
         # assert mock_publish.call_count == 5  # 1 workflow, 4 steps
-
-        print("ERROR test_workflow_construction_and_execution RDF:")
-        print(prov._rdf.serialize(format="ttl"))
         assert (None, namespaces.PROV.hasMember, None) in prov._rdf
-        # for uri in test_published_uris[:4]:
-        #     assert (None, namespaces.PROV.hasMember, rdflib.URIRef(uri)) in prov._rdf
+
 
     def test_workflow_complex_serialization(self):
         class OtherType:

@@ -252,8 +252,10 @@ class RdfWrapper:
         nanopub_uri, frag = urldefrag(uri)
 
         # Fetch the nanopub
-        # client = NanopubClient(use_test_server=use_test_server)
-        nanopub = Nanopub(nanopub_uri)
+        nanopub = Nanopub(
+            source_uri=nanopub_uri,
+            conf=NanopubConf(use_test_server=use_test_server)
+        )
 
         if len(frag) > 0:
             # If we found a fragment we can use the passed URI
@@ -321,12 +323,6 @@ class RdfWrapper:
             introduces_concept=self.self_ref,
         )
         np.publish()
-        # nanopub = Publication.from_assertion(assertion_rdf=self.rdf,
-        #                                      introduces_concept=self.self_ref,
-        #                                      derived_from=self._derived_from,
-        #                                      **kwargs)
-        # client = NanopubClient(use_test_server=use_test_server)
-        # publication_info = client.publish(nanopub)
 
         # Set the new, published, URI, which should be whatever the (published) URI of the concept that was introduced is.
         # Note that this is NOT the nanopub's URI, since the nanopub is not the step/workflow. The rdf object describing the step/workflow
@@ -336,9 +332,6 @@ class RdfWrapper:
             "source_uri": np.source_uri
         }
         self._rdf = np._rdf
-        print("ERROR SHOULD INTRODUCE CONCEPT URI")
-        print(np)
-        print(np.concept_uri)
         if np.concept_uri:
             publication_info["concept_uri"] = np.concept_uri
             self._uri = np.concept_uri

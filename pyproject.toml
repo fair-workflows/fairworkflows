@@ -102,6 +102,7 @@ check = [
     "isort --check-only --diff fairworkflows",
     "flake8 fairworkflows",
 ]
+example = "python examples/basic_workflow.py {args}"
 
 
 # TOOLS

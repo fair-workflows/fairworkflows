@@ -213,10 +213,6 @@ class WorkflowRetroProv(RdfWrapper):
 
         for stepprov in self._step_provs:
             stepprov.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
-            print("PROV ERROR!")
-            print(self.self_ref)
-            print(stepprov.uri)
-            print(stepprov)
             self._rdf.add((self.self_ref, namespaces.PROV.hasMember, rdflib.URIRef(stepprov.uri)))
 
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)

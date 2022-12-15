@@ -381,7 +381,7 @@ class FairWorkflow(RdfWrapper):
         if self._is_published:
             workflow_uri = rdflib.URIRef(self.uri)
         else:
-            workflow_uri = rdflib.URIRef('http://www.example.org/unpublishedworkflow')
+            workflow_uri = rdflib.URIRef('http://purl.org/nanopub/temp/workflow')
 
         step_provs = prov_logger.get_all()
         return WorkflowRetroProv(self, workflow_uri, step_provs)
