@@ -34,14 +34,15 @@ Checkout the [user documentation](https://fairworkflows.readthedocs.io/).
 
 The most recent release can be installed from the python package index using ```pip```:
 
-```
+```bash
 pip install fairworkflows
 ```
 
 To publish workflows to the nanopub server you need to setup your nanopub profile. This
 allows the nanopub server to identify you. Run the following in the terminal after installation:
-```
-setup_nanopub_profile
+
+```bash
+np setup
 ```
 This will add and store RSA keys to sign your nanopublications, publish a
 nanopublication with your name and ORCID iD to declare that you are

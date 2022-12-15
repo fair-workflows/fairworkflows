@@ -129,11 +129,11 @@ profile = "black"
 
 
 [tool.coverage.run]
-source = ["project"]
+source = ["fairworkflows"]
 branch = true
 
 [tool.coverage.report]
-omit = ["fairworkflows/trustyuri/*", "tests/*"]
+omit = ["fairworkflows/templates/*", "tests/*"]
 
 
 [tool.flake8]
@@ -147,6 +147,14 @@ ignore = [
     "E303", # too many blank lines
     "E301", # expected 1 blank lines found 0
     "W503", # line break before binary operator
+]
+exclude =[
+    ".git",
+    "__pycache__",
+    "fairworkflows/templates/",
+    "fairworkflows/old",
+    "venv",
+    "env"
 ]
 
 

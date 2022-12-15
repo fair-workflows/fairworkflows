@@ -3,8 +3,8 @@ import warnings
 import pytest
 import rdflib
 
-from conftest import use_test_server
 from fairworkflows.rdf_wrapper import RdfWrapper
+from tests.conftest import use_test_server
 
 
 class TestRdfWrapper:

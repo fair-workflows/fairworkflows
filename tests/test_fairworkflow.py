@@ -5,10 +5,10 @@ import pytest
 import rdflib
 from requests import HTTPError
 
-from conftest import read_rdf_test_resource, skip_if_nanopub_server_unavailable, use_test_server
 from fairworkflows import FairStep, FairWorkflow, is_fairstep, is_fairworkflow, namespaces
 from fairworkflows.prov import StepRetroProv, WorkflowRetroProv
 from fairworkflows.rdf_wrapper import replace_in_rdf
+from tests.conftest import read_rdf_test_resource, skip_if_nanopub_server_unavailable, use_test_server
 
 
 class TestFairWorkflow:

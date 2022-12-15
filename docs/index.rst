@@ -56,7 +56,7 @@ following in the terminal after installation:
 
 ::
 
-    setup_nanopub_profile
+    np setup
 
 This will add and store RSA keys to sign your nanopublications, publish
 a nanopublication with your name and ORCID iD to declare that you are

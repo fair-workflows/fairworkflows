@@ -5,10 +5,10 @@ import rdflib
 from nanopub import Nanopub
 from rdflib import DCTERMS, OWL, RDF
 
-from conftest import read_rdf_test_resource, skip_if_nanopub_server_unavailable, use_test_server
 from fairworkflows import FairStep, FairVariable, LinguisticSystem, namespaces
 from fairworkflows.fairstep import _extract_inputs_from_function, _extract_outputs_from_function, is_fairstep
 from fairworkflows.rdf_wrapper import replace_in_rdf
+from tests.conftest import read_rdf_test_resource, skip_if_nanopub_server_unavailable, use_test_server
 
 
 def test_construct_fair_variable_get_name_from_uri():
