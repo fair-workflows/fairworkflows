@@ -1,5 +1,7 @@
-import click
 import json
+
+import click
+
 
 @click.command()
 @click.argument('mode', type=str)

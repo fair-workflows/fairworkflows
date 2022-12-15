@@ -1,9 +1,12 @@
 import sys
 import warnings
 from typing import List
+
 import rdflib
-from rdflib import DC, RDF, RDFS, OWL
-from .namespaces import SCHEMAORG
+from rdflib import OWL, RDF, RDFS
+
+from .namespaces import DCTERMS, SCHEMAORG
+
 
 class LinguisticSystem:
     def __init__(self, lstype: rdflib.URIRef = None, label: str = None, see_also: rdflib.URIRef = None, version_info: str = None):
@@ -49,7 +52,7 @@ def _check_unique(l: List):
 
 
 
-LINGSYS_ENGLISH = LinguisticSystem(lstype=DC.LinguisticSystem,
+LINGSYS_ENGLISH = LinguisticSystem(lstype=DCTERMS.LinguisticSystem,
                                    label='en',
                                    see_also="http://www.datypic.com/sc/xsd/t-xsd_language.html")
 
@@ -57,4 +60,3 @@ LINGSYS_PYTHON = LinguisticSystem(lstype=SCHEMAORG.ComputerLanguage,
                                   label='python',
                                   version_info='.'.join([str(v) for v in sys.version_info]),
                                   see_also="https://www.wikidata.org/wiki/Q28865")
-

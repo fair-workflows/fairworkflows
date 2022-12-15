@@ -1,21 +1,18 @@
-import sys
 from typing import Tuple
-from unittest.mock import patch
 
 import pytest
 import rdflib
+from nanopub import Nanopub
 from rdflib import DCTERMS, OWL, RDF
-from nanopub import Publication
 
-from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairStep, namespaces, FairVariable, is_fairworkflow
-from fairworkflows.fairstep import _extract_outputs_from_function, is_fairstep, \
-    _extract_inputs_from_function
+from conftest import read_rdf_test_resource, skip_if_nanopub_server_unavailable, use_test_server
+from fairworkflows import FairStep, FairVariable, LinguisticSystem, namespaces
+from fairworkflows.fairstep import _extract_inputs_from_function, _extract_outputs_from_function, is_fairstep
 from fairworkflows.rdf_wrapper import replace_in_rdf
-from fairworkflows import LinguisticSystem
+
 
 def test_construct_fair_variable_get_name_from_uri():
-    variable = FairVariable(name=None, uri='http:example.org#input1', computational_type='int')
+    variable = FairVariable(name=None, uri='http://example.org#input1', computational_type='int')
     assert variable.name == 'input1'
     assert variable.computational_type == 'int'
 
@@ -169,17 +166,19 @@ class TestFairStep:
         with pytest.raises(AssertionError):
             step.validate()
 
-    @patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
-    @patch('fairworkflows.rdf_wrapper.NanopubClient.fetch')
-    def test_modification_and_republishing(self, nanopub_fetch_mock,
-                                           nanopub_publish_mock):
+    # @patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    # @patch('fairworkflows.rdf_wrapper.NanopubClient.fetch')
+    def test_modification_and_republishing(self):
 
-        test_uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        # test_uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg#step'
+        test_uri = 'http://purl.org/np/RACLlhNijmCk4AX_2PuoBPHKfY1T6jieGaUPVFv-fWCAg'
 
         # Mock the Nanopub.fetch() method to return a locally sourced nanopub
         nanopub_rdf = read_rdf_test_resource('sample_fairstep_nanopub.trig')
-        returned_nanopubobj = Publication(rdf=nanopub_rdf, source_uri=test_uri)
-        nanopub_fetch_mock.return_value = returned_nanopubobj
+        local_np = Nanopub(rdf=nanopub_rdf)
+        published_np = Nanopub(test_uri)
+        assert local_np.source_uri == published_np.source_uri
+        # nanopub_fetch_mock.return_value = returned_nanopubobj
 
         # 'Fetch' the nanopub as a fairstep, and attempt to publish it without modification
         preheat_oven = FairStep.from_nanopub(uri=test_uri)
@@ -187,14 +186,14 @@ class TestFairStep:
         assert not preheat_oven.is_modified
         original_uri = preheat_oven.uri
         with pytest.warns(Warning):
-            preheat_oven.publish_as_nanopub()
+            preheat_oven.publish_as_nanopub(use_test_server=use_test_server)
         assert preheat_oven.uri == original_uri
 
         # Now modify the step description
         preheat_oven.description =  'Preheat an oven to 200 degrees C.'
         assert preheat_oven.is_modified is True
-        preheat_oven.publish_as_nanopub()
-        assert nanopub_publish_mock.called
+        preheat_oven.publish_as_nanopub(use_test_server=use_test_server)
+        # assert nanopub_publish_mock.called
         assert preheat_oven.uri != original_uri
         assert preheat_oven.is_modified is False
 
@@ -247,8 +246,8 @@ class TestFairStep:
 
         assert len(step.rdf) == n_triples_before, 'shacl_validate mutated RDF'
 
-@patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
-def test_is_fairstep_decorator(mock_publish):
+# @patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+def test_is_fairstep_decorator():
     @is_fairstep(label='test_label')
     def add(a: int, b: int) -> int:
         """
@@ -258,8 +257,10 @@ def test_is_fairstep_decorator(mock_publish):
 
     assert hasattr(add(1,2), '_fairstep')
 
-    add._fairstep.publish_as_nanopub()
-    assert mock_publish.call_count == 1
+    add._fairstep.publish_as_nanopub(use_test_server=use_test_server)
+    assert add._fairstep.uri is not None
+    # TODO: improve test assertion here
+    # assert mock_publish.call_count == 1
 
 def test_decorator_semantic_types():
     test_types_a = ['http://www.example.org/distance', 'http://www.example.org/number']

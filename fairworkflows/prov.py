@@ -1,6 +1,6 @@
 import threading
 from datetime import datetime
-from typing import List, Iterator, Dict
+from typing import Dict, Iterator, List
 
 import rdflib
 
@@ -133,7 +133,7 @@ class StepRetroProv(RdfWrapper):
     def __str__(self):
         """String representation."""
         s = f'Step retrospective provenance.\n'
-        s += self._rdf.serialize(format='turtle').decode('utf-8')
+        s += self._rdf.serialize(format='turtle')
         return s
 
 
@@ -213,6 +213,10 @@ class WorkflowRetroProv(RdfWrapper):
 
         for stepprov in self._step_provs:
             stepprov.publish_as_nanopub(use_test_server=use_test_server, **kwargs)
+            print("PROV ERROR!")
+            print(self.self_ref)
+            print(stepprov.uri)
+            print(stepprov)
             self._rdf.add((self.self_ref, namespaces.PROV.hasMember, rdflib.URIRef(stepprov.uri)))
 
         return self._publish_as_nanopub(use_test_server=use_test_server, **kwargs)
@@ -220,5 +224,5 @@ class WorkflowRetroProv(RdfWrapper):
     def __str__(self):
         """String representation."""
         s = f'Workflow retrospective provenance.\n'
-        s += self._rdf.serialize(format='turtle').decode('utf-8')
+        s += self._rdf.serialize(format='turtle')
         return s

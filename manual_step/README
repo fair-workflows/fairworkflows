@@ -22,4 +22,3 @@ Test CWL manual tool with
 ## Higher level notebook
 * Each cell in a notebook can trigger a CWL workflow, using the inputs/outputs specified in the notebook.
 * Some cells are descriptions of manual tasks, followed by a prompt for the resulting data set that can be used as input to the next workflow.
-

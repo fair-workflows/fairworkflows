@@ -7,4 +7,3 @@ exclude =
     fairworkflows/old,
     venv,
     env
-

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
-import distutils
-
 import codecs
 import os.path
+
+from setuptools import setup
 
 
 def read(rel_path):
@@ -26,15 +25,15 @@ setup(
     name='fairworkflows',
     version=get_version('fairworkflows/_version.py'),
     description='FAIRWorkflows python library',
-    long_description=open("README.md", "r").read(),
+    long_description=open("README.md").read(),
     long_description_content_type='text/markdown',
     author='Robin Richardson, Djura Smits, Sven van den Burg',
     author_email='r.richardson@esciencecenter.nl',
     url='https://github.com/fair-workflows/fairworkflows/',
-    install_requires=open("requirements.txt", "r").readlines(),
+    install_requires=open("requirements.txt").readlines(),
     packages=['fairworkflows'],
     extras_require={
-        'dev': open('requirements_dev.txt', 'r').readlines()
+        'dev': open('requirements_dev.txt').readlines()
     },
     include_package_data=True,
     classifiers=[

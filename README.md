@@ -9,12 +9,12 @@
 
 # ```fairworkflows``` python library
 `fairworkflows` is a high-level, user-friendly python library that supports the construction,
-manipulation and publishing of FAIR scientific workflows using semantic technologies. 
+manipulation and publishing of FAIR scientific workflows using semantic technologies.
 
 ## Background
-`fairworkflows` is developed as a component of the FAIR Workbench, as part of the FAIR is FAIR project. 
+`fairworkflows` is developed as a component of the FAIR Workbench, as part of the FAIR is FAIR project.
 
-The focus is on description of workflows consisting of manual and computational steps using semantic technology, 
+The focus is on description of workflows consisting of manual and computational steps using semantic technology,
 such as the ontology described in the publication:
 
 _Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study._ [_arXiv:1911.09531._](https://arxiv.org/abs/1911.09531)
@@ -60,7 +60,7 @@ from fairworkflows import is_fairworkflow, is_fairstep, FairWorkflow
 
 ### Define a step for your workflow
 Mark a function as a FAIR step using the `is_fairstep` decorator.
-Use keyword arguments to semantically annotate the step. 
+Use keyword arguments to semantically annotate the step.
 In this example to provide a label and describe that this is a script task.
 ```python
 @is_fairstep(label='Addition', is_script_task=True)
@@ -69,7 +69,7 @@ def add(x: float, y: float) -> float:
     return x + y
 ```
 ### Define your workflow
-Define your workflow by calling previously defined step functions. 
+Define your workflow by calling previously defined step functions.
 Mark the function as a workflow using the `is_fairworkflow` decorator.
 ```python
 @is_fairworkflow(label='My Workflow')
