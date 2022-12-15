@@ -13,7 +13,10 @@
 
 
 Test CWL manual tool with
-```cwl-runner --preserve-entire-environment test_workflow.cwl --manual_mode commandline```
+
+```bash
+cwl-runner --preserve-entire-environment test_workflow.cwl --manual_mode commandline
+```
 
 ## Define manual step class in CWL spec?
 * Include RDF description of manual steps
