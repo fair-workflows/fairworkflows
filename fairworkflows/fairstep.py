@@ -452,7 +452,9 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         inputs = _extract_inputs_from_function(func, kwargs)
         outputs = _extract_outputs_from_function(func, kwargs)
 
-        fairstep = FairStep(uri='http://purl.org/nanopub/temp/'+func.__name__,
+        # TODO: use the regular nanopub temp URI instead of example.org?
+        # fairstep = FairStep(uri='http://purl.org/nanopub/temp/'+func.__name__,
+        fairstep = FairStep(uri='http://www.example.org/unpublished-'+func.__name__,
                             label=label,
                             description=description,
                             is_pplan_step=is_pplan_step,

@@ -1,4 +1,9 @@
+import logging
+
 from fairworkflows import FairWorkflow, is_fairstep, is_fairworkflow
+
+logger = logging.getLogger()
+logger.setLevel(logging.ERROR)
 
 print("📋️ Running basic workflow example in examples/basic_workflow.py")
 
@@ -38,18 +43,36 @@ def my_workflow(in1, in2, in3):
 fw = FairWorkflow.from_function(my_workflow)
 
 result, prov = fw.execute(1, 4, 3)
-print("prov")
-print(prov)
 # When unpublished it generates URI starting with http://www.example.org/unpublished
+# Should we change this to the temp nanopub URI?
 
+fw.publish_as_nanopub(use_test_server=True, publish_steps=True)
+
+for step in fw:
+    print("STEP FW")
+    print(step)
 
 prov.publish_as_nanopub(use_test_server=True)
 
-print("FairWorkflow:")
-print(fw)
-print("PROV:")
-print(prov._rdf.serialize(format="trig"))
+fw._rdf.serialize(f"examples/basic_workflow.workflow.trig", format="trig")
+prov._rdf.serialize(f"examples/basic_workflow.prov.trig", format="trig")
 
 for step_prov in prov:
     print("STEP PROV")
     print(step_prov)
+
+
+# Not working with nanopubs due to conflict with the graphs using the same namespaces
+# def merge_graphs(graph_list):
+#     """Merge RDFLib graphs while preserving the contexts"""
+#     merged = ConjunctiveGraph()
+#     for g in graph_list:
+#         for c in g.contexts():
+#             for s, p, o, cont in g.quads((None, None, None, c)):
+#                 merged.add((s, p, o, c))
+#     return merged
+# to_merge = [fw._rdf, prov._rdf]
+# for step_prov in prov:
+#     to_merge.append(step_prov._rdf)
+# g = merge_graphs(to_merge)
+# g.serialize(f"examples/basic_workflow.trig", format="trig")
