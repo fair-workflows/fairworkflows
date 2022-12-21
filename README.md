@@ -1,4 +1,4 @@
-![Build Status](https://github.com/fair-workflows/fairworkflows/workflows/Python%20application/badge.svg)
+[![Build Status](https://github.com/fair-workflows/fairworkflows/actions/workflows/build.yml/badge.svg)](https://github.com/fair-workflows/fairworkflows/actions/workflows/build.yml)
 [![Documentation Status](https://readthedocs.org/projects/fairworkflows/badge/?version=latest)](https://fairworkflows.readthedocs.io/en/latest/?badge=latest)
 [![Coverage Status](https://coveralls.io/repos/github/fair-workflows/fairworkflows/badge.svg?branch=main)](https://coveralls.io/github/fair-workflows/fairworkflows?branch=main)
 [![PyPI version](https://badge.fury.io/py/fairworkflows.svg)](https://badge.fury.io/py/fairworkflows)
@@ -9,12 +9,12 @@
 
 # ```fairworkflows``` python library
 `fairworkflows` is a high-level, user-friendly python library that supports the construction,
-manipulation and publishing of FAIR scientific workflows using semantic technologies. 
+manipulation and publishing of FAIR scientific workflows using semantic technologies.
 
 ## Background
-`fairworkflows` is developed as a component of the FAIR Workbench, as part of the FAIR is FAIR project. 
+`fairworkflows` is developed as a component of the FAIR Workbench, as part of the FAIR is FAIR project.
 
-The focus is on description of workflows consisting of manual and computational steps using semantic technology, 
+The focus is on description of workflows consisting of manual and computational steps using semantic technology,
 such as the ontology described in the publication:
 
 _Celebi, R., Moreira, J. R., Hassan, A. A., Ayyar, S., Ridder, L., Kuhn, T., & Dumontier, M. (2019). Towards FAIR protocols and workflows: The OpenPREDICT case study._ [_arXiv:1911.09531._](https://arxiv.org/abs/1911.09531)
@@ -34,14 +34,15 @@ Checkout the [user documentation](https://fairworkflows.readthedocs.io/).
 
 The most recent release can be installed from the python package index using ```pip```:
 
-```
+```bash
 pip install fairworkflows
 ```
 
 To publish workflows to the nanopub server you need to setup your nanopub profile. This
 allows the nanopub server to identify you. Run the following in the terminal after installation:
-```
-setup_nanopub_profile
+
+```bash
+np setup
 ```
 This will add and store RSA keys to sign your nanopublications, publish a
 nanopublication with your name and ORCID iD to declare that you are
@@ -60,7 +61,7 @@ from fairworkflows import is_fairworkflow, is_fairstep, FairWorkflow
 
 ### Define a step for your workflow
 Mark a function as a FAIR step using the `is_fairstep` decorator.
-Use keyword arguments to semantically annotate the step. 
+Use keyword arguments to semantically annotate the step.
 In this example to provide a label and describe that this is a script task.
 ```python
 @is_fairstep(label='Addition', is_script_task=True)
@@ -69,7 +70,7 @@ def add(x: float, y: float) -> float:
     return x + y
 ```
 ### Define your workflow
-Define your workflow by calling previously defined step functions. 
+Define your workflow by calling previously defined step functions.
 Mark the function as a workflow using the `is_fairworkflow` decorator.
 ```python
 @is_fairworkflow(label='My Workflow')
@@ -107,3 +108,7 @@ It is expected that the library will soon interact with FAIR Data Points as well
 
 ## Relation to existing workflow formats/engines (e.g. CWL, WDL, Snakemake etc)
 This library is not intended to replace or compete with the hundreds of existing computational workflow formats, but rather to aid in RDF description and comparison of workflows in the most general sense of the term (including manual experiemental steps, notebooks, and so on). Steps in a FAIRWorkflow may very well be 'run this CWL workflow' or 'run this script', so such workflows are expected to sit more on a meta-level, describing the before-and-after of running one of these fully automated computational workflows as well.
+
+## Contribute
+
+If you would like to know how contribute, or learn how to run the project in development, feel free to check the documentation at [CONTRIBUTING.md](https://github.com/fair-workflows/fairworkflows/blob/main/CONTRIBUTING.md)

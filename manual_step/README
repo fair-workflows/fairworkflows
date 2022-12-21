@@ -13,7 +13,10 @@
 
 
 Test CWL manual tool with
-```cwl-runner --preserve-entire-environment test_workflow.cwl --manual_mode commandline```
+
+```bash
+cwl-runner --preserve-entire-environment test_workflow.cwl --manual_mode commandline
+```
 
 ## Define manual step class in CWL spec?
 * Include RDF description of manual steps
@@ -22,4 +25,3 @@ Test CWL manual tool with
 ## Higher level notebook
 * Each cell in a notebook can trigger a CWL workflow, using the inputs/outputs specified in the notebook.
 * Some cells are descriptions of manual tasks, followed by a prompt for the resulting data set that can be used as input to the next workflow.
-

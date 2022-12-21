@@ -1,10 +1,10 @@
 import warnings
-from unittest import mock
 
 import pytest
 import rdflib
 
 from fairworkflows.rdf_wrapper import RdfWrapper
+from tests.conftest import use_test_server
 
 
 class TestRdfWrapper:
@@ -31,18 +31,18 @@ class TestRdfWrapper:
     def test_publish_as_nanopub_invalid_kwargs(self):
         wrapper = RdfWrapper(uri='test')
         with pytest.raises(ValueError):
-            wrapper._publish_as_nanopub(introduces_concept='test')
+            wrapper._publish_as_nanopub(introduces_concept='test', use_test_server=use_test_server)
         with pytest.raises(ValueError):
-            wrapper._publish_as_nanopub(assertion_rdf='test')
+            wrapper._publish_as_nanopub(assertion_rdf='test', use_test_server=use_test_server)
 
     def test_publish_as_nanopub_double_derived_from(self):
-        wrapper = RdfWrapper(uri='test', derived_from=['http:example.nl/workflow1'])
+        wrapper = RdfWrapper(uri='test', derived_from=['http://example.nl/workflow1'])
         with pytest.raises(ValueError):
-            wrapper._publish_as_nanopub(derived_from=['http:example.nl/workflow2'])
+            wrapper._publish_as_nanopub(derived_from=['http://example.nl/workflow2'], use_test_server=use_test_server)
 
-    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
-    def test_publish_as_nanopub_with_kwargs(self, nanopub_wrapper_publish_mock):
-        wrapper = RdfWrapper(uri='test', derived_from=['http:example.nl/workflow1'])
-        wrapper.rdf.add((rdflib.Literal('test'), rdflib.Literal('test'), rdflib.Literal('test')))
+    # @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    def test_publish_as_nanopub_with_kwargs(self):
+        wrapper = RdfWrapper(uri='test', derived_from=['http://example.nl/workflow1'])
+        wrapper.rdf.add((rdflib.URIRef('http://test'), rdflib.URIRef('http://test'), rdflib.Literal('test')))
         # attribute_asseriton_to_profile is kwarg for nanopub.Publication.from_assertion()
-        wrapper._publish_as_nanopub(attribute_assertion_to_profile=True)
+        wrapper._publish_as_nanopub(attribute_assertion_to_profile=True, use_test_server=use_test_server)

@@ -1,17 +1,14 @@
-import inspect
 import warnings
 from unittest import mock
 
 import pytest
 import rdflib
-from nanopub.definitions import DUMMY_NANOPUB_URI
 from requests import HTTPError
 
-from conftest import skip_if_nanopub_server_unavailable, read_rdf_test_resource
-from fairworkflows import FairWorkflow, FairStep, namespaces, FairVariable, is_fairstep, is_fairworkflow
-from fairworkflows.prov import WorkflowRetroProv, StepRetroProv
+from fairworkflows import FairStep, FairWorkflow, is_fairstep, is_fairworkflow, namespaces
+from fairworkflows.prov import StepRetroProv, WorkflowRetroProv
 from fairworkflows.rdf_wrapper import replace_in_rdf
-from nanopub import Publication
+from tests.conftest import read_rdf_test_resource, skip_if_nanopub_server_unavailable, use_test_server
 
 
 class TestFairWorkflow:
@@ -265,27 +262,28 @@ class TestFairWorkflow:
         """
         test_workflow.display_rdf()
 
-    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
-    def test_publish_as_nanopub(self, mock_publish, test_workflow):
-        test_published_uris = ['www.example.org/published_step1#step',
-                               'www.example.org/published_step2#step',
-                               'www.example.org/published_step3#step',
-                               'www.example.org/published_workflow#workflow']
-        mock_publish.side_effect = [
-            {'concept_uri': test_published_uris[0]},  # first call
-            {'concept_uri': test_published_uris[1]},
-            {'concept_uri': test_published_uris[2]},
-            {'concept_uri': test_published_uris[3]}   # Last call
-        ]
+    # @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    def test_publish_as_nanopub(self, test_workflow):
+        # test_published_uris = ['http://www.example.org/published_step1#step',
+        #                        'http://www.example.org/published_step2#step',
+        #                        'http://www.example.org/published_step3#step',
+        #                        'http://www.example.org/published_workflow#workflow']
+        # mock_publish.side_effect = [
+        #     {'concept_uri': test_published_uris[0]},  # first call
+        #     {'concept_uri': test_published_uris[1]},
+        #     {'concept_uri': test_published_uris[2]},
+        #     {'concept_uri': test_published_uris[3]}   # Last call
+        # ]
         with pytest.raises(RuntimeError):
             # 'Publishing a workflow with unpublished steps must raise RunTimeError...'
-            test_workflow.publish_as_nanopub()
+            test_workflow.publish_as_nanopub(use_test_server=use_test_server)
         # ...unless using pubish_steps=True
-        pubinfo = test_workflow.publish_as_nanopub(publish_steps=True)
-        assert pubinfo['concept_uri'] == 'www.example.org/published_workflow#workflow'
-        assert mock_publish.call_count == 4  # 1 workflow, 3 steps
+        pubinfo = test_workflow.publish_as_nanopub(publish_steps=True, use_test_server=use_test_server)
+        assert pubinfo['concept_uri'].endswith("#plan")
+
+        # assert mock_publish.call_count == 4  # 1 workflow, 3 steps
         for step in test_workflow:
-            assert step.uri in test_published_uris
+            # assert step.uri in test_published_uris
             assert ((rdflib.URIRef(step.uri), None, None) in test_workflow.rdf
                     or (None, None, rdflib.URIRef(step.uri)) in test_workflow.rdf), \
                 'The new step URIs are not in the workflow'
@@ -294,8 +292,8 @@ class TestFairWorkflow:
                     and (None, None, rdflib.URIRef(uri)) not in test_workflow.rdf), \
                 'The old step URIs are still in the workflow'
 
-    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
-    def test_publish_as_nanopub_no_modifications(self, mock_publish, test_workflow):
+    # @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    def test_publish_as_nanopub_no_modifications(self, test_workflow):
         """
         Test case of an already published workflow that itself nor its steps are not modified.
         """
@@ -304,12 +302,12 @@ class TestFairWorkflow:
             step._is_published = True
         test_workflow._is_modified = False
         test_workflow._is_published = True
-        pubinfo = test_workflow.publish_as_nanopub()
-        assert mock_publish.call_count == 0
+        pubinfo = test_workflow.publish_as_nanopub(use_test_server=use_test_server)
+        # assert mock_publish.call_count == 0
         assert pubinfo['nanopub_uri'] is None
 
-    @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
-    def test_workflow_construction_and_execution(self, mock_publish):
+    # @mock.patch('fairworkflows.rdf_wrapper.NanopubClient.publish')
+    def test_workflow_construction_and_execution(self):
         """
         Construct a workflow using the is_fairstep and is_fairworkflow decorators
         and check that execution and returned provenance is as expected. Then
@@ -362,20 +360,19 @@ class TestFairWorkflow:
             assert step_prov.step in fw._steps.values()
             print(step_prov)
 
-        test_published_uris = [
-                                'www.example.org/published1#prov',
-                                'www.example.org/published2#prov',
-                                'www.example.org/published3#prov',
-                                'www.example.org/published4#prov',
-                                'www.example.org/published5#prov'
-                              ]
-        mock_publish.side_effect = [{'concept_uri': uri} for uri in test_published_uris]
+        # test_published_uris = [
+        #     'http://www.example.org/published1#prov',
+        #     'http://www.example.org/published2#prov',
+        #     'http://www.example.org/published3#prov',
+        #     'http://www.example.org/published4#prov',
+        #     'http://www.example.org/published5#prov'
+        # ]
+        # mock_publish.side_effect = [{'concept_uri': uri} for uri in test_published_uris]
 
-        prov.publish_as_nanopub()
-        assert mock_publish.call_count == 5  # 1 workflow, 4 steps
+        prov.publish_as_nanopub(use_test_server=use_test_server)
+        # assert mock_publish.call_count == 5  # 1 workflow, 4 steps
+        assert (None, namespaces.PROV.hasMember, None) in prov._rdf
 
-        for uri in test_published_uris[:4]:
-            assert (None, namespaces.PROV.hasMember, rdflib.URIRef(uri)) in prov._rdf
 
     def test_workflow_complex_serialization(self):
         class OtherType:

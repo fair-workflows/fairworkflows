@@ -1,10 +1,12 @@
 import base64
 import cgi
 import logging
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import List, Dict
-from fairworkflows.config import MANUAL_ASSISTANT_HOST, MANUAL_ASSISTANT_PORT
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Dict, List
+
 from jinja2 import Environment, PackageLoader, select_autoescape
+
+from fairworkflows.config import MANUAL_ASSISTANT_HOST, MANUAL_ASSISTANT_PORT
 
 logging.basicConfig(level=logging.INFO)
 env = Environment(loader=PackageLoader('fairworkflows', 'templates'), autoescape=select_autoescape('html'))

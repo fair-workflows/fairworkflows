@@ -1,11 +1,9 @@
 import inspect
-import io
-import logging
 import warnings
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator, Optional, Callable
+from typing import Callable, Iterator, Optional
 
 import networkx as nx
 import noodles
@@ -15,8 +13,7 @@ from rdflib import RDF
 from rdflib.tools.rdf2dot import rdf2dot
 from requests import HTTPError
 
-from fairworkflows import namespaces, LinguisticSystem, LINGSYS_PYTHON
-from fairworkflows.config import LOGGER
+from fairworkflows import LINGSYS_PYTHON, LinguisticSystem, namespaces
 from fairworkflows.fairstep import FairStep
 from fairworkflows.prov import WorkflowRetroProv, prov_logger
 from fairworkflows.rdf_wrapper import RdfWrapper
@@ -344,7 +341,7 @@ class FairWorkflow(RdfWrapper):
             raise ValueError(
                 'Cannot display workflow as no noodles step_level_promise has been constructed.')
 
-        from IPython.display import display, SVG
+        from IPython.display import SVG, display
 
         with TemporaryDirectory() as td:
             filename = Path(td) / 'dag.svg'
@@ -385,6 +382,8 @@ class FairWorkflow(RdfWrapper):
             workflow_uri = rdflib.URIRef(self.uri)
         else:
             workflow_uri = rdflib.URIRef('http://www.example.org/unpublishedworkflow')
+            # TODO: use the regular nanopub temp URI instead of example.org?
+            # workflow_uri = rdflib.URIRef('http://purl.org/nanopub/temp/workflow')
 
         step_provs = prov_logger.get_all()
         return WorkflowRetroProv(self, workflow_uri, step_provs)
@@ -448,7 +447,7 @@ class FairWorkflow(RdfWrapper):
             Returns string representation of this FairWorkflow object.
         """
         s = f'Workflow URI = {self._uri}\n'
-        s += self._rdf.serialize(format='trig').decode('utf-8')
+        s += self._rdf.serialize(format='trig')
         return s
 
 

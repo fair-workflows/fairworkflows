@@ -1,23 +1,20 @@
 import functools
-import sys
 import inspect
 import typing
 from copy import deepcopy
-from typing import Callable, get_type_hints, List, Union
-from urllib.parse import urldefrag
 from datetime import datetime
+from typing import Callable, List, Union, get_type_hints
+from urllib.parse import urldefrag
 from warnings import warn
 
 import noodles
 import rdflib
-from rdflib import RDF, RDFS, DCTERMS
+from rdflib import RDF, RDFS
 
-from fairworkflows import namespaces, LinguisticSystem, LINGSYS_ENGLISH, LINGSYS_PYTHON
-from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME, \
-    LOGGER, WARN_FOR_TYPE_HINTING
-from fairworkflows.prov import prov_logger, StepRetroProv
+from fairworkflows import LINGSYS_ENGLISH, LINGSYS_PYTHON, LinguisticSystem, manual_assistant, namespaces
+from fairworkflows.config import DUMMY_FAIRWORKFLOWS_URI, IS_FAIRSTEP_RETURN_VALUE_PARAMETER_NAME, WARN_FOR_TYPE_HINTING
+from fairworkflows.prov import StepRetroProv, prov_logger
 from fairworkflows.rdf_wrapper import RdfWrapper, replace_in_rdf
-from fairworkflows import manual_assistant
 
 
 class FairVariable:
@@ -400,7 +397,7 @@ class FairStep(RdfWrapper):
             Returns string representation of this FairStep object.
         """
         s = f'Step URI = {self._uri}\n'
-        s += self._rdf.serialize(format='trig').decode('utf-8')
+        s += self._rdf.serialize(format='trig')
         return s
 
 
@@ -455,6 +452,8 @@ def is_fairstep(label: str = None, is_pplan_step: bool = True, is_manual_task: b
         inputs = _extract_inputs_from_function(func, kwargs)
         outputs = _extract_outputs_from_function(func, kwargs)
 
+        # TODO: use the regular nanopub temp URI instead of example.org?
+        # fairstep = FairStep(uri='http://purl.org/nanopub/temp/'+func.__name__,
         fairstep = FairStep(uri='http://www.example.org/unpublished-'+func.__name__,
                             label=label,
                             description=description,
