@@ -108,3 +108,7 @@ It is expected that the library will soon interact with FAIR Data Points as well
 
 ## Relation to existing workflow formats/engines (e.g. CWL, WDL, Snakemake etc)
 This library is not intended to replace or compete with the hundreds of existing computational workflow formats, but rather to aid in RDF description and comparison of workflows in the most general sense of the term (including manual experiemental steps, notebooks, and so on). Steps in a FAIRWorkflow may very well be 'run this CWL workflow' or 'run this script', so such workflows are expected to sit more on a meta-level, describing the before-and-after of running one of these fully automated computational workflows as well.
+
+## Contribute
+
+If you would like to know how contribute, or learn how to run the project in development, feel free to check the documentation at [CONTRIBUTING.md](https://github.com/fair-workflows/fairworkflows/blob/main/CONTRIBUTING.md)

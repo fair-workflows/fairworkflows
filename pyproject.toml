@@ -28,8 +28,7 @@ classifiers = [
 dynamic = ["version"]
 
 dependencies = [
-    "nanopub@git+https://github.com/vemonet/nanopub.git",
-    # "nanopub >=2.0.0",
+    "nanopub >=2.0.0",
     "networkx ~=2.5",
     "pyyaml",
     "rdflib <7.0.0,>=6.0.2",
@@ -37,8 +36,6 @@ dependencies = [
     "pyshacl >=0.17.0",
     "noodles ==0.3.3",
     "Jinja2 >=2.11.3",
-    # "Jinja2 ==2.11.3",
-    # "markupsafe ==2.0.1", # fixed for a bug related to jinja2
 ]
 
 [project.optional-dependencies]
